@@ -1,0 +1,23 @@
+{
+    "name": "stefangabos/zebra_session",
+    "type": "library",
+    "description": "A PHP library acting as a wrapper for PHP's default session handling functions which stores data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking.",
+    "keywords": ["session", "locking", "flash", "flashdata", "fixation", "hijack", "mysqli", "mysql", "database"],
+    "homepage": "http://stefangabos.ro/php-libraries/zebra-session/",
+    "license": "LGPL-3.0",
+    "authors": [
+        {
+            "name": "Stefan Gabos",
+            "email": "contact@stefangabos.ro",
+            "homepage": "http://stefangabos.ro/",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.0.0"
+    },
+    "version": "2.1.0",
+    "autoload": {
+        "psr-0": { "Zebra_Session": "" }
+    }
+}
