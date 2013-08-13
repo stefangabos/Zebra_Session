@@ -40,7 +40,6 @@ class Zebra_Session
     private $flashdata;
     private $flashdata_varname;
     private $session_lifetime;
-    private $session_lifetime;
     private $link;
     private $lock_timeout;
     private $lock_to_ip;
