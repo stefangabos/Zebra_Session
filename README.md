@@ -40,13 +40,14 @@ Download the latest version, unpack it, and put it in a place accessible to your
 <?php
 
     // first, connect to a database containing the sessions table
+    // like $link = mysqli_connect(host, username, password, database);
 
     // include the Zebra_Session class
     include 'path/to/Zebra_Session.php';
 
     // instantiate the class
     // this also calls session_start()
-    $session = new Zebra_Session;
+    $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
 
     // from now on, use sessions as you would normally
     // this is why it is called a "drop-in replacement" :)
