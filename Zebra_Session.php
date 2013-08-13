@@ -15,7 +15,7 @@
  *
  *  Zebra_Session supports "flashdata" - session variable which will only be available for the next server request, and
  *  which will be automatically deleted afterwards. Typically used for informational or status messages (for example:
- *  "data has been successfully update").
+ *  "data has been successfully updated").
  *
  *  Zebra_Session is was inspired by John Herren's code from the {@link http://devzone.zend.com/413/trick-out-your-session-handler/ Trick out your session handler}
  *  article and {@link http://shiflett.org/articles/the-truth-about-sessions Chris Shiflett}'s articles about PHP sessions.
@@ -51,11 +51,14 @@ class Zebra_Session
      *  {@link http://php.net/manual/en/function.session-start.php start_session()}.
      *
      *  <code>
+     *  // first, connect to a database containing the sessions table
+     *
      *  //  include the class
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  $session = new Zebra_Session();
+     *  //  where $link is a connection link done with mysqli_connect
+     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *  </code>
      *
      *  By default, the cookie used by PHP to propagate session data across multiple pages ('PHPSESSID') uses the
@@ -316,11 +319,14 @@ class Zebra_Session
      *  although they haven't expired.</i>
      *
      *  <code>
+     *  // first, connect to a database containing the sessions table
+     *
      *  //  include the class
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  $session = new Zebra_Session();
+     *  //  where $link is a connection link done with mysqli_connect
+     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  get the (approximate) number of active sessions
      *  $active_sessions = $session->get_active_sessions();
@@ -404,11 +410,14 @@ class Zebra_Session
      *  <b>Call this method whenever you do a privilege change in order to prevent session hijacking!</b>
      *
      *  <code>
+     *  // first, connect to a database containing the sessions table
+     *
      *  //  include the class
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  $session = new Zebra_Session();
+     *  //  where $link is a connection link done with mysqli_connect
+     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  regenerate the session's ID
      *  $session->regenerate_id();
@@ -437,14 +446,17 @@ class Zebra_Session
      *  Sets a "flashdata" session variable which will only be available for the next server request, and which will be
      *  automatically deleted afterwards.
      *
-     *  Typically used for informational or status messages (for example: "data has been successfully update").
+     *  Typically used for informational or status messages (for example: "data has been successfully updated").
      *
      *  <code>
+     *  // first, connect to a database containing the sessions table
+     *
      *  // include the library
      *  require 'path/to/Zebra_Session.php';
      *
-     *  // start the session
-     *  $session = new Zebra_Session();
+     *  //  start the session
+     *  //  where $link is a connection link done with mysqli_connect
+     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  // set "myvar" which will only be available
      *  // for the next server request and will be
@@ -484,11 +496,14 @@ class Zebra_Session
      *  Deletes all data related to the session
      *
      *  <code>
+     *  // first, connect to a database containing the sessions table
+     *
      *  //  include the class
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  $session = new Zebra_Session();
+     *  //  where $link is a connection link done with mysqli_connect
+     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  end current session
      *  $session->stop();
