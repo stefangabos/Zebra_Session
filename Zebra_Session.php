@@ -57,7 +57,7 @@ class Zebra_Session
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link done with mysqli_connect
+     *  //  where $link is a connection link returned by mysqli_connect
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *  </code>
      *
@@ -325,7 +325,7 @@ class Zebra_Session
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link done with mysqli_connect
+     *  //  where $link is a connection link returned by mysqli_connect
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  get the (approximate) number of active sessions
@@ -416,7 +416,7 @@ class Zebra_Session
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link done with mysqli_connect
+     *  //  where $link is a connection link returned by mysqli_connect
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  regenerate the session's ID
@@ -455,7 +455,7 @@ class Zebra_Session
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link done with mysqli_connect
+     *  //  where $link is a connection link returned by mysqli_connect
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  // set "myvar" which will only be available
@@ -502,7 +502,7 @@ class Zebra_Session
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link done with mysqli_connect
+     *  //  where $link is a connection link returned by mysqli_connect
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *
      *  //  end current session
