@@ -428,17 +428,10 @@ class Zebra_Session
     public function regenerate_id()
     {
 
-        // saves the old session's id
-        $old_session_id = session_id();
-
         // regenerates the id
         // this function will create a new session, with a new id and containing the data from the old session
-        // but will not delete the old session
-        session_regenerate_id();
-
-        // because the session_regenerate_id() function does not delete the old session,
-        // we have to delete it manually
-        $this->destroy($old_session_id);
+        // first parameter is $delete_old_session
+        session_regenerate_id(true);
 
     }
 
