@@ -28,8 +28,8 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.0 (last revision: August 03, 2013)
- *  @copyright  (c) 2006 - 2013 Stefan Gabos
+ *  @version    2.1.1 (last revision: September 25, 2013)
+ *  @copyright  (c) 2006 - 2014 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
@@ -428,9 +428,8 @@ class Zebra_Session
     public function regenerate_id()
     {
 
-        // regenerates the id
-        // this function will create a new session, with a new id and containing the data from the old session
-        // first parameter is $delete_old_session
+        // regenerates the id (create a new session with a new id and containing the data from the old session)
+        // also, delete the old session
         session_regenerate_id(true);
 
     }
