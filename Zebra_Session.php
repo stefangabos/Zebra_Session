@@ -282,7 +282,12 @@ class Zebra_Session
             );
 
             // start the session
-            session_start();
+            if (!isset($_SESSION)) { 
+                session_start(); 
+            } else {
+                session_destroy();
+                session_start(); 
+            }
 
             // the name for the session variable that will be created upon script execution
             // and destroyed when instantiating this library, and which will hold information
