@@ -19,7 +19,7 @@
     "version": "2.1.2",
     "autoload": {
         "classmap": [
-            "Zebra_Pagination.php"
+            "Zebra_Session.php"
         ]
     }
 }
