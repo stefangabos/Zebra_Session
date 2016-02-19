@@ -1,4 +1,10 @@
-##Zebra_Session
+# Zebra_Session
+
+----
+
+[Packagist](https://packagist.org/) stats
+
+[![Latest Stable Version](https://poser.pugx.org/stefangabos/zebra_session/v/stable)](https://packagist.org/packages/stefangabos/zebra_session) [![Total Downloads](https://poser.pugx.org/stefangabos/zebra_session/downloads)](https://packagist.org/packages/stefangabos/zebra_session) [![Monthly Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/monthly)](https://packagist.org/packages/stefangabos/zebra_session) [![Daily Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/daily)](https://packagist.org/packages/stefangabos/zebra_session) [![License](https://poser.pugx.org/stefangabos/zebra_session/license)](https://packagist.org/packages/stefangabos/zebra_session)
 
 ####A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking.
 
