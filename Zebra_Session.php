@@ -579,6 +579,7 @@ class Zebra_Session
 
         ') or die($this->_mysql_error());
 
+        return true;
     }
 
     /**
@@ -698,19 +699,7 @@ class Zebra_Session
 
         // if anything happened
         if ($result) {
-
-            // note that after this type of queries, mysqli_affected_rows() returns
-            // - 1 if the row was inserted
-            // - 2 if the row was updated
-
-            // if the row was updated
-            // return TRUE
-            if (@$this->_mysql_affected_rows() > 1) return true;
-
-            // if the row was inserted
-            // return an empty string
-            else return '';
-
+            return true;
         }
 
         // if something went wrong, return false
