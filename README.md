@@ -1,6 +1,6 @@
 # Zebra_Session
 
-####A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking.
+#### A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking.
 
 ----
 
@@ -18,7 +18,7 @@ Zebra_Session is was inspired by John Herren's code from the [Trick out your ses
 
 The code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL.
 
-##Features
+## Features
 
 - acts as a wrapper for PHP’s default session handling functions, but instead of storing session data in flat files it stores them in a MySQL database, providing better security and better performance
 
@@ -43,25 +43,21 @@ Download the latest version, unpack it, and put it in a place accessible to your
 *Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one! If you really need the class to make a database connection, put the code in the "open" method of the class.*
 
 ```php
-<?php
+// first, connect to a database containing the sessions table
+// like $link = mysqli_connect(host, username, password, database);
 
-    // first, connect to a database containing the sessions table
-    // like $link = mysqli_connect(host, username, password, database);
+// include the Zebra_Session class
+include 'path/to/Zebra_Session.php';
 
-    // include the Zebra_Session class
-    include 'path/to/Zebra_Session.php';
+// instantiate the class
+// this also calls session_start()
+$session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
 
-    // instantiate the class
-    // this also calls session_start()
-    $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+// from now on, use sessions as you would normally
+// this is why it is called a "drop-in replacement" :)
+$_SESSION['foo'] = 'bar';
 
-    // from now on, use sessions as you would normally
-    // this is why it is called a "drop-in replacement" :)
-    $_SESSION['foo'] = 'bar';
-
-    // data is in the database!
-
-?>
+// data is in the database!
 ```
 
 Visit the **[project's homepage](http://stefangabos.ro/php-libraries/zebra-session/)** for more information.
