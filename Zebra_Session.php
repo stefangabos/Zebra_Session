@@ -312,6 +312,68 @@ class Zebra_Session
     }
 
     /**
+     *  Custom close() function
+     *
+     *  @access private
+     */
+    function close() {
+
+        // release the lock associated with the current session
+        $this->_mysql_query('SELECT RELEASE_LOCK("' . $this->session_lock . '")')
+
+            // stop execution and print message on error
+            or die($this->_mysql_error());
+
+        return true;
+
+    }
+
+    /**
+     *  Custom destroy() function
+     *
+     *  @access private
+     */
+    function destroy($session_id) {
+
+        // deletes the current session id from the database
+        $this->_mysql_query('
+
+            DELETE FROM
+                ' . $this->table_name . '
+            WHERE
+                session_id = "' . $this->_mysql_real_escape_string($session_id) . '"
+
+        ') or die($this->_mysql_error());
+
+        // if anything happened
+        // return true
+        if ($this->_mysql_affected_rows() !== -1) return true;
+
+        // if something went wrong, return false
+        return false;
+
+    }
+
+    /**
+     *  Custom gc() function (garbage collector)
+     *
+     *  @access private
+     */
+    function gc() {
+
+        // deletes expired sessions from database
+        $this->_mysql_query('
+
+            DELETE FROM
+                ' . $this->table_name . '
+            WHERE
+                session_expire < "' . $this->_mysql_real_escape_string(time()) . '"
+
+        ') or die($this->_mysql_error());
+
+    }
+
+    /**
      *  Get the number of active sessions - sessions that have not expired.
      *
      *  <i>The returned value does not represent the exact number of active users as some sessions may be unused
@@ -398,6 +460,86 @@ class Zebra_Session
             'session.gc_divisor'        =>  $gc_divisor,
             'probability'               =>  $gc_probability / $gc_divisor * 100 . '%',
         );
+
+    }
+
+    /**
+     *  Custom open() function
+     *
+     *  @access private
+     */
+    function open() {
+
+        return true;
+
+    }
+
+    /**
+     *  Custom read() function
+     *
+     *  @access private
+     */
+    function read($session_id) {
+
+        // get the lock name, associated with the current session
+        $this->session_lock = $this->_mysql_real_escape_string('session_' . $session_id);
+
+        // try to obtain a lock with the given name and timeout
+        $result = $this->_mysql_query('SELECT GET_LOCK("' . $this->session_lock . '", ' . $this->_mysql_real_escape_string($this->lock_timeout) . ')');
+
+        // if there was an error
+        // stop execution
+        if (!$result || @mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
+
+        //  reads session data associated with a session id, but only if
+        //  -   the session ID exists;
+        //  -   the session has not expired;
+        //  -   if lock_to_user_agent is TRUE and the HTTP_USER_AGENT is the same as the one who had previously been associated with this particular session;
+        //  -   if lock_to_ip is TRUE and the host is the same as the one who had previously been associated with this particular session;
+        $hash = '';
+
+        // if we need to identify sessions by also checking the user agent
+        if ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']))
+
+            $hash .= $_SERVER['HTTP_USER_AGENT'];
+
+        // if we need to identify sessions by also checking the host
+        if ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']))
+
+            $hash .= $_SERVER['REMOTE_ADDR'];
+
+        // append this to the end
+        $hash .= $this->security_code;
+
+        $result = $this->_mysql_query('
+
+            SELECT
+                session_data
+            FROM
+                ' . $this->table_name . '
+            WHERE
+                session_id = "' . $this->_mysql_real_escape_string($session_id) . '" AND
+                session_expire > "' . time() . '" AND
+                hash = "' . $this->_mysql_real_escape_string(md5($hash)) . '"
+            LIMIT 1
+
+        ') or die($this->_mysql_error());
+
+        // if anything was found
+        if ($result && @mysqli_num_rows($result) > 0) {
+
+            // return found data
+            $fields = @mysqli_fetch_assoc($result);
+
+            // don't bother with the unserialization - PHP handles this automatically
+            return $fields['session_data'];
+
+        }
+
+        $this->regenerate_id();
+
+        // on error return an empty string - this HAS to be an empty string
+        return '';
 
     }
 
@@ -507,148 +649,6 @@ class Zebra_Session
         session_unset();
 
         session_destroy();
-
-    }
-
-    /**
-     *  Custom close() function
-     *
-     *  @access private
-     */
-    function close() {
-
-        // release the lock associated with the current session
-        $this->_mysql_query('SELECT RELEASE_LOCK("' . $this->session_lock . '")')
-
-            // stop execution and print message on error
-            or die($this->_mysql_error());
-
-        return true;
-
-    }
-
-    /**
-     *  Custom destroy() function
-     *
-     *  @access private
-     */
-    function destroy($session_id) {
-
-        // deletes the current session id from the database
-        $this->_mysql_query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = "' . $this->_mysql_real_escape_string($session_id) . '"
-
-        ') or die($this->_mysql_error());
-
-        // if anything happened
-        // return true
-        if ($this->_mysql_affected_rows() !== -1) return true;
-
-        // if something went wrong, return false
-        return false;
-
-    }
-
-    /**
-     *  Custom gc() function (garbage collector)
-     *
-     *  @access private
-     */
-    function gc() {
-
-        // deletes expired sessions from database
-        $this->_mysql_query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_expire < "' . $this->_mysql_real_escape_string(time()) . '"
-
-        ') or die($this->_mysql_error());
-
-    }
-
-    /**
-     *  Custom open() function
-     *
-     *  @access private
-     */
-    function open() {
-
-        return true;
-
-    }
-
-    /**
-     *  Custom read() function
-     *
-     *  @access private
-     */
-    function read($session_id) {
-
-        // get the lock name, associated with the current session
-        $this->session_lock = $this->_mysql_real_escape_string('session_' . $session_id);
-
-        // try to obtain a lock with the given name and timeout
-        $result = $this->_mysql_query('SELECT GET_LOCK("' . $this->session_lock . '", ' . $this->_mysql_real_escape_string($this->lock_timeout) . ')');
-
-        // if there was an error
-        // stop execution
-        if (!$result || @mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
-
-        //  reads session data associated with a session id, but only if
-        //  -   the session ID exists;
-        //  -   the session has not expired;
-        //  -   if lock_to_user_agent is TRUE and the HTTP_USER_AGENT is the same as the one who had previously been associated with this particular session;
-        //  -   if lock_to_ip is TRUE and the host is the same as the one who had previously been associated with this particular session;
-        $hash = '';
-
-        // if we need to identify sessions by also checking the user agent
-        if ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']))
-
-            $hash .= $_SERVER['HTTP_USER_AGENT'];
-
-        // if we need to identify sessions by also checking the host
-        if ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']))
-
-            $hash .= $_SERVER['REMOTE_ADDR'];
-
-        // append this to the end
-        $hash .= $this->security_code;
-
-        $result = $this->_mysql_query('
-
-            SELECT
-                session_data
-            FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = "' . $this->_mysql_real_escape_string($session_id) . '" AND
-                session_expire > "' . time() . '" AND
-                hash = "' . $this->_mysql_real_escape_string(md5($hash)) . '"
-            LIMIT 1
-
-        ') or die($this->_mysql_error());
-
-        // if anything was found
-        if ($result && @mysqli_num_rows($result) > 0) {
-
-            // return found data
-            $fields = @mysqli_fetch_assoc($result);
-
-            // don't bother with the unserialization - PHP handles this automatically
-            return $fields['session_data'];
-
-        }
-
-        $this->regenerate_id();
-
-        // on error return an empty string - this HAS to be an empty string
-        return '';
 
     }
 
