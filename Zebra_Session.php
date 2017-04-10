@@ -28,8 +28,8 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.4 (last revision: February 19, 2016)
- *  @copyright  (c) 2006 - 2016 Stefan Gabos
+ *  @version    2.1.5 (last revision: April 10, 2017)
+ *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
@@ -696,22 +696,8 @@ class Zebra_Session
 
         ') or die($this->_mysql_error());
 
-        // if anything happened
-        if ($result) {
-
-            // note that after this type of queries, mysqli_affected_rows() returns
-            // - 1 if the row was inserted
-            // - 2 if the row was updated
-
-            // if the row was updated
-            // return TRUE
-            if (@$this->_mysql_affected_rows() > 1) return true;
-
-            // if the row was inserted
-            // return an empty string
-            else return '';
-
-        }
+        // if anything happened, return TRUE
+        if ($result) return true;
 
         // if something went wrong, return false
         return false;
