@@ -227,11 +227,11 @@ class Zebra_Session
     function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60)
     {
 
-        // store the connection link
-        $this->link = $link;
+        // continue if the provided link is valid
+        if ($link instanceof MySQLi && $link->connect_error === null) {
 
-        // continue if there is an active MySQL connection
-        if ($this->_mysql_ping()) {
+            // store the connection link
+            $this->link = $link;
 
             // make sure session cookies never expire so that session lifetime
             // will depend only on the value of $session_lifetime
@@ -780,19 +780,6 @@ class Zebra_Session
 
         // execute "mysqli_query" and returns the result
         return mysqli_query($this->link, $query);
-
-    }
-
-    /**
-     *  Wrapper for PHP's "mysqli_ping" function.
-     *
-     *  @access private
-     */
-    private function _mysql_ping()
-    {
-
-        // execute "mysqli_ping" and returns the result
-        return mysqli_ping($this->link);
 
     }
 
