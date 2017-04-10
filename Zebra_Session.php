@@ -535,7 +535,7 @@ class Zebra_Session
     function destroy($session_id) {
 
         // deletes the current session id from the database
-        $result = $this->_mysql_query('
+        $this->_mysql_query('
 
             DELETE FROM
                 ' . $this->table_name . '
@@ -577,7 +577,7 @@ class Zebra_Session
      *
      *  @access private
      */
-    function open($save_path, $session_name) {
+    function open() {
 
         return true;
 
