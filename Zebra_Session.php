@@ -598,7 +598,7 @@ class Zebra_Session
 
         // if there was an error
         // stop execution
-        if (!is_object($result) || strtolower(get_class($result)) != 'mysqli_result' || @mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
+        if (!$result || @mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
 
         //  reads session data associated with a session id, but only if
         //  -   the session ID exists;
@@ -635,7 +635,7 @@ class Zebra_Session
         ') or die($this->_mysql_error());
 
         // if anything was found
-        if (is_object($result) && strtolower(get_class($result)) == 'mysqli_result' && @mysqli_num_rows($result) > 0) {
+        if ($result && @mysqli_num_rows($result) > 0) {
 
             // return found data
             $fields = @mysqli_fetch_assoc($result);
@@ -685,10 +685,8 @@ class Zebra_Session
         ') or die($this->_mysql_error());
 
         // if anything happened, return TRUE
-        if ($result) return true;
-
         // if something went wrong, return false
-        return false;
+        return $result ? true : false;
 
     }
 
