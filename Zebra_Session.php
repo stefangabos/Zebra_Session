@@ -561,7 +561,7 @@ class Zebra_Session
     function gc() {
 
         // deletes expired sessions from database
-        $result = $this->_mysql_query('
+        $this->_mysql_query('
 
             DELETE FROM
                 ' . $this->table_name . '
