@@ -587,7 +587,7 @@ class Zebra_Session
      *  $session->set_flashdata('myvar', 'myval');
      *  </code>
      *
-     *  Flashdata session variables can be retrieved as any other session variable:
+     *  Flashdata session variables can be retrieved like any other session variable:
      *
      *  <code>
      *  if (isset($_SESSION['myvar'])) {
