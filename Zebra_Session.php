@@ -28,7 +28,7 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.5 (last revision: April 10, 2017)
+ *  @version    2.1.5 (last revision: April 11, 2017)
  *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -319,12 +319,10 @@ class Zebra_Session
     function close() {
 
         // release the lock associated with the current session
-        $this->_mysql_query('SELECT RELEASE_LOCK("' . $this->session_lock . '")')
+        if ($this->_mysql_query('SELECT RELEASE_LOCK("' . $this->session_lock . '")'))
 
-            // stop execution and print message on error
-            or die($this->_mysql_error());
-
-        return true;
+            // and return true if it was successful
+            return true;
 
     }
 
@@ -335,7 +333,7 @@ class Zebra_Session
      */
     function destroy($session_id) {
 
-        // deletes the current session id from the database
+        // delete the current session id from the database
         $this->_mysql_query('
 
             DELETE FROM
@@ -343,14 +341,10 @@ class Zebra_Session
             WHERE
                 session_id = "' . $this->_mysql_real_escape_string($session_id) . '"
 
-        ') or die($this->_mysql_error());
+        ');
 
-        // if anything happened
-        // return true
-        if ($this->_mysql_affected_rows() !== -1) return true;
-
-        // if something went wrong, return false
-        return false;
+        // return true if everything went well
+        return ($this->_mysql_affected_rows() !== -1);
 
     }
 
@@ -361,7 +355,7 @@ class Zebra_Session
      */
     function gc() {
 
-        // deletes expired sessions from database
+        // delete expired sessions from database
         $this->_mysql_query('
 
             DELETE FROM
@@ -369,7 +363,7 @@ class Zebra_Session
             WHERE
                 session_expire < "' . $this->_mysql_real_escape_string(time()) . '"
 
-        ') or die($this->_mysql_error());
+        ');
 
     }
 
@@ -400,14 +394,14 @@ class Zebra_Session
         // call the garbage collector
         $this->gc();
 
-        // counts the rows from the database
-        $result = @mysqli_fetch_assoc($this->_mysql_query('
+        // count the rows from the database
+        $result = mysqli_fetch_assoc($this->_mysql_query('
 
             SELECT
                 COUNT(session_id) as count
             FROM ' . $this->table_name . '
 
-        ')) or die(_mysql_error());
+        '));
 
         // return the number of found rows
         return $result['count'];
@@ -487,9 +481,8 @@ class Zebra_Session
         // try to obtain a lock with the given name and timeout
         $result = $this->_mysql_query('SELECT GET_LOCK("' . $this->session_lock . '", ' . $this->_mysql_real_escape_string($this->lock_timeout) . ')');
 
-        // if there was an error
-        // stop execution
-        if (!$result || @mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
+        // stop if there was an error
+        if (!$result || mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
 
         //  reads session data associated with a session id, but only if
         //  -   the session ID exists;
@@ -523,13 +516,13 @@ class Zebra_Session
                 hash = "' . $this->_mysql_real_escape_string(md5($hash)) . '"
             LIMIT 1
 
-        ') or die($this->_mysql_error());
+        ');
 
         // if anything was found
-        if ($result && @mysqli_num_rows($result) > 0) {
+        if ($result && mysqli_num_rows($result) > 0) {
 
             // return found data
-            $fields = @mysqli_fetch_assoc($result);
+            $fields = mysqli_fetch_assoc($result);
 
             // don't bother with the unserialization - PHP handles this automatically
             return $fields['session_data'];
@@ -682,7 +675,7 @@ class Zebra_Session
                 session_data = "' . $this->_mysql_real_escape_string($session_data) . '",
                 session_expire = "' . $this->_mysql_real_escape_string(time() + $this->session_lifetime) . '"
 
-        ') or die($this->_mysql_error());
+        ');
 
         // if anything happened, return TRUE
         // if something went wrong, return false
@@ -736,7 +729,7 @@ class Zebra_Session
      */
     private function _mysql_affected_rows() {
 
-        // execute "mysqli_affected_rows" and returns the result
+        // call "mysqli_affected_rows" and return the result
         return mysqli_affected_rows($this->link);
 
     }
@@ -748,7 +741,7 @@ class Zebra_Session
      */
     private function _mysql_error() {
 
-        // execute "mysqli_error" and returns the result
+        // call "mysqli_error" and return the result
         return 'Zebra_Session: ' . mysqli_error($this->link);
 
     }
@@ -760,8 +753,14 @@ class Zebra_Session
      */
     private function _mysql_query($query) {
 
-        // execute "mysqli_query" and returns the result
-        return mysqli_query($this->link, $query);
+        // call "mysqli_query"
+        $result = mysqli_query($this->link, $query)
+
+            // stop if there was an error
+            or die($this->_mysql_error());
+
+        // return the result if query was successful
+        return $result;
 
     }
 
@@ -772,7 +771,7 @@ class Zebra_Session
      */
     private function _mysql_real_escape_string($string) {
 
-        // execute "mysqli_real_escape_string" and returns the result
+        // call "mysqli_real_escape_string" and return the result
         return mysqli_real_escape_string($this->link, $string);
 
     }
