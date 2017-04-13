@@ -28,7 +28,7 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.5 (last revision: April 11, 2017)
+ *  @version    2.1.5 (last revision: April 13, 2017)
  *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -528,8 +528,6 @@ class Zebra_Session
             return $fields['session_data'];
 
         }
-
-        $this->regenerate_id();
 
         // on error return an empty string - this HAS to be an empty string
         return '';
