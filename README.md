@@ -12,7 +12,7 @@
 
 This library is developed during my free time and a lot of time and effort has been put into it.
 
-[![Donate](https://img.shields.io/badge/Be%20kind%20%7C%20Donate-%20PayPal%20-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AMF86638PS2S4)
+[![Donate](https://img.shields.io/badge/Be%20kind%20%7C%20Donate%20with%20-%20PayPal%20-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AMF86638PS2S4)
 
 Zebra_Session implements *session locking* - a way to ensure that data is correctly handled in a scenario with multiple concurrent AJAX requests.
 
