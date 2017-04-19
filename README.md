@@ -36,9 +36,22 @@ The code is heavily commented and generates no warnings/errors/notices when PHP'
 
 PHP 5.1.0+ with the **mysqli extension** activated, MySQL 4.1.22+
 
+### Installation
+Download the latest version, unpack it, and load it in your project
+
+```php
+require_once ('Zebra_Session.php');
+```
+
+### Installation with Composer
+You can install Zebra_Session via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
+```
+composer require stefangabos/zebra_session:dev-master
+```
+
 ## How to use
 
-Download the latest version, unpack it, and put it in a place accessible to your scripts. After unpacking, you will notice a directory called *install* containing a file named *session_data.sql*. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
+. After unpacking, you will notice a directory called *install* containing a file named *session_data.sql*. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
 
 *Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one! If you really need the class to make a database connection, put the code in the "open" method of the class.*
 
