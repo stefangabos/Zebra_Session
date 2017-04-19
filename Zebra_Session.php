@@ -34,8 +34,7 @@
  *  @package    Zebra_Session
  */
 
-class Zebra_Session
-{
+class Zebra_Session {
 
     private $flashdata;
     private $flashdata_varname;
@@ -613,7 +612,10 @@ class Zebra_Session
     }
 
     /**
-     *  Deletes all data related to the session
+     *  Deletes all data related to the session.
+     *
+     *  <i>This method runs the garbage collector respecting your environment's garbage collector-related properties.
+     *  Read {@link __construct() here} for more information.</i>
      *
      *  <code>
      *  // first, connect to a database containing the sessions table
@@ -635,6 +637,18 @@ class Zebra_Session
      */
     public function stop() {
 
+        // if a cookie is used to pass the session id
+        if (ini_get('session.use_cookies')) {
+
+            // get session cookie's properties
+            $params = session_get_cookie_params();
+
+            // unset the cookie
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+
+        }
+
+        // destroy the session
         session_unset();
         session_destroy();
 
@@ -683,7 +697,7 @@ class Zebra_Session
      *
      *  @access private
      */
-    function _manage_flashdata() {
+    private function _manage_flashdata() {
 
         // if there is flashdata to be handled
         if (!empty($this->flashdata)) {
