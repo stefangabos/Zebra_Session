@@ -28,7 +28,7 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.5 (last revision: April 19, 2017)
+ *  @version    2.1.5 (last revision: April 20, 2017)
  *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -697,7 +697,7 @@ class Zebra_Session {
      *
      *  @access private
      */
-    private function _manage_flashdata() {
+    function _manage_flashdata() {
 
         // if there is flashdata to be handled
         if (!empty($this->flashdata)) {
