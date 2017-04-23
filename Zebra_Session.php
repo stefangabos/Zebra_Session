@@ -28,7 +28,7 @@
  *  For more resources visit {@link http://stefangabos.ro/}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.5 (last revision: April 20, 2017)
+ *  @version    2.1.5 (last revision: April 23, 2017)
  *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -234,6 +234,13 @@ class Zebra_Session {
             // make sure session cookies never expire so that session lifetime
             // will depend only on the value of $session_lifetime
             ini_set('session.cookie_lifetime', 0);
+
+            // tell the browser not to expose the cookie to client side scripting
+            // this makes it harder for an attacker to hijack the session ID
+            ini_set('session.cookie_httponly', 1);
+
+            // make sure that PHP only uses cookies for sessions and disallow session ID passing as a GET parameter
+            ini_set('session.use_only_cookies', 1);
 
             // if $session_lifetime is specified and is an integer number
             if ($session_lifetime != '' && is_integer($session_lifetime))
