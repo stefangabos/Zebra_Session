@@ -10,39 +10,60 @@
 
 ## Support the development of this library
 
-This library is developed during my free time and a lot of time and effort has been put into it.
+[![Donate](https://img.shields.io/badge/Be%20kind%20%7C%20Donate%20$3%20with%20-%20PayPal%20-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372)
 
-[![Donate](https://img.shields.io/badge/Be%20kind%20%7C%20Donate%20with%20-%20PayPal%20-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AMF86638PS2S4)
+Session support in PHP consists of a way to preserve information (variables) on subsequent accesses to a website's pages. Unlike cookies, variables are not stored on the user's computer. Instead, only a *session identifier* is stored in a cookie on the visitor's computer, which is matched up with the actual session data kept on the server, and made available to us through the [$_SESSION](http://www.php.net/manual/en/reserved.variables.session.php) super-global. Session data is retrieved as soon as we open a session, usually at the beginning of each page.
 
-Zebra_Session implements *session locking* - a way to ensure that data is correctly handled in a scenario with multiple concurrent AJAX requests.
+By default, session data is stored on the server in flat files, separate for each session. The problem with this scenario is that performance degrades proportionally with the number of session files existing in the session directory (depending on the server's operating system's ability to handle directories with numerous files). Another issue is that session files are usually stored in a location that is world readable posing a security concern on shared hosting.
 
-It is also a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS) and where the user's session data needs to be available. Storing sessions in a database makes them available to all of the servers!
+This is where **Zebra_Session** comes in handy - a PHP library that acts as a drop-in replacement for PHP's default session handler, but instead of storing session data in flat files it stores them in a **MySQL database**, providing better security and better performance.
 
-The library supports "flashdata" - session variable which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
+Zebra_Session is also a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS) where the user's session data needs to be available. Storing sessions in a database makes them available to all of the servers!
 
-Zebra_Session is was inspired by John Herren's code from the [Trick out your session handler](http://devzone.zend.com/413/trick-out-your-session-handler/) article and [Chris Shiflett](http://shiflett.org/articles/the-truth-about-sessions)'s articles about PHP sessions.
+Supports *"flashdata"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
 
-The code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL.
+This class is was inspired by John Herren's code from the [Trick out your session handler](http://devzone.zend.com/413/trick-out-your-session-handler/) article and Chris Shiflett's code from his book [Essential PHP Security](http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
+
+Zebra_Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](http://www.php.net/manual/en/function.error-reporting.php).
+
+Starting with version 2.0, Zebra_Session implements [row locks](http://dev.mysql.com/doc/refman/5.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
+
+Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/), a great article by Andy Bakun:
+
+> When locking is not used, multiple requests (represented in these diagrams as processes P1, P2 and P3) access the session data without any consideration for the other processes and the state of the session data. The running time of the requests are indicated by the height of each process's colored area (the actual run times are unimportant, only the relative start times and durations).
+
+![Session access without locking](http://stefangabos.ro/wp-content/uploads/2011/04/session-access-without-locking.png)
+
+> In the example above, no matter how P2 and P3 change the session data, the only changes that will be reflected in the session are those that P1 made because they were written last. When locking is used, the process can start up, request a lock on the session data before it reads it, and then get a consistent read of the session once it acquires exclusive access to it. In the following diagram, all reads occur after writes:
+
+![Session access without locking](http://stefangabos.ro/wp-content/uploads/2011/04/session-access-with-locking.png)
+
+> The process execution is interleaved, but access to the session data is serialized. The process is waiting for the lock to be released during the period between when the process requests the session lock and when the session is read. This means that your session data will remain consistent, but it also means that while processes P2 and P3 are waiting for their turn to acquire the lock, nothing is happening. This may not be that important if all of the requests change or write to the session data, but if P2 just needs to read the session data (perhaps to get a login identifier), it is being held up for no reason.
+
+So, in the end, this is not the best solution but still is better than nothing. The best solution is probably a *per-variable* locking. You can read a very detailed article about all this in Andy Bakun's article [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/).
+
+Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my attention!
 
 ## Features
 
-- acts as a wrapper for PHP’s default session handling functions, but instead of storing session data in flat files it stores them in a MySQL database, providing better security and better performance
+- acts as a wrapper for PHP's default session handling functions, but instead of storing session data in flat files it stores them in a MySQL database, providing better security and better performance
 
-- it is a drop-in and seamingless replacement for PHP’s default session handler: PHP sessions will be used in the same way as prior to using the library; you don’t need to change any existing code!
+- it is a drop-in and seamingless replacement for PHP's default session handler: PHP sessions will be used in the same way as prior to using the library; you don't need to change any existing code!
 
 - implements *row locks*, ensuring that data is correctly handled in scenarios with multiple concurrent AJAX requests
 
 - because session data is stored in a database, the library represents a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS)
 
-- has comprehensive documentation
+- has awesome documentation
 
-- the code is heavily commented and generates no warnings/errors/notices when PHP’s error reporting level is set to E_ALL
+- the code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL
 
 ## Requirements
 
-PHP 5.1.0+ with the **mysqli extension** activated, MySQL 4.1.22+
+PHP 5.1.0+ with the `mysqli extension` activated, MySQL 4.1.22+
 
 ### Installation
+
 Download the latest version, unpack it, and load it in your project
 
 ```php
@@ -50,7 +71,9 @@ require_once ('Zebra_Session.php');
 ```
 
 ### Installation with Composer
+
 You can install Zebra_Session via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
+
 ```
 composer require stefangabos/zebra_session:dev-master
 ```
@@ -78,5 +101,3 @@ $_SESSION['foo'] = 'bar';
 
 // data is in the database!
 ```
-
-Visit the **[project's homepage](http://stefangabos.ro/php-libraries/zebra-session/)** for more information.
