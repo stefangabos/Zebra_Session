@@ -76,11 +76,13 @@ You can install Zebra_Session via [Composer](https://packagist.org/packages/stef
 composer require stefangabos/zebra_session:dev-master
 ```
 
-## How to use
+## Install MySQL tab;e
 
 Notice a directory called *install* containing a file named *session_data.sql*. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
 
-*Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one! If you really need the class to make a database connection, put the code in the "open" method of the class.*
+## How to use
+
+> Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one! If you really need the class to make a database connection, put the code in the "open" method of the class.*
 
 ```php
 // first, connect to a database containing the sessions table
@@ -100,4 +102,4 @@ $_SESSION['foo'] = 'bar';
 // data is in the database!
 ```
 
- > :books: Checkout the [awesome documentation](https://stefangabos.github.io/Zebra_Session/)!
+ :books: Checkout the [awesome documentation](https://stefangabos.github.io/Zebra_Session/)!
