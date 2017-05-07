@@ -60,7 +60,7 @@ Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my att
 
 PHP 5.1.0+ with the `mysqli extension` activated, MySQL 4.1.22+
 
-### Installation
+## Installation
 
 Download the latest version, unpack it, and load it in your project
 
@@ -68,7 +68,7 @@ Download the latest version, unpack it, and load it in your project
 require_once ('Zebra_Session.php');
 ```
 
-### Installation with Composer
+## Installation with Composer
 
 You can install Zebra_Session via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
 
@@ -99,3 +99,5 @@ $_SESSION['foo'] = 'bar';
 
 // data is in the database!
 ```
+
+ > :books: Checkout the [awesome documentation](https://stefangabos.github.io/Zebra_Session/)!
