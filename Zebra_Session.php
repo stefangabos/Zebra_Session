@@ -2,26 +2,10 @@
 
 /**
  *  A PHP library acting as a drop-in replacement for PHP's default session handler, but instead of storing session data
- *  in flat files it stores them in a MySQL database, providing both better performance and better security and
+ *  in flat files it stores them in a MySQL database, providing better performance as well as better security and
  *  protection against session fixation and session hijacking.
  *
- *  Zebra_Session implements <i>session locking</i>. Session locking is a way to ensure that data is correctly handled
- *  in a scenario with multiple concurrent AJAX requests. Read more about it in this excellent article by <b>Andy Bakun</b>
- *  called {@link http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/ Race Conditions with Ajax and PHP Sessions}.
- *
- *  This library is also a solution for applications that are scaled across multiple web servers (using a
- *  load balancer or a round-robin DNS) and where the user's session data needs to be available. Storing sessions in a
- *  database makes them available to all of the servers!
- *
- *  Zebra_Session supports "flashdata" - session variable which will only be available for the next server request, and
- *  which will be automatically deleted afterwards. Typically used for informational or status messages (for example:
- *  "data has been successfully updated").
- *
- *  Zebra_Session is was inspired by John Herren's code from the {@link http://devzone.zend.com/413/trick-out-your-session-handler/ Trick out your session handler}
- *  article and {@link http://shiflett.org/articles/the-truth-about-sessions Chris Shiflett}'s articles about PHP sessions.
- *
- *  The code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to
- *  E_ALL.
+ *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
  *  @version    2.1.6 (last revision: May 01, 2017)

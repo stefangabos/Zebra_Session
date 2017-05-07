@@ -47,7 +47,7 @@ Package: <strong>Zebra_Session</strong>
 <h6><strong>source file:</strong> /Zebra_Session.php</h6>
 <h3>Class Overview</h3>
 <pre></pre>
-<p>A PHP library acting as a drop-in replacement for PHP's default session handler, but instead of storing session data   in flat files it stores them in a MySQL database, providing both better performance and better security and   protection against session fixation and session hijacking.<p>Zebra_Session implements <em>session locking</em>. Session locking is a way to ensure that data is correctly handled   in a scenario with multiple concurrent AJAX requests. Read more about it in this excellent article by <strong>Andy Bakun</strong>   called <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">Race Conditions with Ajax and PHP Sessions</a>.</p><p>This library is also a solution for applications that are scaled across multiple web servers (using a   load balancer or a round-robin DNS) and where the user's session data needs to be available. Storing sessions in a   database makes them available to all of the servers!</p><p>Zebra_Session supports &quot;flashdata&quot; - session variable which will only be available for the next server request, and   which will be automatically deleted afterwards. Typically used for informational or status messages (for example:   &quot;data has been successfully updated&quot;).</p><p>Zebra_Session is was inspired by John Herren's code from the <a href="http://devzone.zend.com/413/trick-out-your-session-handler/">Trick out your session handler</a>   article and <a href="http://shiflett.org/articles/the-truth-about-sessions">Chris Shiflett</a>'s articles about PHP sessions.</p><p>The code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to   E_ALL.</p></p>
+<p>A PHP library acting as a drop-in replacement for PHP's default session handler, but instead of storing session data   in flat files it stores them in a MySQL database, providing better performance as well as better security and   protection against session fixation and session hijacking.<p>Read more <a href="https://github.com/stefangabos/Zebra_Session/">here</a></p></p>
 <h4>Author(s):</h4>
 <ul>
 <li>Stefan Gabos &lt;<a href="mailto:contact@stefangabos.ro">contact@stefangabos.ro</a>&gt;</li>
@@ -429,7 +429,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Fri, 05 May 2017 20:05:35 +0200</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Sun, 07 May 2017 21:13:15 +0200</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 </body>
