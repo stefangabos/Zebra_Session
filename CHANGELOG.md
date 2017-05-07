@@ -9,7 +9,7 @@
 
 ## version 2.1.5 (April 11, 2017)
 
-- closed #11; thanks @soren121
+- closed [#11](https://github.com/stefangabos/Zebra_Session/issues/11); thanks @soren121
 - fixed (hopefully) [#13](https://github.com/stefangabos/Zebra_Session/issues/13); thanks to @alisonw for providing the current fix
 - reduced overall code complexity
 
