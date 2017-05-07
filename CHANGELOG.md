@@ -5,7 +5,7 @@
 
 ## version 2.1.6 (April 19, 2017)
 
-- hopefully #13 is now fixed for good
+- hopefully [#13](https://github.com/stefangabos/Zebra_Session/issues/13) is now fixed for good
 
 ## version 2.1.5 (April 11, 2017)
 
