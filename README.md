@@ -102,4 +102,4 @@ $_SESSION['foo'] = 'bar';
 // data is in the database!
 ```
 
- :books: Checkout the [awesome documentation](https://stefangabos.github.io/Zebra_Session/)!
+ :books: Checkout the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
