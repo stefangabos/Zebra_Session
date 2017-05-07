@@ -76,7 +76,7 @@ You can install Zebra_Session via [Composer](https://packagist.org/packages/stef
 composer require stefangabos/zebra_session:dev-master
 ```
 
-## Install MySQL tab;e
+## Install MySQL table
 
 Notice a directory called *install* containing a file named *session_data.sql*. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
 
