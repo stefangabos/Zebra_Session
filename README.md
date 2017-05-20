@@ -73,7 +73,7 @@ require_once ('Zebra_Session.php');
 You can install Zebra_Session via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
 
 ```
-composer require stefangabos/zebra_session:dev-master
+composer require stefangabos/zebra_session
 ```
 
 ## Install MySQL table
