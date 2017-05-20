@@ -1,3 +1,8 @@
+## version 2.1.8 (May 20, 2017)
+
+- documentation is now available in the repository and on GitHub
+- the home of the library is now exclusively on GitHub
+
 ## version 2.1.7 (May 01, 2017)
 
 - security tweaks (setting `session.cookie_httponly` and `session.use_only_cookies` to `1` by default)
