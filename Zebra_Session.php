@@ -12,17 +12,19 @@
  *  @copyright  (c) 2006 - 2017 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
+ *
+ *  @author     Prasad
+ *  Introduced Zebra_Session_Store.
  */
 class Zebra_Session {
 
     private $flashdata;
     private $flashdata_varname;
     private $session_lifetime;
-    private $link;
+    private $store;
     private $lock_timeout;
     private $lock_to_ip;
     private $lock_to_user_agent;
-    private $table_name;
 
     /**
      *  Constructor of class. Initializes the class and automatically calls
@@ -32,11 +34,12 @@ class Zebra_Session {
      *  // first, connect to a database containing the sessions table
      *
      *  //  include the class
+     *  require 'path/to/Zebra_Session_Store.php';
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
      *  //  where $link is a connection link returned by mysqli_connect
-     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+     *  $session = new Zebra_Session(new Zebra_Session_MySQLiStore($link), 'sEcUr1tY_c0dE');
      *  </code>
      *
      *  By default, the cookie used by PHP to propagate session data across multiple pages ('PHPSESSID') uses the
@@ -59,13 +62,7 @@ class Zebra_Session {
      *
      *  From now on whenever PHP sets the 'PHPSESSID' cookie, the cookie will be available to all subdomains!
      *
-     *  @param  resource    $link               An object representing the connection to a MySQL Server, as returned
-     *                                          by calling {@link http://www.php.net/manual/en/mysqli.construct.php mysqli_connect}.
-     *
-     *                                          If you use {@link http://stefangabos.ro/php-libraries/zebra-database/ Zebra_Database}
-     *                                          to connect to the database, you can get the connection to the MySQL server
-     *                                          via Zebra_Database's {@link http://stefangabos.ro/wp-content/docs/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link get_link}
-     *                                          method.
+     *  @param  resource    $store              An object implementing Zebra_Session_Store interface.
      *
      *  @param  string      $security_code      The value of this argument is appended to the string created by
      *                                          concatenating the user's User Agent (browser) string (or an empty string
@@ -202,13 +199,13 @@ class Zebra_Session {
      *
      *  @return void
      */
-    public function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60) {
+    public function __construct(Zebra_Session_Store $store, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $lock_timeout = 60) {
 
         // continue if the provided link is valid
-        if ($link instanceof MySQLi && $link->connect_error === null) {
+        if ($store->isValid()) {
 
             // store the connection link
-            $this->link = $link;
+            $this->store = $store;
 
             // make sure session cookies never expire so that session lifetime
             // will depend only on the value of $session_lifetime
@@ -248,9 +245,6 @@ class Zebra_Session {
             // some other defaults
             $this->lock_to_user_agent = $lock_to_user_agent;
             $this->lock_to_ip = $lock_to_ip;
-
-            // the table to be used by the class
-            $this->table_name = $table_name;
 
             // the maximum amount of time (in seconds) for which a process can lock the session
             $this->lock_timeout = $lock_timeout;
@@ -292,7 +286,7 @@ class Zebra_Session {
 
         // if no MySQL connections could be found
         // trigger a fatal error message and stop execution
-        } else trigger_error('Zebra_Session: No MySQL connection!', E_USER_ERROR);
+        } else trigger_error('Zebra_Session: Invalid store!', E_USER_ERROR);
 
     }
 
@@ -304,10 +298,7 @@ class Zebra_Session {
     function close() {
 
         // release the lock associated with the current session
-        if ($this->_mysql_query('SELECT RELEASE_LOCK("' . $this->session_lock . '")'))
-
-            // and return true if it was successful
-            return true;
+        return $this->store->releaseLock($this->session_lock);
 
     }
 
@@ -319,17 +310,7 @@ class Zebra_Session {
     function destroy($session_id) {
 
         // delete the current session id from the database
-        $this->_mysql_query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = "' . $this->_mysql_real_escape_string($session_id) . '"
-
-        ');
-
-        // return true if everything went well
-        return ($this->_mysql_affected_rows() !== -1);
+        return $this->store->deleteSession($session_id);
 
     }
 
@@ -341,14 +322,7 @@ class Zebra_Session {
     function gc() {
 
         // delete expired sessions from database
-        $this->_mysql_query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_expire < "' . $this->_mysql_real_escape_string(time()) . '"
-
-        ');
+        $this->store->deleteExpiredSessions();
 
     }
 
@@ -365,8 +339,8 @@ class Zebra_Session {
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link returned by mysqli_connect
-     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+     *  //  where $store is a connection link returned by mysqli_connect
+     *  $session = new Zebra_Session($store, 'sEcUr1tY_c0dE');
      *
      *  //  get the (approximate) number of active sessions
      *  $active_sessions = $session->get_active_sessions();
@@ -380,16 +354,7 @@ class Zebra_Session {
         $this->gc();
 
         // count the rows from the database
-        $result = mysqli_fetch_assoc($this->_mysql_query('
-
-            SELECT
-                COUNT(session_id) as count
-            FROM ' . $this->table_name . '
-
-        '));
-
-        // return the number of found rows
-        return $result['count'];
+        return $this->store->countActiveSessions();
 
     }
 
@@ -461,13 +426,13 @@ class Zebra_Session {
     function read($session_id) {
 
         // get the lock name, associated with the current session
-        $this->session_lock = $this->_mysql_real_escape_string('session_' . $session_id);
+        $this->session_lock = 'session_' . $session_id;
 
         // try to obtain a lock with the given name and timeout
-        $result = $this->_mysql_query('SELECT GET_LOCK("' . $this->session_lock . '", ' . $this->_mysql_real_escape_string($this->lock_timeout) . ')');
+        $result = $this->store->acquireLock($this->session_lock, $this->lock_timeout);
 
         // stop if there was an error
-        if (!$result || mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
+        if (!$result) die('Zebra_Session: Could not obtain session lock!');
 
         //  reads session data associated with a session id, but only if
         //  -   the session ID exists;
@@ -489,33 +454,10 @@ class Zebra_Session {
         // append this to the end
         $hash .= $this->security_code;
 
-        $result = $this->_mysql_query('
-
-            SELECT
-                session_data
-            FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = "' . $this->_mysql_real_escape_string($session_id) . '" AND
-                session_expire > "' . time() . '" AND
-                hash = "' . $this->_mysql_real_escape_string(md5($hash)) . '"
-            LIMIT 1
-
-        ');
-
-        // if anything was found
-        if ($result && mysqli_num_rows($result) > 0) {
-
-            // return found data
-            $fields = mysqli_fetch_assoc($result);
-
-            // don't bother with the unserialization - PHP handles this automatically
-            return $fields['session_data'];
-
-        }
+        $result = $this->store->readSessionData($session_id, $hash);
 
         // on error return an empty string - this HAS to be an empty string
-        return '';
+        return $result ? $result : '';
 
     }
 
@@ -531,8 +473,8 @@ class Zebra_Session {
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link returned by mysqli_connect
-     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+     *  //  where $store is a connection link returned by mysqli_connect
+     *  $session = new Zebra_Session($store, 'sEcUr1tY_c0dE');
      *
      *  //  regenerate the session's ID
      *  $session->regenerate_id();
@@ -561,8 +503,8 @@ class Zebra_Session {
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link returned by mysqli_connect
-     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+     *  //  where $store is a connection link returned by mysqli_connect
+     *  $session = new Zebra_Session($store, 'sEcUr1tY_c0dE');
      *
      *  // set "myvar" which will only be available
      *  // for the next server request and will be
@@ -610,8 +552,8 @@ class Zebra_Session {
      *  require 'path/to/Zebra_Session.php';
      *
      *  //  start the session
-     *  //  where $link is a connection link returned by mysqli_connect
-     *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
+     *  //  where $store is a connection link returned by mysqli_connect
+     *  $session = new Zebra_Session($store, 'sEcUr1tY_c0dE');
      *
      *  //  end current session
      *  $session->stop();
@@ -651,26 +593,11 @@ class Zebra_Session {
         // first it tries to insert a new row in the database BUT if session_id is already in the database then just
         // update session_data and session_expire for that specific session_id
         // read more here http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
-        $result = $this->_mysql_query('
+        $hash = md5(($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') . $this->security_code);
 
-            INSERT INTO
-                ' . $this->table_name . ' (
-                    session_id,
-                    hash,
-                    session_data,
-                    session_expire
-                )
-            VALUES (
-                "' . $this->_mysql_real_escape_string($session_id) . '",
-                "' . $this->_mysql_real_escape_string(md5(($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') . $this->security_code)) . '",
-                "' . $this->_mysql_real_escape_string($session_data) . '",
-                "' . $this->_mysql_real_escape_string(time() + $this->session_lifetime) . '"
-            )
-            ON DUPLICATE KEY UPDATE
-                session_data = "' . $this->_mysql_real_escape_string($session_data) . '",
-                session_expire = "' . $this->_mysql_real_escape_string(time() + $this->session_lifetime) . '"
+        $session_expire = time() + $this->session_lifetime;
 
-        ');
+        $result = $this->store->writeSessionData($session_id, $hash, $session_data, $session_expire);
 
         // if anything happened, return TRUE
         // if something went wrong, return false
@@ -714,60 +641,6 @@ class Zebra_Session {
                 $_SESSION[$this->flashdata_varname] = serialize($this->flashdata);
 
         }
-
-    }
-
-    /**
-     *  Wrapper for PHP's "mysqli_affected_rows" function.
-     *
-     *  @access private
-     */
-    private function _mysql_affected_rows() {
-
-        // call "mysqli_affected_rows" and return the result
-        return mysqli_affected_rows($this->link);
-
-    }
-
-    /**
-     *  Wrapper for PHP's "mysqli_error" function.
-     *
-     *  @access private
-     */
-    private function _mysql_error() {
-
-        // call "mysqli_error" and return the result
-        return 'Zebra_Session: ' . mysqli_error($this->link);
-
-    }
-
-    /**
-     *  Wrapper for PHP's "mysqli_query" function.
-     *
-     *  @access private
-     */
-    private function _mysql_query($query) {
-
-        // call "mysqli_query"
-        $result = mysqli_query($this->link, $query)
-
-            // stop if there was an error
-            or die($this->_mysql_error());
-
-        // return the result if query was successful
-        return $result;
-
-    }
-
-    /**
-     *  Wrapper for PHP's "mysqli_real_escape_string" function.
-     *
-     *  @access private
-     */
-    private function _mysql_real_escape_string($string) {
-
-        // call "mysqli_real_escape_string" and return the result
-        return mysqli_real_escape_string($this->link, $string);
 
     }
 
