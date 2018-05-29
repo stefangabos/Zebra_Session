@@ -467,7 +467,9 @@ class Zebra_Session {
         $result = $this->_mysql_query('SELECT GET_LOCK("' . $this->session_lock . '", ' . $this->_mysql_real_escape_string($this->lock_timeout) . ')');
 
         // stop if there was an error
-        if (!$result || mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) die('Zebra_Session: Could not obtain session lock!');
+        if (!$result || mysqli_num_rows($result) != 1 || !($row = mysqli_fetch_array($result)) || $row[0] != 1) {
+            throw new Exception('Zebra_Session: Could not obtain session lock!');
+        }
 
         //  reads session data associated with a session id, but only if
         //  -   the session ID exists;
@@ -749,10 +751,12 @@ class Zebra_Session {
     private function _mysql_query($query) {
 
         // call "mysqli_query"
-        $result = mysqli_query($this->link, $query)
+        $result = mysqli_query($this->link, $query);
 
-            // stop if there was an error
-            or die($this->_mysql_error());
+        // stop if there was an error
+        if (!$result) {
+            throw new Exception($this->_mysql_error());
+        }
 
         // return the result if query was successful
         return $result;
