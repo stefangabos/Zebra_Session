@@ -265,13 +265,11 @@ class Zebra_Session {
                 array(&$this, 'gc')
             );
 
-            // start the session
-            if (!isset($_SESSION)) { 
-                session_start(); 
-            } else {
-                session_destroy();
-                session_start(); 
-            }
+            // if a session is already started, destroy it first
+            if (session_id() == '') session_destroy();
+
+            // start session
+            session_start();
 
             // the name for the session variable that will be created upon script execution
             // and destroyed when instantiating this library, and which will hold information
