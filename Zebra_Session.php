@@ -8,8 +8,8 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.8 (last revision: May 20, 2017)
- *  @copyright  (c) 2006 - 2017 Stefan Gabos
+ *  @version    2.1.9 (last revision: January 02, 2019)
+ *  @copyright  (c) 2006 - 2019 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
