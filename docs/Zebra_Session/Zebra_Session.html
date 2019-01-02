@@ -31,10 +31,6 @@ Package: <strong>Zebra_Session</strong>
 <a href="http://stefangabos.ro/php-libraries/zebra-session/" class="projects-homepage">Zebra_Session</a>
 </li>
 </ul>
-<p><strong>Packages:</strong></p>
-<ul>
-<li><a href="../li_Zebra_Session.html">Zebra_Session</a></li>
-</ul>
 <p><strong>Classes:</strong></p>
 <ul>
 <li><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></li>
@@ -45,7 +41,6 @@ Package: <strong>Zebra_Session</strong>
 <div id="doc_content">
 <h2>Class: <strong>Zebra_Session</strong></h2>
 <h6><strong>source file:</strong> /Zebra_Session.php</h6>
-<h3>Class Overview</h3>
 <pre></pre>
 <p>A PHP library acting as a drop-in replacement for PHP's default session handler, but instead of storing session data   in flat files it stores them in a MySQL database, providing better performance as well as better security and   protection against session fixation and session hijacking.<p>Read more <a href="https://github.com/stefangabos/Zebra_Session/">here</a></p></p>
 <h4>Author(s):</h4>
@@ -54,23 +49,25 @@ Package: <strong>Zebra_Session</strong>
 </ul>
 <h4>Version:</h4>
 <ul>
-<li>2.1.8 (last revision: May 20, 2017)</li>
+<li>2.1.9 (last revision: January 02, 2019)</li>
 </ul>
 <h4>Copyright:</h4>
 <ul>
-<li>(c) 2006 - 2017 Stefan Gabos</li>
+<li>(c) 2006 - 2019 Stefan Gabos</li>
 </ul>
 <a name="top"></a>
 <div class="doc_toc">
 <div class="left">
 <h3>Methods</h3>
 <ul>
-<li><a href="../Zebra_Session/Zebra_Session.html#method__construct">__construct</a>()</li>
-<li><a href="../Zebra_Session/Zebra_Session.html#methodget_active_sessions">get_active_sessions</a>()</li>
-<li><a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings</a>()</li>
-<li><a href="../Zebra_Session/Zebra_Session.html#methodregenerate_id">regenerate_id</a>()</li>
-<li><a href="../Zebra_Session/Zebra_Session.html#methodset_flashdata">set_flashdata</a>()</li>
-<li><a href="../Zebra_Session/Zebra_Session.html#methodstop">stop</a>()</li>
+</ul>
+<ul>
+<li><a href="#method__construct">__construct</a></li>
+<li><a href="#methodget_active_sessions">get_active_sessions</a></li>
+<li><a href="#methodget_settings">get_settings</a></li>
+<li><a href="#methodregenerate_id">regenerate_id</a></li>
+<li><a href="#methodset_flashdata">set_flashdata</a></li>
+<li><a href="#methodstop">stop</a></li>
 </ul>
 </div>
 <div class="clear"></div>
@@ -79,11 +76,12 @@ Package: <strong>Zebra_Session</strong>
 <a name="class_methods"></a>
 <h3>Class methods</h3>
 <a name="method__construct"></a>
-<h4 class="method"><span><em>constructor</em></span> __construct()</h4>
+<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 205]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
 __construct (
+resource
 &$link
 , 
 string
@@ -123,9 +121,6 @@ $table_name
 string
 $lock_timeout
 = 60]
-, 
-resource
-$link
 )
 </p>
 <p>Constructor of class. Initializes the class and automatically calls   <a href="http://php.net/manual/en/function.session-start.php">start_session()</a>.</p>
@@ -147,7 +142,7 @@ $link
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -155,7 +150,7 @@ $link
 <table cellspacing="0" cellpadding="0">
 <tr>
 <td valign="top"><em>resource</em></td>
-<td valign="top"><strong>$link</strong></td>
+<td valign="top"><strong>&$link</strong></td>
 <td valign="top"><p>An object representing the connection to a MySQL Server, as returned                                           by calling <a href="http://www.php.net/manual/en/mysqli.construct.php">mysqli_connect</a>.</p><p>If you use <a href="http://stefangabos.ro/php-libraries/zebra-database/">Zebra_Database</a>                                           to connect to the database, you can get the connection to the MySQL server                                           via Zebra_Database's <a href="http://stefangabos.ro/wp-content/docs/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link">get_link</a>                                           method.</p></td>
 </tr>
 <tr>
@@ -209,17 +204,12 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <td valign="top"><strong>$lock_timeout</strong></td>
 <td valign="top"><p>(Optional) The maximum amount of time (in seconds) for which a lock on                                           the session data can be kept.</p><p><em>This must be lower than the maximum execution time of the script!</em></p><p>Session locking is a way to ensure that data is correctly handled in a                                           scenario with multiple concurrent AJAX requests.</p><p>Read more about it at                                           <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/</a></p><p>Default is <em>60</em></p></td>
 </tr>
-<tr>
-<td valign="top"><em></em></td>
-<td valign="top"><strong>&$link</strong></td>
-<td valign="top"></td>
-</tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
 <a name="methodget_active_sessions"></a>
-<h4 class="method"><span><em>method</em></span> get_active_sessions()</h4>
+<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 377]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>integer</em>
@@ -243,11 +233,11 @@ although they haven't expired.</em></p><p><ol class="code"><li><div class="src-l
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>return:</strong></td>
+<td valign="top"><strong>return:</strong>&nbsp;&nbsp;</td>
 <td valign="top">Returns the number of active (not expired) sessions.</td>
 </tr>
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -255,7 +245,7 @@ although they haven't expired.</em></p><p><ol class="code"><li><div class="src-l
 <div class="clear"></div>
 </div>
 <a name="methodget_settings"></a>
-<h4 class="method"><span><em>method</em></span> get_settings()</h4>
+<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 428]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>array</em>
@@ -285,15 +275,15 @@ get_settings (
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>return:</strong></td>
+<td valign="top"><strong>return:</strong>&nbsp;&nbsp;</td>
 <td valign="top">Returns the values of <em>session.gc_maxlifetime</em>, <em>session.gc_probability</em> and <em>session.gc_divisor</em>                   as an associative array.</td>
 </tr>
 <tr>
-<td valign="top"><strong>since:</strong></td>
+<td valign="top"><strong>since:</strong>&nbsp;&nbsp;</td>
 <td valign="top">1.0.8</td>
 </tr>
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -301,7 +291,7 @@ get_settings (
 <div class="clear"></div>
 </div>
 <a name="methodregenerate_id"></a>
-<h4 class="method"><span><em>method</em></span> regenerate_id()</h4>
+<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 546]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -324,7 +314,7 @@ regenerate_id (
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -332,7 +322,7 @@ regenerate_id (
 <div class="clear"></div>
 </div>
 <a name="methodset_flashdata"></a>
-<h4 class="method"><span><em>method</em></span> set_flashdata()</h4>
+<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 593]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -368,7 +358,7 @@ $value
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -389,7 +379,7 @@ $value
 <div class="clear"></div>
 </div>
 <a name="methodstop"></a>
-<h4 class="method"><span><em>method</em></span> stop()</h4>
+<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 627]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -413,11 +403,11 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 <h5>Tags:</h5>
 <table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><strong>since:</strong></td>
+<td valign="top"><strong>since:</strong>&nbsp;&nbsp;</td>
 <td valign="top">1.0.1</td>
 </tr>
 <tr>
-<td valign="top"><strong>access:</strong></td>
+<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
 <td valign="top">public</td>
 </tr>
 </table>
@@ -429,7 +419,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sat, 20 May 2017 22:37:37 +0200</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Wed, 02 Jan 19</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 </body>
