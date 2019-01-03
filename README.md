@@ -65,7 +65,7 @@ PHP 5.1.0+ with the `mysqli extension` activated, MySQL 4.1.22+
 Download the latest version, unpack it, and load it in your project
 
 ```php
-require_once ('Zebra_Session.php');
+require_once 'Zebra_Session.php';
 ```
 
 ## Installation with Composer
@@ -89,7 +89,7 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 // like $link = mysqli_connect(host, username, password, database);
 
 // include the Zebra_Session class
-include 'path/to/Zebra_Session.php';
+require 'path/to/Zebra_Session.php';
 
 // instantiate the class
 // this also calls session_start()
