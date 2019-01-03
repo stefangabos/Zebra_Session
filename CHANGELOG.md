@@ -1,4 +1,4 @@
-## version 2.1.9 (TBA)
+## version 2.1.9 (January 03, 2019)
 
 - fixed [#16](https://github.com/stefangabos/Zebra_Session/issues/16) where the maximum length for lock keys in MySQL 5.7.5+ is limited to 64 characters; thanks to [Andreas Heissenberger](https://github.com/aheissenberger) for providing the fix!
 - the library now destroys previous sessions when started
