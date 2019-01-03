@@ -4,7 +4,7 @@
 
 *A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking*
 
-[![Latest Stable Version](https://poser.pugx.org/stefangabos/zebra_session/v/stable)](https://packagist.org/packages/stefangabos/zebra_session) [![Total Downloads](https://poser.pugx.org/stefangabos/zebra_session/downloads)](https://packagist.org/packages/stefangabos/zebra_session) [![Monthly Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/monthly)](https://packagist.org/packages/stefangabos/zebra_session) [![Daily Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/daily)](https://packagist.org/packages/stefangabos/zebra_session) [![License](https://poser.pugx.org/stefangabos/zebra_session/license)](https://packagist.org/packages/stefangabos/zebra_session)
+[![Latest Stable Version](https://poser.pugx.org/stefangabos/zebra_session/v/stable)](https://packagist.org/packages/stefangabos/zebra_session) [![Total Downloads](https://poser.pugx.org/stefangabos/zebra_session/downloads)](https://packagist.org/packages/stefangabos/zebra_session) [![Monthly Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/monthly)](https://packagist.org/packages/stefangabos/zebra_session) [![Daily Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/daily)](https://packagist.org/packages/stefangabos/zebra_session) [![License](https://poser.pugx.org/stefangabos/zebra_session/license)](https://packagist.org/packages/stefangabos/zebra_session) [![Donate](https://img.shields.io/badge/donate%20with%20-%20PayPal%20-brightred.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372)
 
 Session support in PHP consists of a way to preserve information (variables) on subsequent accesses to a website's pages. Unlike cookies, variables are not stored on the user's computer. Instead, only a *session identifier* is stored in a cookie on the visitor's computer, which is matched up with the actual session data kept on the server, and made available to us through the [$_SESSION](http://www.php.net/manual/en/reserved.variables.session.php) super-global. Session data is retrieved as soon as we open a session, usually at the beginning of each page.
 
@@ -37,10 +37,6 @@ Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.
 So, in the end, this is not the best solution but still is better than nothing. The best solution is probably a *per-variable* locking. You can read a very detailed article about all this in Andy Bakun's article [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/).
 
 Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my attention!
-
-## Support the development of this library
-
-[![Donate](https://img.shields.io/badge/Be%20kind%20%7C%20Donate%20$3%20with%20-%20PayPal%20-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372)
 
 ## Features
 
