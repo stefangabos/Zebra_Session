@@ -266,7 +266,7 @@ class Zebra_Session {
             );
 
             // if a session is already started, destroy it first
-            if (session_id() == '') session_destroy();
+            if (session_id() !== '') session_destroy();
 
             // start session
             session_start();
