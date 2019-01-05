@@ -1,3 +1,7 @@
+## version 2.1.10 (January 05, 2019)
+
+- fixed [bug](https://github.com/stefangabos/Zebra_Session/pull/24) because of incorrect logic; thanks [RolandD](https://github.com/roland-d)!
+
 ## version 2.1.9 (January 03, 2019)
 
 - fixed [#16](https://github.com/stefangabos/Zebra_Session/issues/16) where the maximum length for lock keys in MySQL 5.7.5+ is limited to 64 characters; thanks to [Andreas Heissenberger](https://github.com/aheissenberger) for providing the fix!
