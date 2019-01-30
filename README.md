@@ -38,7 +38,7 @@ So, in the end, this is not the best solution but still is better than nothing. 
 
 Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my attention!
 
-:books: [Documentation](https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html)
+:books: Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
 
 ## Support the development of this library
 
