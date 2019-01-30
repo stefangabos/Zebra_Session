@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Zebra_Session, a wrapper for PHP's default session handling functions, using MySQL for storage - Class: Zebra_Session</title>
+<title>Zebra_Session - a wrapper for PHP's default session handling functions, using MySQL for storage - Class: Zebra_Session</title>
 <meta http-equiv="content-type" content="text/html;charset=UTF-8">
 <link rel="stylesheet" type="text/css" href="../media/reset.css">
 <link rel="stylesheet" type="text/css" href="../media/style.css">
@@ -173,8 +173,8 @@ collection routine</em>. The PHP setting that sets a session's lifetime is      
 <td valign="top"><em>boolean</em></td>
 <td valign="top"><strong>$lock_to_user_agent</strong></td>
 <td valign="top"><p>(Optional) Whether to restrict the session to the same User Agent (or                                           browser) as when the session was first opened.</p><p><em>The user agent check only adds minor security, since an attacker that
-hijacks the session cookie will most likely have the same user agent.</em></p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                           change the user agent string from one page to the next by automatically                                           switching into compatibility mode. So, on the first load you would have                                           something like:</p><p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">etc</span>...</div></li>
-</ol><p>and reloading the page you would have</p><p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">etc</span>...</div></li>
+hijacks the session cookie will most likely have the same user agent.</em></p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                           change the user agent string from one page to the next by automatically                                           switching into compatibility mode. So, on the first load you would have                                           something like:</p><p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
+</ol><p>and reloading the page you would have</p><p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
 </ol><p>So, if the situation asks for this, change this value to FALSE.</p><p>Default is TRUE.</p></td>
 </tr>
 <tr>
@@ -419,7 +419,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sat, 05 Jan 19</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Wed, 30 Jan 19</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->

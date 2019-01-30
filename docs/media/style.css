@@ -25,6 +25,8 @@ h6 {
 #phpdoc {
     min-height: calc(100% - 95px);
     height: calc(100% - 95px);
+    width: 991px;
+    margin: 0 auto;
 }
 
 #phpdoc > table {
@@ -65,6 +67,7 @@ h6 {
 
 .sidebar {
     background: #fafbfc;
+    border-left: 1px solid #e1e4e8;
     border-right: 1px solid #e1e4e8;
     border-bottom: 1px solid #e1e4e8;
     white-space: nowrap;
@@ -117,7 +120,11 @@ h4.method span {
 }
 
 .doc_block li {
-    margin-bottom: 1em;
+    margin-bottom: 0;
+}
+
+.doc_block li ul {
+    list-style-type: none;
 }
 
 .doc_block table td {
