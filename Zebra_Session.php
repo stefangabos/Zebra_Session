@@ -119,11 +119,11 @@ class Zebra_Session {
      *                                          switching into compatibility mode. So, on the first load you would have
      *                                          something like:
      *
-     *                                          <code>Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; etc...</code>
+     *                                          <code>Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4...</code>
      *
      *                                          and reloading the page you would have
      *
-     *                                          <code> Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; etc...</code>
+     *                                          <code> Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4...</code>
      *
      *                                          So, if the situation asks for this, change this value to FALSE.
      *
