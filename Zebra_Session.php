@@ -500,7 +500,7 @@ class Zebra_Session {
             SELECT
                 session_data
             FROM
-                ' . $this->table_name . '
+                `' . $this->table_name . '`
             WHERE
                 session_id = "' . $this->_mysql_real_escape_string($session_id) . '" AND
                 session_expire > "' . time() . '" AND
