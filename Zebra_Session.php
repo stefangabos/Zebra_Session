@@ -8,7 +8,7 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    2.1.10 (last revision: January 05, 2019)
+ *  @version    2.1.11 (last revision: August 18, 2019)
  *  @copyright  (c) 2006 - 2019 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -250,7 +250,7 @@ class Zebra_Session {
             $this->lock_to_ip = $lock_to_ip;
 
             // the table to be used by the class
-            $this->table_name = $table_name;
+            $this->table_name = '`' . trim($table_name, '`') . '`';
 
             // the maximum amount of time (in seconds) for which a process can lock the session
             $this->lock_timeout = $lock_timeout;
