@@ -10,7 +10,7 @@
     $password = '';
 
     // this is the name of the database where you created the table used by this class
-    $database = 'salesreport';
+    $database = '';
 
     // try to connect to the MySQL server
     $link = mysqli_connect($host, $username, $password, $database) or die('Could not connect to database!');
