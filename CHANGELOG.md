@@ -4,6 +4,7 @@
 - [session.use_strict_mode](https://www.php.net/manual/en/session.configuration.php#ini.session.use-strict-mode) is now always enabled by the library automatically; ; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
 - [session.cookie_secure](https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-secure) is now automcatically enabled by the library *if HTTPS connection is detected*; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
 - fixed issue when using special characters in table name; see [#27](https://github.com/stefangabos/Zebra_Session/issues/27)
+- minimum required PHP version has changed from `5.1.0` to `5.5.2`
 
 ## version 2.1.10 (January 05, 2019)
 

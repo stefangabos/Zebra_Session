@@ -60,7 +60,7 @@ Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my att
 
 ## Requirements
 
-PHP 5.1.0+ with the `mysqli extension` activated, MySQL 4.1.22+
+PHP 5.5.2+ with the `mysqli extension` activated, MySQL 4.1.22+
 
 ## Installation
 
@@ -91,6 +91,7 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 // like $link = mysqli_connect(host, username, password, database);
 
 // include the Zebra_Session class
+// (you don't need this if you are using Composer)
 require 'path/to/Zebra_Session.php';
 
 // instantiate the class
