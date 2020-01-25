@@ -1,3 +1,10 @@
+## version 3.0.0 (TBA)
+
+- implemented prepared statemets as `mysqli_real_escape_string` may not be secure enough when used with PHP < `5.7.6`; see [this](https://stackoverflow.com/questions/5741187/sql-injection-that-gets-around-mysql-real-escape-string/23277864#23277864) for more information; thanks [duckboy81](https://github.com/duckboy81) for suggesting
+- [session.use_strict_mode](https://www.php.net/manual/en/session.configuration.php#ini.session.use-strict-mode) is now always enabled by the library automatically; ; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
+- [session.cookie_secure](https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-secure) is now automcatically enabled by the library *if HTTPS connection is detected*; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
+- fixed issue when using special characters in table name; see [#27](https://github.com/stefangabos/Zebra_Session/issues/27)
+
 ## version 2.1.10 (January 05, 2019)
 
 - fixed [bug](https://github.com/stefangabos/Zebra_Session/pull/24) because of incorrect logic; thanks [RolandD](https://github.com/roland-d)!
