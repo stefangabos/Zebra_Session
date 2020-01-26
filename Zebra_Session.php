@@ -27,7 +27,7 @@ class Zebra_Session {
 
     /**
      *  Constructor of class. Initializes the class and automatically calls
-     *  {@link http://php.net/manual/en/function.session-start.php start_session()}.
+     *  {@link http://php.net/manual/en/function.session-start.php session_start()}.
      *
      *  <code>
      *  // first, connect to a database containing the sessions table, either via PDO or using mysqli_connect
@@ -202,9 +202,13 @@ class Zebra_Session {
      *
      *                                          Default is <i>60</i>
      *
+     *  @param  boolean     $start_session      (Optional) Whether to start the session by default after object
+     *                                          construction.
+     *
+     *                                          Default is TRUE.
      *  @return void
      */
-    public function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60) {
+    public function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60, $start_session = true) {
 
         // continue if the provided link is valid
         if (($link instanceof MySQLi && $link->connect_error === null) || $link instanceof PDO) {
@@ -281,7 +285,8 @@ class Zebra_Session {
             if (session_id() !== '') session_destroy();
 
             // start session
-            session_start();
+            if ($start_session)
+                session_start();
 
             // the name for the session variable that will be used for
             // holding information about flash data session variables
