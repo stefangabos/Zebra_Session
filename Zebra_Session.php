@@ -16,11 +16,11 @@ class Zebra_Session {
 
     private $flash_data;
     private $flash_data_var;
-    private $session_lifetime;
     private $link;
     private $lock_timeout;
     private $lock_to_ip;
     private $lock_to_user_agent;
+    private $session_lifetime;
     private $table_name;
 
     /**
