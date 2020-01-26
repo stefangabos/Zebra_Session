@@ -42,14 +42,14 @@ Package: <strong>Zebra_Session</strong>
 <h2>Class: <strong>Zebra_Session</strong></h2>
 <h6><strong>source file:</strong> /Zebra_Session.php</h6>
 <pre></pre>
-<p>A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as   well as better security and protection against session fixation and session hijacking.<p>Read more <a href="https://github.com/stefangabos/Zebra_Session/">here</a></p></p>
+<p>A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as   well as better security and protection against session fixation and session hijacking.<p>Works with or without PDO.</p><p>Read more <a href="https://github.com/stefangabos/Zebra_Session/">here</a></p></p>
 <h4>Author(s):</h4>
 <ul>
 <li>Stefan Gabos &lt;<a href="mailto:contact@stefangabos.ro">contact@stefangabos.ro</a>&gt;</li>
 </ul>
 <h4>Version:</h4>
 <ul>
-<li>3.0 (last revision: January 25, 2020)</li>
+<li>3.0 (last revision: January 27, 2020)</li>
 </ul>
 <h4>Copyright:</h4>
 <ul>
@@ -76,7 +76,7 @@ Package: <strong>Zebra_Session</strong>
 <a name="class_methods"></a>
 <h3>Class methods</h3>
 <a name="method__construct"></a>
-<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 205]</span></h4>
+<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 207]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -124,14 +124,14 @@ $lock_timeout
 )
 </p>
 <p>Constructor of class. Initializes the class and automatically calls   <a href="http://php.net/manual/en/function.session-start.php">start_session()</a>.</p>
-<p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;first,&nbsp;connect&nbsp;to&nbsp;a&nbsp;database&nbsp;containing&nbsp;the&nbsp;sessions&nbsp;table</span></div></li>
+<p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;first,&nbsp;connect&nbsp;to&nbsp;a&nbsp;database&nbsp;containing&nbsp;the&nbsp;sessions&nbsp;table,&nbsp;either&nbsp;via&nbsp;PDO&nbsp;or&nbsp;using&nbsp;mysqli_connect</span></div></li>
 <li><div class="src-line">&nbsp;</div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;include&nbsp;the&nbsp;class</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;(you&nbsp;don't&nbsp;need&nbsp;this&nbsp;if&nbsp;you&nbsp;are&nbsp;using&nbsp;Composer)</span></div></li>
 <li><div class="src-line">require&nbsp;<span class="src-str">'path/to/Zebra_Session.php'</span><span class="src-sym">;</span></div></li>
 <li><div class="src-line">&nbsp;</div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;start&nbsp;the&nbsp;session</span></div></li>
-<li><div class="src-line"><span class="src-comm">//&nbsp;where&nbsp;$link&nbsp;is&nbsp;a&nbsp;connection&nbsp;link&nbsp;returned&nbsp;by&nbsp;mysqli_connect</span></div></li>
+<li><div class="src-line"><span class="src-comm">//&nbsp;where&nbsp;$link&nbsp;is&nbsp;a&nbsp;connection&nbsp;link&nbsp;returned&nbsp;by&nbsp;mysqli_connect&nbsp;or&nbsp;a&nbsp;PDO&nbsp;instance</span></div></li>
 <li><div class="src-line"><span class="src-var">$session&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span><span class="src-var">$link</span><span class="src-sym">,&nbsp;</span><span class="src-str">'sEcUr1tY_c0dE'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
 </ol><p>By default, the cookie used by PHP to propagate session data across multiple pages ('PHPSESSID') uses the   current top-level domain and subdomain in the cookie declaration.</p><p>Example: www.domain.com</p><p>This means that the session data is not available to other subdomains. Therefore, a session started on   www.domain.com will not be available on blog.domain.com. The solution is to change the domain PHP uses when it   sets the 'PHPSESSID' cookie by calling the line below *before* instantiating the Zebra_Session library.</p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;takes&nbsp;the&nbsp;domain&nbsp;and&nbsp;removes&nbsp;the&nbsp;subdomain</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;blog.domain.com&nbsp;becoming&nbsp;.domain.com</span></div></li>
@@ -210,7 +210,7 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <div class="clear"></div>
 </div>
 <a name="methodget_active_sessions"></a>
-<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 378]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 380]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>integer</em>
@@ -237,7 +237,7 @@ although they haven't expired.</em></p><p><ol class="code"><li><div class="src-l
 <div class="clear"></div>
 </div>
 <a name="methodget_settings"></a>
-<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 430]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 426]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>array</em>
@@ -277,7 +277,7 @@ get_settings (
 <div class="clear"></div>
 </div>
 <a name="methodregenerate_id"></a>
-<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 540]</span></h4>
+<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 528]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -299,7 +299,7 @@ regenerate_id (
 <div class="clear"></div>
 </div>
 <a name="methodset_flashdata"></a>
-<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 578]</span></h4>
+<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 566]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -347,7 +347,7 @@ $value
 <div class="clear"></div>
 </div>
 <a name="methodstop"></a>
-<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 603]</span></h4>
+<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 591]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -378,7 +378,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sat, 25 Jan 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Sun, 26 Jan 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->
