@@ -2,8 +2,8 @@
 
 - added integration with PDO
 - implemented prepared statemets as `mysqli_real_escape_string` may not be secure enough when used with PHP < `5.7.6`; see [this](https://stackoverflow.com/questions/5741187/sql-injection-that-gets-around-mysql-real-escape-string/23277864#23277864) for more information; thanks [duckboy81](https://github.com/duckboy81) for suggesting
-- [session.use_strict_mode](https://www.php.net/manual/en/session.configuration.php#ini.session.use-strict-mode) is now always enabled by the library automatically; ; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
-- [session.cookie_secure](https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-secure) is now automcatically enabled by the library *if HTTPS connection is detected*; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
+- [session.use_strict_mode](https://www.php.net/manual/en/session.configuration.php#ini.session.use-strict-mode) is now always enabled by the library automatically; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
+- [session.cookie_secure](https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-secure) is now automatically enabled by the library *if HTTPS connection is detected*; thanks [dnanusevski](https://github.com/dnanusevski) for suggesting
 - fixed issue when using special characters in table name; see [#27](https://github.com/stefangabos/Zebra_Session/issues/27); thanks [more7dev](https://github.com/more7dev)!
 - added option for disabling automatically starting the session; see [#28](https://github.com/stefangabos/Zebra_Session/issues/28); thanks [Nick Muerdter](https://github.com/GUI) for the pull request!
 - minimum required PHP version has changed from `5.1.0` to `5.5.2`
@@ -51,7 +51,7 @@
 - dropped support for PHP 4; minimum required version is now PHP 5
 - dropped support for PHP's *mysql* extension, which is [officially deprecated as of PHP v5.5.0](http://php.net/manual/en/changelog.mysql.php) and will be removed in the future; the extension was originally introduced in PHP v2.0 for MySQL v3.23, and no new features have been added since 2006; the library now relies on PHP's [mysqli](http://php.net/manual/en/book.mysqli.php) extension
 - because of the above, the order of the arguments passed to the [constructor](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html#methodZebra_Session) have changed and now the "link" argument comes first, as with the *mysqli* extension this now needs to be explicitly given
-- added support for "flashdata" - session variable which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated"); see the newly added [set_flashdata](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html#methodset_flashdata) method; thanks **Andrei Bodeanschi** for suggesting!
+- added support for "flash data" - session variable which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated"); see the newly added [set_flashdata](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html#methodset_flashdata) method; thanks **Andrei Bodeanschi** for suggesting!
 - the project is now available on [GitHub](https://github.com/stefangabos/Zebra_Session) and also as a [package for Composer](https://packagist.org/packages/stefangabos/zebra_session)
 
 ## version 2.0.4 (January 19, 2013)
