@@ -26,8 +26,8 @@ class Zebra_Session {
     private $table_name;
 
     /**
-     *  Constructor of class. Initializes the class and automatically calls
-     *  {@link http://php.net/manual/en/function.session-start.php session_start()}.
+     *  Constructor of class. Initializes the class and, optionally, calls
+     *  {@link http://php.net/manual/en/function.session-start.php session_start()}
      *
      *  <code>
      *  // first, connect to a database containing the sessions table, either via PDO or using mysqli_connect
@@ -203,7 +203,7 @@ class Zebra_Session {
      *                                          Default is <i>60</i>
      *
      *  @param  boolean     $start_session      (Optional) Whether to start the session by default after object
-     *                                          construction.
+     *                                          construction (by calling {@link http://php.net/manual/en/function.session-start.php session_start()})
      *
      *                                          Default is TRUE.
      *  @return void
@@ -284,9 +284,8 @@ class Zebra_Session {
             // if a session is already started, destroy it first
             if (session_id() !== '') session_destroy();
 
-            // start session
-            if ($start_session)
-                session_start();
+            // start session if required
+            if ($start_session) session_start();
 
             // the name for the session variable that will be used for
             // holding information about flash data session variables
