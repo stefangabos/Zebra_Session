@@ -14,13 +14,13 @@ This is where **Zebra_Session** comes in handy - a PHP library that acts as a dr
 
 Zebra_Session is also a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS) where the user's session data needs to be available. Storing sessions in a database makes them available to all of the servers!
 
-Supports *"flashdata"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
+Supports *"flash data"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
 
-This class is was inspired by John Herren's code from the [Trick out your session handler](http://devzone.zend.com/413/trick-out-your-session-handler/) article and Chris Shiflett's code from his book [Essential PHP Security](http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
+This class is was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
 
 Zebra_Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](http://www.php.net/manual/en/function.error-reporting.php).
 
-Starting with version 2.0, Zebra_Session implements [row locks](http://dev.mysql.com/doc/refman/5.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
+Starting with version 2.0, Zebra_Session implements [row locks](http://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
 
 Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/), a great article by Andy Bakun:
 
@@ -86,7 +86,7 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 
 ## How to use
 
-> Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one! If you really need the class to make a database connection, put the code in the "open" method of the class.*
+> Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one!
 
 ```php
 // first, connect to a database containing the sessions table
