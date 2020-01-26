@@ -30,7 +30,7 @@ class Zebra_Session {
      *  {@link http://php.net/manual/en/function.session-start.php start_session()}.
      *
      *  <code>
-     *  // first, connect to a database containing the sessions table
+     *  // first, connect to a database containing the sessions table, either via PDO or using mysqli_connect
      *
      *  // include the class
      *  // (you don't need this if you are using Composer)

@@ -50,6 +50,8 @@ Thanks to [Michael Kliewe](http://www.phpgangsta.de/) who brought this to my att
 
 - it is a drop-in and seamingless replacement for PHP's default session handler: PHP sessions will be used in the same way as prior to using the library; you don't need to change any existing code!
 
+- integrates seamlesly with PDO (if you are using PDO) but works perfectly without it
+
 - implements *row locks*, ensuring that data is correctly handled in scenarios with multiple concurrent AJAX requests
 
 - because session data is stored in a database, the library represents a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS)
@@ -88,7 +90,20 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 
 ```php
 // first, connect to a database containing the sessions table
-// like $link = mysqli_connect(host, username, password, database);
+// either by something similar to
+//
+// $link = mysqli_connect(host, username, password, database);
+//
+//  or by using PDO
+//
+//  try {
+//      $pdo = new PDO(
+//      'mysql:host=' . $host . ';dbname=' . $database . ';charset=utf8mb4', $username, $password, array(
+//         PDO::ATTR_ERRMODE   =>  PDO::ERRMODE_EXCEPTION,
+//     ));
+// } catch (\PDOException $e) {
+//     throw new \PDOException($e->getMessage(), (int)$e->getCode());
+// }
 
 // include the Zebra_Session class
 // (you don't need this if you are using Composer)
