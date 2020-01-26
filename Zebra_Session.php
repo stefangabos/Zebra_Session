@@ -4,10 +4,12 @@
  *  A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as
  *  well as better security and protection against session fixation and session hijacking.
  *
+ *  Works with or without PDO.
+ *
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    3.0 (last revision: January 25, 2020)
+ *  @version    3.0 (last revision: January 27, 2020)
  *  @copyright  (c) 2006 - 2020 Stefan Gabos
  *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -35,7 +37,7 @@ class Zebra_Session {
      *  require 'path/to/Zebra_Session.php';
      *
      *  // start the session
-     *  // where $link is a connection link returned by mysqli_connect
+     *  // where $link is a connection link returned by mysqli_connect or a PDO instance
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *  </code>
      *
@@ -205,7 +207,7 @@ class Zebra_Session {
     public function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60) {
 
         // continue if the provided link is valid
-        if ($link instanceof MySQLi && $link->connect_error === null) {
+        if (($link instanceof MySQLi && $link->connect_error === null) || $link instanceof PDO) {
 
             // store the connection link
             $this->link = $link;
@@ -381,7 +383,7 @@ class Zebra_Session {
         $this->gc();
 
         // count the rows from the database
-        $results = $this->query('
+        $result = $this->query('
 
             SELECT
                 COUNT(session_id) as count
@@ -390,14 +392,8 @@ class Zebra_Session {
 
         ');
 
-        // fetch data
-        $row = $results->fetch_assoc();
-
-        // free memory
-        $results->free();
-
         // return the number of found rows
-        return $row['count'];
+        return $result['data']['count'];
 
     }
 
@@ -469,10 +465,10 @@ class Zebra_Session {
         $this->session_lock = 'session_' . sha1($session_id);
 
         // try to obtain a lock with the given name and timeout
-        $results = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
+        $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
 
         // stop if there was an error
-        if ($results === false || $results->num_rows != 1 || current($results->fetch_assoc()) != 1) throw new Exception('Zebra_Session: Could not obtain session lock');
+        if ($result['num_rows'] != 1) throw new Exception('Zebra_Session: Could not obtain session lock');
 
         $hash = '';
 
@@ -490,7 +486,7 @@ class Zebra_Session {
         $hash .= $this->security_code;
 
         // get the active (not expired) result associated with the session id and hash
-        $results = $this->query('
+        $result = $this->query('
 
             SELECT
                 session_data
@@ -506,19 +502,11 @@ class Zebra_Session {
         ', $session_id, time(), md5($hash));
 
         // if there were no errors and data was found
-        if ($results !== false && $results->num_rows > 0) {
-
-            // fetch data
-            $row = $results->fetch_assoc();
-
-            // free memory
-            $results->free();
+        if ($result !== false && $result['num_rows'] > 0)
 
             // return session data
             // don't bother with the unserialization - PHP handles this automatically
-            return $row['session_data'];
-
-        }
+            return $result['data']['session_data'];
 
         // on error return an empty string - this HAS to be an empty string
         return '';
@@ -630,7 +618,7 @@ class Zebra_Session {
         // first it tries to insert a new row in the database BUT if session_id is already in the database then just
         // update session_data and session_expire for that specific session_id
         // read more here https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
-        $result = $this->query('
+        return $this->query('
 
             INSERT INTO
                 ' . $this->table_name . '
@@ -652,9 +640,7 @@ class Zebra_Session {
             $session_data,
             time() + $this->session_lifetime
 
-        );
-
-        return $result !== false;
+        ) !== false;
 
     }
 
@@ -698,58 +684,86 @@ class Zebra_Session {
     }
 
     /**
-     *  Mini-wrapper for running MySQL queries with parameter binding
+     *  Mini-wrapper for running MySQL queries with parameter binding with or without PDO
      *
      *  @access private
      */
     private function query($query) {
 
-        $stmt = mysqli_stmt_init($this->link);
-
-        // if query is valid
-        if ($stmt->prepare($query)) {
-
-            // the arguments minus the first one (the SQL statement)
-            $arguments = array_slice(func_get_args(), 1);
-
-            // if there are any arguments
-            if (!empty($arguments)) {
-
-                // prepare the data for "bind_param"
-                $bind_types = '';
-                $bind_data = array();
-                foreach ($arguments as $key => $value) {
-                    $bind_types .= is_numeric($value) ? 'i' : 's';
-                    $bind_data[] = &$arguments[$key];
-                }
-                array_unshift($bind_data, $bind_types);
-
-                // call "bind_param" with the prepared arguments
-                call_user_func_array(array($stmt, 'bind_param'), $bind_data);
-
-            }
+        // if the provided connection link is a PDO instance
+        if ($this->link instanceof PDO) {
 
             // if executing the query was a success
-            if ($stmt->execute()) {
+            if (($stmt = $this->link->prepare($query)) && $stmt->execute(array_slice(func_get_args(), 1))) {
 
-                // if the "get_result" returns a boolean, it means the query was an INSERT/UPDATE/DELETE
-                if (is_bool($results = $stmt->get_result()))
+                // prepare a standardized return value
+                $result = array(
+                    'num_rows'  =>  $stmt->rowCount(),
+                    'data'      =>  $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC),
+                );
 
-                    // and we return the affected rows
-                    $results = $stmt->affected_rows;
+                // close the statement
+                $stmt->closeCursor();
 
-                // either ways, close the statement
-                $stmt->close();
-
-                // for SELECT queries return the $results object
-                return $results;
+                // return result
+                return $result;
 
             }
 
-        }
+        // if link connection is a regular mysqli connection object
+        } else {
 
-        // if we get this far there must've been an error
-        throw new Exception($stmt->error);
+            $stmt = mysqli_stmt_init($this->link);
+
+            // if query is valid
+            if ($stmt->prepare($query)) {
+
+                // the arguments minus the first one (the SQL statement)
+                $arguments = array_slice(func_get_args(), 1);
+
+                // if there are any arguments
+                if (!empty($arguments)) {
+
+                    // prepare the data for "bind_param"
+                    $bind_types = '';
+                    $bind_data = array();
+                    foreach ($arguments as $key => $value) {
+                        $bind_types .= is_numeric($value) ? 'i' : 's';
+                        $bind_data[] = &$arguments[$key];
+                    }
+                    array_unshift($bind_data, $bind_types);
+
+                    // call "bind_param" with the prepared arguments
+                    call_user_func_array(array($stmt, 'bind_param'), $bind_data);
+
+                }
+
+                // if the query was successfully executed
+                if ($stmt->execute()) {
+
+                    // get some information about the results
+                    $results = $stmt->get_result();
+
+                    // prepare a standardized return value
+                    $result = array(
+                        'num_rows'  =>  is_bool($results) ? $stmt->affected_rows : $results->num_rows,
+                        'data'      =>  is_bool($results) ? array() : $results->fetch_assoc(),
+                    );
+
+                    // close the statement
+                    $stmt->close();
+
+                    // return result
+                    return $result;
+
+                }
+
+            }
+
+            // if we get this far there must've been an error
+            throw new Exception($stmt->error);
+
+        }
 
     }
 
