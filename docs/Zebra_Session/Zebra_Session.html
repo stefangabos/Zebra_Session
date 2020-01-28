@@ -49,7 +49,7 @@ Package: <strong>Zebra_Session</strong>
 </ul>
 <h4>Version:</h4>
 <ul>
-<li>3.0 (last revision: January 27, 2020)</li>
+<li>3.0 (last revision: January 28, 2020)</li>
 </ul>
 <h4>Copyright:</h4>
 <ul>
@@ -76,7 +76,7 @@ Package: <strong>Zebra_Session</strong>
 <a name="class_methods"></a>
 <h3>Class methods</h3>
 <a name="method__construct"></a>
-<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 207]</span></h4>
+<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 218]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -121,9 +121,19 @@ $table_name
 string
 $lock_timeout
 = 60]
+, 
+[
+boolean
+$start_session
+= true]
+, 
+[
+boolean
+$read_only
+= false]
 )
 </p>
-<p>Constructor of class. Initializes the class and automatically calls   <a href="http://php.net/manual/en/function.session-start.php">start_session()</a>.</p>
+<p>Constructor of class. Initializes the class and, optionally, calls   <a href="http://php.net/manual/en/function.session-start.php">session_start()</a></p>
 <p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;first,&nbsp;connect&nbsp;to&nbsp;a&nbsp;database&nbsp;containing&nbsp;the&nbsp;sessions&nbsp;table,&nbsp;either&nbsp;via&nbsp;PDO&nbsp;or&nbsp;using&nbsp;mysqli_connect</span></div></li>
 <li><div class="src-line">&nbsp;</div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;include&nbsp;the&nbsp;class</span></div></li>
@@ -205,12 +215,22 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <td valign="top"><strong>$lock_timeout</strong></td>
 <td valign="top"><p>(Optional) The maximum amount of time (in seconds) for which a lock on                                           the session data can be kept.</p><p><em>This must be lower than the maximum execution time of the script!</em></p><p>Session locking is a way to ensure that data is correctly handled in a                                           scenario with multiple concurrent AJAX requests.</p><p>Read more about it at                                           <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/</a></p><p>Default is <em>60</em></p></td>
 </tr>
+<tr>
+<td valign="top"><em>boolean</em></td>
+<td valign="top"><strong>$start_session</strong></td>
+<td valign="top"><p>(Optional) Whether to start the session by default after object                                           construction (by calling <a href="http://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is TRUE.</p></td>
+</tr>
+<tr>
+<td valign="top"><em>boolean</em></td>
+<td valign="top"><strong>$read_only</strong></td>
+<td valign="top"><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                           made to $_SESSION will not be saved, although the variable can be read/written.</p><p>Default is FALSE (the default session behaviour).</p></td>
+</tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
 <a name="methodget_active_sessions"></a>
-<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 380]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 406]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>integer</em>
@@ -237,7 +257,7 @@ although they haven't expired.</em></p><p><ol class="code"><li><div class="src-l
 <div class="clear"></div>
 </div>
 <a name="methodget_settings"></a>
-<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 426]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 452]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>array</em>
@@ -277,7 +297,7 @@ get_settings (
 <div class="clear"></div>
 </div>
 <a name="methodregenerate_id"></a>
-<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 528]</span></h4>
+<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 560]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -299,7 +319,7 @@ regenerate_id (
 <div class="clear"></div>
 </div>
 <a name="methodset_flashdata"></a>
-<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 566]</span></h4>
+<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 598]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -347,7 +367,7 @@ $value
 <div class="clear"></div>
 </div>
 <a name="methodstop"></a>
-<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 591]</span></h4>
+<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 623]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -378,7 +398,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sun, 26 Jan 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Tue, 28 Jan 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->
