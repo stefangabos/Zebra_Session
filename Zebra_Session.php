@@ -11,7 +11,7 @@
  *  @author     Stefan Gabos <contact@stefangabos.ro>
  *  @version    3.0 (last revision: January 27, 2020)
  *  @copyright  (c) 2006 - 2020 Stefan Gabos
- *  @license    http://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
+ *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
 class Zebra_Session {
@@ -27,7 +27,7 @@ class Zebra_Session {
 
     /**
      *  Constructor of class. Initializes the class and, optionally, calls
-     *  {@link http://php.net/manual/en/function.session-start.php session_start()}
+     *  {@link https://php.net/manual/en/function.session-start.php session_start()}
      *
      *  <code>
      *  // first, connect to a database containing the sessions table, either via PDO or using mysqli_connect
@@ -62,7 +62,7 @@ class Zebra_Session {
      *  From now on whenever PHP sets the 'PHPSESSID' cookie, the cookie will be available to all subdomains!
      *
      *  @param  resource    &$link              An object representing the connection to a MySQL Server, as returned
-     *                                          by calling {@link http://www.php.net/manual/en/mysqli.construct.php mysqli_connect}.
+     *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect}.
      *
      *                                          If you use {@link https://github.com/stefangabos/Zebra_Database Zebra_Database}
      *                                          to connect to the database, you can get the connection to the MySQL server
@@ -93,7 +93,7 @@ class Zebra_Session {
      *                                          and <i>$gc_divisor</i>. See below.
      *
      *                                          Default is the value of <i>session.gc_maxlifetime</i> as set in in php.ini.
-     *                                          Read more at {@link http://www.php.net/manual/en/session.configuration.php}
+     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
      *
      *                                          To clear any confusions that may arise: in reality, <i>session.gc_maxlifetime</i>
      *                                          does not represent a session's lifetime but the number of seconds after
@@ -155,7 +155,7 @@ class Zebra_Session {
      *                                          be called on each request.
      *
      *                                          Default is the value of <i>session.gc_probability</i> as set in php.ini.
-     *                                          Read more at {@link http://www.php.net/manual/en/session.configuration.php}
+     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
      *
      *                                          To see the actual value of <i>session.gc_probability</i> for your
      *                                          environment, and the computed <i>probability</i>, use the
@@ -177,7 +177,7 @@ class Zebra_Session {
      *                                          be called on each request.
      *
      *                                          Default is the value of <i>session.gc_divisor</i> as set in php.ini.
-     *                                          Read more at {@link http://www.php.net/manual/en/session.configuration.php}
+     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
      *
      *                                          To see the actual value of <i>session.gc_divisor</i> for your
      *                                          environment, and the computed <i>probability</i>, use the
@@ -203,7 +203,7 @@ class Zebra_Session {
      *                                          Default is <i>60</i>
      *
      *  @param  boolean     $start_session      (Optional) Whether to start the session by default after object
-     *                                          construction (by calling {@link http://php.net/manual/en/function.session-start.php session_start()})
+     *                                          construction (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
      *
      *                                          Default is TRUE.
      *  @return void
