@@ -9,7 +9,7 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    3.0 (last revision: January 27, 2020)
+ *  @version    3.0 (last revision: January 28, 2020)
  *  @copyright  (c) 2006 - 2020 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -24,6 +24,7 @@ class Zebra_Session {
     private $lock_to_user_agent;
     private $session_lifetime;
     private $table_name;
+    private $read_only = false;
 
     /**
      *  Constructor of class. Initializes the class and, optionally, calls
@@ -206,9 +207,27 @@ class Zebra_Session {
      *                                          construction (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
      *
      *                                          Default is TRUE.
+     *
+     *  @param  boolean     $read_only          (Optional) Opens session in read-only mode and without row locks. Any changes
+     *                                          made to $_SESSION will not be saved, although the variable can be read/written.
+     *
+     *                                          Default is FALSE (the default session behaviour).
+     *
      *  @return void
      */
-    public function __construct(&$link, $security_code, $session_lifetime = '', $lock_to_user_agent = true, $lock_to_ip = false, $gc_probability = '', $gc_divisor = '', $table_name = 'session_data', $lock_timeout = 60, $start_session = true) {
+    public function __construct(
+        &$link,
+        $security_code,
+        $session_lifetime = '',
+        $lock_to_user_agent = true,
+        $lock_to_ip = false,
+        $gc_probability = '',
+        $gc_divisor = '',
+        $table_name = 'session_data',
+        $lock_timeout = 60,
+        $start_session = true,
+        $read_only = false
+    ) {
 
         // continue if the provided link is valid
         if (($link instanceof MySQLi && $link->connect_error === null) || $link instanceof PDO) {
@@ -270,6 +289,9 @@ class Zebra_Session {
 
             // the maximum amount of time (in seconds) for which a process can lock the session
             $this->lock_timeout = $lock_timeout;
+
+            // set read-only flag
+            $this->read_only = $read_only;
 
             // register the new handler
             session_set_save_handler(
@@ -468,11 +490,17 @@ class Zebra_Session {
         // thanks to Andreas Heissenberger (see https://github.com/stefangabos/Zebra_Session/issues/16)
         $this->session_lock = 'session_' . sha1($session_id);
 
-        // try to obtain a lock with the given name and timeout
-        $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
+        // if we are *not* in read-only mode
+        // read-only sessions do not need a lock
+        if (!$this->read_only) {
 
-        // stop if there was an error
-        if ($result['num_rows'] != 1) throw new Exception('Zebra_Session: Could not obtain session lock');
+            // try to obtain a lock with the given name and timeout
+            $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
+
+            // stop if there was an error
+            if ($result['num_rows'] != 1) throw new Exception('Zebra_Session: Could not obtain session lock');
+
+        }
 
         $hash = '';
 
@@ -617,6 +645,9 @@ class Zebra_Session {
      *  @access private
      */
     function write($session_id, $session_data) {
+
+        // we don't write session variable when in read-only mode
+        if ($this->read_only) return true;
 
         // insert OR update session's data - this is how it works:
         // first it tries to insert a new row in the database BUT if session_id is already in the database then just
