@@ -97,7 +97,7 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 //  or by using PDO
 //
 //  try {
-//      $pdo = new PDO(
+//      $link = new PDO(
 //      'mysql:host=' . $host . ';dbname=' . $database . ';charset=utf8mb4', $username, $password, array(
 //         PDO::ATTR_ERRMODE   =>  PDO::ERRMODE_EXCEPTION,
 //     ));
