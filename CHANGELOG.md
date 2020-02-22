@@ -1,4 +1,4 @@
-## version 3.0.0 (TBA)
+## version 3.0.0 (February 22, 2020)
 
 - added integration with PDO
 - implemented prepared statemets as `mysqli_real_escape_string` may not be secure enough when used with PHP < `5.7.6`; see [this](https://stackoverflow.com/questions/5741187/sql-injection-that-gets-around-mysql-real-escape-string/23277864#23277864) for more information; thanks [duckboy81](https://github.com/duckboy81) for suggesting
