@@ -76,7 +76,7 @@ Package: <strong>Zebra_Session</strong>
 <a name="class_methods"></a>
 <h3>Class methods</h3>
 <a name="method__construct"></a>
-<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 218]</span></h4>
+<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 219]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -133,7 +133,7 @@ $read_only
 = false]
 )
 </p>
-<p>Constructor of class. Initializes the class and, optionally, calls   <a href="http://php.net/manual/en/function.session-start.php">session_start()</a></p>
+<p>Constructor of class. Initializes the class and, optionally, calls   <a href="https://php.net/manual/en/function.session-start.php">session_start()</a></p>
 <p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;first,&nbsp;connect&nbsp;to&nbsp;a&nbsp;database&nbsp;containing&nbsp;the&nbsp;sessions&nbsp;table,&nbsp;either&nbsp;via&nbsp;PDO&nbsp;or&nbsp;using&nbsp;mysqli_connect</span></div></li>
 <li><div class="src-line">&nbsp;</div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;include&nbsp;the&nbsp;class</span></div></li>
@@ -162,7 +162,7 @@ $read_only
 <tr>
 <td valign="top"><em>resource</em></td>
 <td valign="top"><strong>&$link</strong></td>
-<td valign="top"><p>An object representing the connection to a MySQL Server, as returned                                           by calling <a href="http://www.php.net/manual/en/mysqli.construct.php">mysqli_connect</a>.</p><p>If you use <a href="https://github.com/stefangabos/Zebra_Database">Zebra_Database</a>                                           to connect to the database, you can get the connection to the MySQL server                                           via Zebra_Database's <a href="https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link">get_link</a>                                           method.</p></td>
+<td valign="top"><p>An object representing the connection to a MySQL Server, as returned                                           by calling <a href="https://www.php.net/manual/en/mysqli.construct.php">mysqli_connect</a>,                                           or a <a href="https://www.php.net/manual/en/intro.pdo.php">PDO</a> instance.</p><p>If you use <a href="https://github.com/stefangabos/Zebra_Database">Zebra_Database</a>                                           to connect to the database, you can get the connection to the MySQL server                                           via Zebra_Database's <a href="https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link">get_link</a>                                           method.</p></td>
 </tr>
 <tr>
 <td valign="top"><em>string</em></td>
@@ -177,7 +177,7 @@ link to generate such a random string.</div></p></td>
 <td valign="top"><strong>$session_lifetime</strong></td>
 <td valign="top"><p>(Optional) The number of seconds after which a session will be considered                                           as <em>expired</em>.</p><p>Expired sessions are cleaned up from the database whenever the <em>garbage
 collection routine</em> is run. The probability of the <em>garbage collection
-routine</em> to be executed is given by the values of <em>$gc_probability</em>                                           and <em>$gc_divisor</em>. See below.</p><p>Default is the value of <em>session.gc_maxlifetime</em> as set in in php.ini.                                           Read more at <a href="http://www.php.net/manual/en/session.configuration.php">http://www.php.net/manual/en/session.configuration.php</a></p><p>To clear any confusions that may arise: in reality, <em>session.gc_maxlifetime</em>                                           does not represent a session's lifetime but the number of seconds after                                           which a session is seen as <em>garbage</em> and is deleted by the <em>garbage
+routine</em> to be executed is given by the values of <em>$gc_probability</em>                                           and <em>$gc_divisor</em>. See below.</p><p>Default is the value of <em>session.gc_maxlifetime</em> as set in in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To clear any confusions that may arise: in reality, <em>session.gc_maxlifetime</em>                                           does not represent a session's lifetime but the number of seconds after                                           which a session is seen as <em>garbage</em> and is deleted by the <em>garbage
 collection routine</em>. The PHP setting that sets a session's lifetime is                                           <em>session.cookie_lifetime</em> and is usually set to &quot;0&quot; - indicating that                                           a session is active until the browser/browser tab is closed. When this class                                           is used, a session is active until the browser/browser tab is closed and/or                                           a session has been inactive for more than the number of seconds specified                                           by <em>session.gc_maxlifetime</em>.</p><p>To see the actual value of <em>session.gc_maxlifetime</em> for your                                           environment, use the <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
 </tr>
 <tr>
@@ -197,13 +197,13 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <td valign="top"><em>integer</em></td>
 <td valign="top"><strong>$gc_probability</strong></td>
 <td valign="top"><p>(Optional) Used in conjunction with <em>$gc_divisor</em>. It defines the                                           probability that the <em>garbage collection routine</em> is started.</p><p>The probability is expressed by the formula:</p><p><ol class="code"><li><div class="src-line"><span class="src-var">$probability&nbsp;</span>=&nbsp;<span class="src-var">$gc_probability&nbsp;</span>/&nbsp;<span class="src-var">$gc_divisor</span><span class="src-sym">;</span></div></li>
-</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_probability</em> as set in php.ini.                                           Read more at <a href="http://www.php.net/manual/en/session.configuration.php">http://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_probability</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
+</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_probability</em> as set in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_probability</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
 </tr>
 <tr>
 <td valign="top"><em>integer</em></td>
 <td valign="top"><strong>$gc_divisor</strong></td>
 <td valign="top"><p>(Optional) Used in conjunction with <em>$gc_probability</em>. It defines the                                           probability that the <em>garbage collection routine</em> is started.</p><p>The probability is expressed by the formula:</p><p><ol class="code"><li><div class="src-line"><span class="src-var">$probability&nbsp;</span>=&nbsp;<span class="src-var">$gc_probability&nbsp;</span>/&nbsp;<span class="src-var">$gc_divisor</span><span class="src-sym">;</span></div></li>
-</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_divisor</em> as set in php.ini.                                           Read more at <a href="http://www.php.net/manual/en/session.configuration.php">http://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_divisor</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
+</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_divisor</em> as set in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_divisor</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
 </tr>
 <tr>
 <td valign="top"><em>string</em></td>
@@ -218,7 +218,7 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <tr>
 <td valign="top"><em>boolean</em></td>
 <td valign="top"><strong>$start_session</strong></td>
-<td valign="top"><p>(Optional) Whether to start the session by default after object                                           construction (by calling <a href="http://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is TRUE.</p></td>
+<td valign="top"><p>(Optional) Whether to start the session by default after object                                           construction (by calling <a href="https://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is TRUE.</p></td>
 </tr>
 <tr>
 <td valign="top"><em>boolean</em></td>
@@ -230,7 +230,7 @@ hijacks the session cookie will most likely have the same user agent.</em></p><p
 <div class="clear"></div>
 </div>
 <a name="methodget_active_sessions"></a>
-<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 406]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 407]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>integer</em>
@@ -257,7 +257,7 @@ although they haven't expired.</em></p><p><ol class="code"><li><div class="src-l
 <div class="clear"></div>
 </div>
 <a name="methodget_settings"></a>
-<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 452]</span></h4>
+<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 453]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>array</em>
@@ -297,7 +297,7 @@ get_settings (
 <div class="clear"></div>
 </div>
 <a name="methodregenerate_id"></a>
-<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 560]</span></h4>
+<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 561]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -319,7 +319,7 @@ regenerate_id (
 <div class="clear"></div>
 </div>
 <a name="methodset_flashdata"></a>
-<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 598]</span></h4>
+<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 599]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -367,7 +367,7 @@ $value
 <div class="clear"></div>
 </div>
 <a name="methodstop"></a>
-<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 623]</span></h4>
+<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 624]</span></h4>
 <div class="doc_block">
 <p class="code">
 <em>void</em>
@@ -398,7 +398,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Tue, 28 Jan 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Mon, 23 Mar 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->

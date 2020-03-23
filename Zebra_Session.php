@@ -63,7 +63,8 @@ class Zebra_Session {
      *  From now on whenever PHP sets the 'PHPSESSID' cookie, the cookie will be available to all subdomains!
      *
      *  @param  resource    &$link              An object representing the connection to a MySQL Server, as returned
-     *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect}.
+     *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
+     *                                          or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
      *
      *                                          If you use {@link https://github.com/stefangabos/Zebra_Database Zebra_Database}
      *                                          to connect to the database, you can get the connection to the MySQL server
