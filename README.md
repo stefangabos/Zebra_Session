@@ -16,7 +16,7 @@ Zebra_Session is also a solution for applications that are scaled across multipl
 
 Supports *"flash data"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
 
-This class is was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](https://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
+This class is was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](https://web.archive.org/web/20190921001622/http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
 
 Zebra_Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](https://www.php.net/manual/en/function.error-reporting.php).
 
