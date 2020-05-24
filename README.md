@@ -89,6 +89,7 @@ Notice a directory called *install* containing a file named *session_data.sql*. 
 > Note that this class assumes that there is an active connection to a MySQL database and it does not attempt to create one!
 
 ```php
+<?php
 // first, connect to a database containing the sessions table
 // either by something similar to
 //
