@@ -1,3 +1,7 @@
+## version 3.1.0 (May 31, 2020)
+
+- fixed a bug where sessions became unusable if the user agent was changed after initialization; thanks to [poisons77](https://github.com/poisons77) for the feedback - see [#32](https://github.com/stefangabos/Zebra_Session/issues/32)
+
 ## version 3.0.0 (February 22, 2020)
 
 - added integration with PDO
