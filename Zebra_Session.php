@@ -9,7 +9,7 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    3.0 (last revision: January 28, 2020)
+ *  @version    3.1 (last revision: May 31, 2020)
  *  @copyright  (c) 2006 - 2020 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
