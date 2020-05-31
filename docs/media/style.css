@@ -107,6 +107,11 @@ h4.method span {
     margin-right: .5em;
 }
 
+h4.variable span.value {
+    font-size: 100%;
+    color: #C40000;
+}
+
 .doc_block,
 .doc_index {
     padding: 1em;
