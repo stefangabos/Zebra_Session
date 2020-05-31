@@ -541,6 +541,9 @@ class Zebra_Session {
             // don't bother with the unserialization - PHP handles this automatically
             return $result['data']['session_data'];
 
+        // if hash has changed or the session expired
+        $this->destroy($session_id);
+
         // on error return an empty string - this HAS to be an empty string
         return '';
 
