@@ -1,6 +1,6 @@
 <img src="https://github.com/stefangabos/zebrajs/blob/master/docs/images/logo.png" alt="zebrajs" align="right">
 
-# Zebra_Session &nbsp;[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=A+drop-in+replacement+for+PHP's+default+session+handler+which+stores+session+data+in+a+MySQL+database+%23php&url=https://github.com/stefangabos/Zebra_Session&via=stefangabos)
+# Zebra Session &nbsp;[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=A+drop-in+replacement+for+PHP's+default+session+handler+which+stores+session+data+in+a+MySQL+database+%23php&url=https://github.com/stefangabos/Zebra_Session&via=stefangabos)
 
 *A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking*
 
