@@ -38,11 +38,9 @@ So, in the end, this is not the best solution but still is better than nothing. 
 
 Thanks to [Michael Kliewe](https://www.phpgangsta.de/) who brought this to my attention!
 
-:books: Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
+## :notebook_with_decorative_cover: Documentation
 
-## Support the development of this library
-
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372)
+Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
 
 ## Features
 
@@ -60,29 +58,41 @@ Thanks to [Michael Kliewe](https://www.phpgangsta.de/) who brought this to my at
 
 - the code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL
 
+## 🎂 Support the development of this project
+
+Your support means a lot and it keeps me motivated to keep working on open source projects.<br>
+If you like this project please ⭐ it by clicking on the star button at the top of the page.<br>
+If you are feeling generous, you can buy me a coffee by donating through PayPal, or you can become a sponsor.<br>
+Either way - **Thank you!** 🎉
+
+[<img src="https://img.shields.io/github/stars/stefangabos/zebra_session?color=green&label=star%20it%20on%20GitHub" width="132" height="20" alt="Star it on GitHub">](https://github.com/stefangabos/Zebra_Session) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372) [<img src="https://img.shields.io/badge/-Sponsor-fafbfc?logo=GitHub%20Sponsors">](https://github.com/sponsors/stefangabos)
+
 ## Requirements
 
 PHP 5.5.2+ with the `mysqli extension` activated, MySQL 4.1.22+
 
 ## Installation
 
-Download the latest version, unpack it, and load it in your project
+You can install via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
+
+```bash
+# get the latest stable release
+composer require stefangabos/zebra_session
+
+# get the latest commit
+composer require stefangabos/zebra_session:dev-master
+```
+
+
+Or you can install it manually by downloading the latest version, unpacking it, and then including it in your project
 
 ```php
-require_once 'Zebra_Session.php';
-```
-
-## Installation with Composer
-
-You can install Zebra_Session via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
-
-```
-composer require stefangabos/zebra_session
+require_once 'path/to/Zebra_Session.php';
 ```
 
 ## Install MySQL table
 
-Notice a directory called *install* containing a file named *session_data.sql*. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
+Notice a directory called *install* containing a file named `session_data.sql`. This file contains the SQL code that will create a table that is used by the class to store session data. Import or execute the SQL code using your preferred MySQL manager (like phpMyAdmin or the fantastic Adminer) into a database of your choice.
 
 ## How to use
 
@@ -120,5 +130,3 @@ $_SESSION['foo'] = 'bar';
 
 // data is in the database!
 ```
-
- :books: Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
