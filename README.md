@@ -38,10 +38,6 @@ So, in the end, this is not the best solution but still is better than nothing. 
 
 Thanks to [Michael Kliewe](https://www.phpgangsta.de/) who brought this to my attention!
 
-## :notebook_with_decorative_cover: Documentation
-
-Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
-
 ## Features
 
 - acts as a wrapper for PHP's default session handling functions, but instead of storing session data in flat files it stores them in a MySQL database, providing better security and better performance
@@ -57,6 +53,10 @@ Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Sessio
 - has awesome documentation
 
 - the code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL
+
+## :notebook_with_decorative_cover: Documentation
+
+Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
 
 ## 🎂 Support the development of this project
 
