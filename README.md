@@ -10,17 +10,17 @@ Session support in PHP consists of a way to preserve information (variables) on 
 
 By default, session data is stored on the server in flat files, separate for each session. The problem with this scenario is that performance degrades proportionally with the number of session files existing in the session directory (depending on the server's operating system's ability to handle directories with numerous files). Another issue is that session files are usually stored in a location that is world readable posing a security concern on shared hosting.
 
-This is where **Zebra_Session** comes in handy - a PHP library that acts as a drop-in replacement for PHP's default session handler, but instead of storing session data in flat files it stores them in a **MySQL database**, providing better security and better performance.
+This is where **Zebra Session** comes in handy - a PHP library that acts as a drop-in replacement for PHP's default session handler, but instead of storing session data in flat files it stores them in a **MySQL database**, providing better security and better performance.
 
-Zebra_Session is also a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS) where the user's session data needs to be available. Storing sessions in a database makes them available to all of the servers!
+Zebra Session is also a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS) where the user's session data needs to be available. Storing sessions in a database makes them available to all of the servers!
 
 Supports *"flash data"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
 
 This class is was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](https://web.archive.org/web/20190921001622/http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
 
-Zebra_Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](https://www.php.net/manual/en/function.error-reporting.php).
+Zebra Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](https://www.php.net/manual/en/function.error-reporting.php).
 
-Starting with version 2.0, Zebra_Session implements [row locks](https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
+Starting with version 2.0, Zebra Session implements [row locks](https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
 
 Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/), a great article by Andy Bakun:
 
