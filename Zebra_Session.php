@@ -10,7 +10,7 @@
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
  *  @version    4.0.0 (last revision: April 16, 2022)
- *  @copyright  (c) 2006 - 2022 Stefan Gabos
+ *  @copyright  © 2006 - 2022 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
