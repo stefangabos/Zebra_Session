@@ -129,7 +129,7 @@ class Zebra_Session {
      *
      *                                          <code> Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4...</code>
      *
-     *                                          So, if the situation asks for this, change this value to FALSE.
+     *                                          So, if the situation asks for this, change this value to `false`.
      *
      *                                          Default is `true`.
      *
@@ -165,7 +165,7 @@ class Zebra_Session {
      *                                          Default is `true`
      *
      *  @param  boolean     $read_only          (Optional) Opens session in read-only mode and without row locks. Any changes
-     *                                          made to $_SESSION will not be saved, although the variable can be read/written.
+     *                                          made to `$_SESSION` will not be saved, although the variable can be read/written.
      *
      *                                          Default is `false` (the default session behavior).
      *

@@ -197,7 +197,7 @@ link to generate such a random string.</samp></p></td>
 <td><strong>$lock_to_user_agent</strong></td>
 <td><p>(Optional) Whether to restrict the session to the same User Agent (browser)                                           as when the session was first opened.</p><p class="highlight">The user agent check only adds minor security, since an attacker that                                               hijacks the session cookie will most likely have the same user agent.</p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                           change the user agent string from one page to the next by automatically                                           switching into compatibility mode. So, on the first load you would have                                           something like:</p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
 </ol><p>and reloading the page you would have</p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
-</ol><p>So, if the situation asks for this, change this value to FALSE.</p><p>Default is <code>true</code>.</p></td>
+</ol><p>So, if the situation asks for this, change this value to <code>false</code>.</p><p>Default is <code>true</code>.</p></td>
 </tr>
 <tr>
 <td><em>boolean</em></td>
@@ -222,7 +222,7 @@ link to generate such a random string.</samp></p></td>
 <tr>
 <td><em>boolean</em></td>
 <td><strong>$read_only</strong></td>
-<td><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                           made to $_SESSION will not be saved, although the variable can be read/written.</p><p>Default is <code>false</code> (the default session behavior).</p></td>
+<td><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                           made to <code>$_SESSION</code> will not be saved, although the variable can be read/written.</p><p>Default is <code>false</code> (the default session behavior).</p></td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
