@@ -26,11 +26,11 @@ Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.
 
 > When locking is not used, multiple requests (represented in these diagrams as processes P1, P2 and P3) access the session data without any consideration for the other processes and the state of the session data. The running time of the requests are indicated by the height of each process's colored area (the actual run times are unimportant, only the relative start times and durations).
 
-![Session access without locking](http://stefangabos.ro/wp-content/uploads/2011/04/session-access-without-locking.png)
+![Session access without locking](https://raw.githubusercontent.com/stefangabos/Zebra_Session/22a14834a5928337fb9cb4e47743a3c82e00486b/docs/media/session-access-without-locking.png)
 
 > In the example above, no matter how P2 and P3 change the session data, the only changes that will be reflected in the session are those that P1 made because they were written last. When locking is used, the process can start up, request a lock on the session data before it reads it, and then get a consistent read of the session once it acquires exclusive access to it. In the following diagram, all reads occur after writes:
 
-![Session access without locking](http://stefangabos.ro/wp-content/uploads/2011/04/session-access-with-locking.png)
+![Session access without locking](https://raw.githubusercontent.com/stefangabos/Zebra_Session/22a14834a5928337fb9cb4e47743a3c82e00486b/docs/media/session-access-with-locking.png)
 
 > The process execution is interleaved, but access to the session data is serialized. The process is waiting for the lock to be released during the period between when the process requests the session lock and when the session is read. This means that your session data will remain consistent, but it also means that while processes P2 and P3 are waiting for their turn to acquire the lock, nothing is happening. This may not be that important if all of the requests change or write to the session data, but if P2 just needs to read the session data (perhaps to get a login identifier), it is being held up for no reason.
 
