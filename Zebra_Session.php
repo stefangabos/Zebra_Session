@@ -6,11 +6,11 @@
  *
  *  Works with or without PDO.
  *
- *  Read more {@link https://github.com/stefangabos/Zebra_Session/ here}
+ *  Read more {@link https://github.com/stefangabos/Zebra_Session/#zebra-session- here}.
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    3.1 (last revision: May 31, 2020)
- *  @copyright  (c) 2006 - 2020 Stefan Gabos
+ *  @version    4.0.0 (last revision: April 16, 2022)
+ *  @copyright  (c) 2006 - 2022 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
@@ -42,14 +42,14 @@ class Zebra_Session {
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *  </code>
      *
-     *  By default, the cookie used by PHP to propagate session data across multiple pages ('PHPSESSID') uses the
+     *  By default, the cookie used by PHP to propagate session data across multiple pages (`PHPSESSID`) uses the
      *  current top-level domain and subdomain in the cookie declaration.
      *
-     *  Example: www.domain.com
+     *  Example: `www.domain.com`
      *
      *  This means that the session data is not available to other subdomains. Therefore, a session started on
-     *  www.domain.com will not be available on blog.domain.com. The solution is to change the domain PHP uses when it
-     *  sets the 'PHPSESSID' cookie by calling the line below *before* instantiating the Zebra_Session library.
+     *  `www.domain.com` will not be available on `blog.domain.com`. The solution is to change the domain PHP uses when
+     *  it sets the `PHPSESSID` cookie by calling the line below *before* instantiating the Zebra_Session library:
      *
      *  <code>
      *  // takes the domain and removes the subdomain
@@ -60,7 +60,7 @@ class Zebra_Session {
      *  );
      *  </code>
      *
-     *  From now on whenever PHP sets the 'PHPSESSID' cookie, the cookie will be available to all subdomains!
+     *  From now on whenever PHP sets the `PHPSESSID` cookie, the cookie will be available to all subdomains!
      *
      *  @param  resource    &$link              An object representing the connection to a MySQL Server, as returned
      *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
@@ -73,8 +73,8 @@ class Zebra_Session {
      *
      *  @param  string      $security_code      The value of this argument is appended to the string created by
      *                                          concatenating the user browser's User Agent string (or an empty string
-     *                                          if "lock_to_user_agent" is FALSE) and the user's IP address (or an
-     *                                          empty string if "lock_to_ip" is FALSE), before creating an MD5 hash out
+     *                                          if `lock_to_user_agent` is `FALSE`) and the user's IP address (or an
+     *                                          empty string if `lock_to_ip` is `FALSE`), before creating an MD5 hash out
      *                                          of it and storing it in the database.
      *
      *                                          On each call this value will be generated again and compared to the
@@ -87,36 +87,36 @@ class Zebra_Session {
      *                                          link to generate such a random string.</samp>
      *
      *  @param  integer     $session_lifetime   (Optional) The number of seconds after which a session will be considered
-     *                                          as <i>expired</i>.
+     *                                          as **expired**.
      *
-     *                                          Expired sessions are cleaned up from the database whenever the <i>garbage
-     *                                          collection routine</i> is run. The probability of the <i>garbage collection
-     *                                          routine</i> to be executed is given by the values of <i>$gc_probability</i>
-     *                                          and <i>$gc_divisor</i>. See below.
+     *                                          Expired sessions are cleaned up from the database whenever the **garbage
+     *                                          collection routine** is run. The probability of the **garbage collection
+     *                                          routine** to be executed is given by the values of `$gc_probability`
+     *                                          and `$gc_divisor`. See below.
      *
-     *                                          Default is the value of <i>session.gc_maxlifetime</i> as set in in php.ini.
-     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
+     *                                          Default is the value of `session.gc_maxlifetime` as set in in `php.ini`.<br>
+     *                                          Read more in the {@link https://www.php.net/manual/en/session.configuration.php PHP manual}
      *
-     *                                          To clear any confusions that may arise: in reality, <i>session.gc_maxlifetime</i>
+     *                                          To clear any confusions that may arise: in reality, `session.gc_maxlifetime`
      *                                          does not represent a session's lifetime but the number of seconds after
-     *                                          which a session is seen as <i>garbage</i> and is deleted by the <i>garbage
-     *                                          collection routine</i>. The PHP setting that sets a session's lifetime is
-     *                                          <i>session.cookie_lifetime</i> and is usually set to "0" - indicating that
+     *                                          which a session is seen as **garbage** and is deleted by the **garbage
+     *                                          collection routine**. The PHP setting that sets a session's lifetime is
+     *                                          `session.cookie_lifetime` and is usually set to `0` - indicating that
      *                                          a session is active until the browser/browser tab is closed. When this class
      *                                          is used, a session is active until the browser/browser tab is closed and/or
      *                                          a session has been inactive for more than the number of seconds specified
-     *                                          by <i>session.gc_maxlifetime</i>.
+     *                                          by `session.gc_maxlifetime`.
      *
-     *                                          To see the actual value of <i>session.gc_maxlifetime</i> for your
-     *                                          environment, use the {@link get_settings()} method.
+     *                                          To see the actual value of `session.gc_maxlifetime` for your environment,
+     *                                          use the {@link get_settings()} method.
      *
      *                                          Pass an empty string to keep default value.
      *
      *  @param  boolean     $lock_to_user_agent (Optional) Whether to restrict the session to the same User Agent (browser)
      *                                          as when the session was first opened.
      *
-     *                                          <i>The user agent check only adds minor security, since an attacker that
-     *                                          hijacks the session cookie will most likely have the same user agent.</i>
+     *                                          >   The user agent check only adds minor security, since an attacker that
+     *                                              hijacks the session cookie will most likely have the same user agent.
      *
      *                                          In certain scenarios involving Internet Explorer, the browser will randomly
      *                                          change the user agent string from one page to the next by automatically
@@ -131,7 +131,7 @@ class Zebra_Session {
      *
      *                                          So, if the situation asks for this, change this value to FALSE.
      *
-     *                                          Default is TRUE.
+     *                                          Default is `true`.
      *
      *  @param  boolean     $lock_to_ip         (Optional) Whether to restrict the session to the same IP as when the
      *                                          session was first opened.
@@ -141,91 +141,44 @@ class Zebra_Session {
      *
      *                                          This is mostly useful if your know that all your users come from static IPs.
      *
-     *                                          Default is FALSE.
-     *
-     *  @param  integer     $gc_probability     (Optional) Used in conjunction with <i>$gc_divisor</i>. It defines the
-     *                                          probability that the <i>garbage collection routine</i> is started.
-     *
-     *                                          The probability is expressed by the formula:
-     *
-     *                                          <code>
-     *                                          $probability = $gc_probability / $gc_divisor;
-     *                                          </code>
-     *
-     *                                          So, if <i>$gc_probability</i> is 1 and <i>$gc_divisor</i> is 100, it means
-     *                                          that there is a 1% chance the the <i>garbage collection routine</i> will
-     *                                          be called on each request.
-     *
-     *                                          Default is the value of <i>session.gc_probability</i> as set in php.ini.
-     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
-     *
-     *                                          To see the actual value of <i>session.gc_probability</i> for your
-     *                                          environment, and the computed <i>probability</i>, use the
-     *                                          {@link get_settings()} method.
-     *
-     *                                          Pass an empty string to keep default value.
-     *
-     *  @param  integer     $gc_divisor         (Optional) Used in conjunction with <i>$gc_probability</i>. It defines the
-     *                                          probability that the <i>garbage collection routine</i> is started.
-     *
-     *                                          The probability is expressed by the formula:
-     *
-     *                                          <code>
-     *                                          $probability = $gc_probability / $gc_divisor;
-     *                                          </code>
-     *
-     *                                          So, if <i>$gc_probability</i> is 1 and <i>$gc_divisor</i> is 100, it means
-     *                                          that there is a 1% chance the the <i>garbage collection routine</i> will
-     *                                          be called on each request.
-     *
-     *                                          Default is the value of <i>session.gc_divisor</i> as set in php.ini.
-     *                                          Read more at {@link https://www.php.net/manual/en/session.configuration.php}
-     *
-     *                                          To see the actual value of <i>session.gc_divisor</i> for your
-     *                                          environment, and the computed <i>probability</i>, use the
-     *                                          {@link get_settings()} method.
-     *
-     *                                          Pass an empty string to keep default value.
-     *
-     *  @param  string      $table_name         (Optional) Name of the MySQL table to be used by the class.
-     *
-     *                                          Default is <i>session_data</i>.
+     *                                          Default is `false`
      *
      *  @param  string      $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
      *                                          the session data can be kept.
      *
-     *                                          <i>This must be lower than the maximum execution time of the script!</i>
+     *                                          >   This must be lower than the maximum execution time of the script!
      *
      *                                          Session locking is a way to ensure that data is correctly handled in a
      *                                          scenario with multiple concurrent AJAX requests.
      *
-     *                                          Read more about it at
-     *                                          {@link http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/}
+     *                                          Read more about it
+     *                                          {@link http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/ here}.
      *
-     *                                          Default is <i>60</i>
+     *                                          Default is `60`
      *
-     *  @param  boolean     $start_session      (Optional) Whether to start the session by default after object
-     *                                          construction (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
+     *  @param  string      $table_name         (Optional) Name of the MySQL table to be used by the class.
      *
-     *                                          Default is TRUE.
+     *                                          Default is `session_data`
+     *
+     *  @param  boolean     $start_session      (Optional) Whether to start the session right away (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
+     *
+     *                                          Default is `true`
      *
      *  @param  boolean     $read_only          (Optional) Opens session in read-only mode and without row locks. Any changes
      *                                          made to $_SESSION will not be saved, although the variable can be read/written.
      *
-     *                                          Default is FALSE (the default session behaviour).
+     *                                          Default is `false` (the default session behavior).
      *
      *  @return void
      */
     public function __construct(
         &$link,
         $security_code,
-        $session_lifetime = '',
+        $session_lifetime = 0,
         $lock_to_user_agent = true,
         $lock_to_ip = false,
-        $gc_probability = '',
-        $gc_divisor = '',
-        $table_name = 'session_data',
         $lock_timeout = 60,
+        $table_name = 'session_data',
         $start_session = true,
         $read_only = false
     ) {
@@ -262,18 +215,6 @@ class Zebra_Session {
 
                 // set the new value
                 ini_set('session.gc_maxlifetime', (int)$session_lifetime);
-
-            // if $gc_probability is specified and is an integer number
-            if ($gc_probability != '' && is_integer($gc_probability))
-
-                // set the new value
-                ini_set('session.gc_probability', $gc_probability);
-
-            // if $gc_divisor is specified and is an integer number
-            if ($gc_divisor != '' && is_integer($gc_divisor))
-
-                // set the new value
-                ini_set('session.gc_divisor', $gc_divisor);
 
             // get session lifetime
             $this->session_lifetime = ini_get('session.gc_maxlifetime');
@@ -394,8 +335,8 @@ class Zebra_Session {
     /**
      *  Gets the number of active (not expired) sessions.
      *
-     *  <i>The returned value does not represent the exact number of active users as some sessions may be unused
-     *  although they haven't expired.</i>
+     *  >   The returned value does not represent the exact number of active users as some sessions may be unused
+     *      although they haven't expired
      *
      *  <code>
      *  // get the number of active sessions
@@ -425,8 +366,8 @@ class Zebra_Session {
     }
 
     /**
-     *  Queries the system for the values of <i>session.gc_maxlifetime</i>, <i>session.gc_probability</i> and <i>session.gc_divisor</i>
-     *  and returns them as an associative array.
+     *  Queries the system for the values of `session.gc_maxlifetime`, `session.gc_probability`, `session.gc_divisor`
+     *  and `session.use_strict_mode`, and returns them as an associative array.
      *
      *  To view the result in a human-readable format use:
      *  <code>
@@ -440,22 +381,24 @@ class Zebra_Session {
      *  //     [session.gc_maxlifetime] => 1440 seconds (24 minutes)
      *  //     [session.gc_probability] => 1
      *  //     [session.gc_divisor] => 1000
-     *  //     [probability] => 0.1%
+     *  //     [probability] => 0.1%    // <- this is computed from the values above
+     *  //     [session.use_strict_mode] => 1
      *  // )
      *  </code>
      *
      *  @since 1.0.8
      *
-     *  @return array   Returns the values of <i>session.gc_maxlifetime</i>, <i>session.gc_probability</i> and <i>session.gc_divisor</i>
-     *                  as an associative array.
+     *  @return array   Returns the values of `session.gc_maxlifetime`, `session.gc_probability`, `session.gc_divisor`
+     *                  and `session.use_strict_mode`, as an associative array.
      *
      */
     public function get_settings() {
 
         // get the settings
-        $gc_maxlifetime = ini_get('session.gc_maxlifetime');
-        $gc_probability = ini_get('session.gc_probability');
-        $gc_divisor     = ini_get('session.gc_divisor');
+        $gc_maxlifetime     = ini_get('session.gc_maxlifetime');
+        $gc_probability     = ini_get('session.gc_probability');
+        $gc_divisor         = ini_get('session.gc_divisor');
+        $use_strict_mode    = ini_get('session.use_strict_mode');
 
         // return them as an array
         return array(
@@ -463,6 +406,7 @@ class Zebra_Session {
             'session.gc_probability'    =>  $gc_probability,
             'session.gc_divisor'        =>  $gc_divisor,
             'probability'               =>  $gc_probability / $gc_divisor * 100 . '%',
+            'session.use_strict_mode'   =>  $use_strict_mode,
         );
 
     }
@@ -552,7 +496,7 @@ class Zebra_Session {
     /**
      *  Regenerates the session id.
      *
-     *  <b>Call this method whenever you do a privilege change in order to prevent session hijacking!</b>
+     *  >   Call this method whenever you do a privilege change, in order to prevent session hijacking!
      *
      *  <code>
      *  // regenerate the session's ID
@@ -570,7 +514,7 @@ class Zebra_Session {
     }
 
     /**
-     *  Sets a "flash data" session variable which will only be available for the next server request and which will be
+     *  Sets a **flash data** session variable which will only be available for the next server request and which will be
      *  automatically deleted afterwards.
      *
      *  Typically used for informational or status messages (for example: "data has been successfully updated").
@@ -612,8 +556,8 @@ class Zebra_Session {
     /**
      *  Deletes all data related to the session.
      *
-     *  <i>This method runs the garbage collector respecting your environment's garbage collector-related properties.
-     *  Read {@link __construct() here} for more information.</i>
+     *  >   This method runs the garbage collector respecting your environment's garbage collector-related properties.
+     *      Read {@link __construct() here} for more information
      *
      *  <code>
      *  // end current session
