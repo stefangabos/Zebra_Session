@@ -1,29 +1,34 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Zebra_Session - a wrapper for PHP's default session handling functions, using MySQL for storage - Class: Zebra_Session</title>
+<title>Zebra_Session - a wrapper for PHP's default session handling functions, using MySQL for storage - Docs For Class Zebra_Session</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+<link rel="shortcut icon" href="/Zebra_Session/favicon.ico">
 <link rel="stylesheet" type="text/css" href="../media/reset.css">
 <link rel="stylesheet" type="text/css" href="../media/style.css">
 </head>
 <body>
-<div id="phpdoc">
 <div id="doc_header">
-Package: <strong>Zebra_Session</strong>
+<a href="https://github.com/stefangabos/Zebra_Session" class="projects-homepage">
+<img src="../media/zebra-logo.png" width="35" height="32" alt="Zebra_Session" >
+<a href="https://github.com/stefangabos/Zebra_Session" class="projects-homepage">Zebra_Session</a>
+</a>
 <ul class="notype float">
 <!--
 <li><a href="../classtrees_Zebra_Session.html">class tree: Zebra_Session</a></li>
 -->
-<li><a href="../elementindex_Zebra_Session.html">element index: Zebra_Session</a></li>
+<li><a href="../elementindex_Zebra_Session.html">Element index</a></li>
 <!--
 <li class="last"><a href="../elementindex.html">all elements</a></li>
 -->
 </ul>
 <div class="clear"></div>
 </div>
-<table cellspacing="0" cellpadding="0" class="stretch">
+<div id="phpdoc">
+<table class="stretch">
 <tr>
-<td valign="top" class="sidebar">
+<td class="sidebar">
 <div id="doc_sidebar">
 <p><strong>Project's homepage</strong></p>
 <ul>
@@ -35,28 +40,42 @@ Package: <strong>Zebra_Session</strong>
 <ul>
 <li><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></li>
 </ul>
+<p class="hello-separator"></p>
+<p class="hello">
+<img src="https://avatars1.githubusercontent.com/u/741165?s=460&u=95c38afa1015f9ed705f3ad9848b3c2687b547db&v=4" width="131" alt="Stefan Gabos">
+Hi there!
+<br><br>
+That's me, Stefan Gabos, the author of this library.
+<br><br>
+If you like this project, please <a href="https://github.com/stefangabos/Zebra_Session" class="projects-homepage">star it on GitHub</a> — <strong>thank you</strong>!
+<br><br>
+I have a few other projects that you might be interested in — <a href="https://github.com/stefangabos">check them out</a> if you have the time.
+</p>
 </div>
 </td>
-<td valign="top" width="100%">
+<td style="background: #FFF">
 <div id="doc_content">
 <h2>Class: <strong>Zebra_Session</strong></h2>
 <h6><strong>source file:</strong> /Zebra_Session.php</h6>
 <pre></pre>
-<p>A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as   well as better security and protection against session fixation and session hijacking.<p>Works with or without PDO.</p><p>Read more <a href="https://github.com/stefangabos/Zebra_Session/">here</a></p></p>
+<p>A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as   well as better security and protection against session fixation and session hijacking.<p>Works with or without PDO.</p><p>Read more <a href="https://github.com/stefangabos/Zebra_Session/#zebra-session-">here</a>.</p>
 <h4>Author(s):</h4>
 <ul>
-<li>Stefan Gabos &lt;<a href="mailto:contact@stefangabos.ro">contact@stefangabos.ro</a>&gt;</li>
+<li>Stefan Gabos <br><a href="mailto:contact@stefangabos.ro">contact@stefangabos.ro</a></li>
 </ul>
 <h4>Version:</h4>
 <ul>
-<li>3.1 (last revision: May 31, 2020)</li>
+<li>4.0.0 (last revision: April 16, 2022)<br>See <a href="https://github.com/stefangabos/Zebra_Session/blob/master/CHANGELOG.md" class="projects-homepage">CHANGELOG</a></li>
+</ul>
+<h4>License:</h4>
+<ul>
+<li><a href="https://www.gnu.org/licenses/lgpl-3.0.txt">GNU LESSER GENERAL PUBLIC LICENSE</a></li>
 </ul>
 <h4>Copyright:</h4>
 <ul>
-<li>(c) 2006 - 2020 Stefan Gabos</li>
+<li>(c) 2006 - 2022 Stefan Gabos</li>
 </ul>
-<a name="top"></a>
-<div class="doc_toc">
+<div id="top" class="doc_toc">
 <div class="left">
 <h3>Methods</h3>
 <ul>
@@ -73,66 +92,8 @@ Package: <strong>Zebra_Session</strong>
 <div class="clear"></div>
 <div class="clear"></div>
 </div>
-<a name="class_methods"></a>
-<h3>Class methods</h3>
-<a name="method__construct"></a>
-<h4 class="method"><span><em>constructor</em></span> __construct() <span class="smalllinenumber">[line 219]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>void</em>
-__construct (
-resource
-&$link
-, 
-string
-$security_code
-, 
-[
-integer
-$session_lifetime
-= '']
-, 
-[
-boolean
-$lock_to_user_agent
-= true]
-, 
-[
-boolean
-$lock_to_ip
-= false]
-, 
-[
-integer
-$gc_probability
-= '']
-, 
-[
-integer
-$gc_divisor
-= '']
-, 
-[
-string
-$table_name
-= 'session_data']
-, 
-[
-string
-$lock_timeout
-= 60]
-, 
-[
-boolean
-$start_session
-= true]
-, 
-[
-boolean
-$read_only
-= false]
-)
-</p>
+<h3 id="class_methods">Class methods</h3>
+<h4 id="method__construct" class="method"><span><em>constructor</em></span> __construct()</h4>
 <p>Constructor of class. Initializes the class and, optionally, calls   <a href="https://php.net/manual/en/function.session-start.php">session_start()</a></p>
 <p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;first,&nbsp;connect&nbsp;to&nbsp;a&nbsp;database&nbsp;containing&nbsp;the&nbsp;sessions&nbsp;table,&nbsp;either&nbsp;via&nbsp;PDO&nbsp;or&nbsp;using&nbsp;mysqli_connect</span></div></li>
 <li><div class="src-line">&nbsp;</div></li>
@@ -143,128 +104,153 @@ $read_only
 <li><div class="src-line"><span class="src-comm">//&nbsp;start&nbsp;the&nbsp;session</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;where&nbsp;$link&nbsp;is&nbsp;a&nbsp;connection&nbsp;link&nbsp;returned&nbsp;by&nbsp;mysqli_connect&nbsp;or&nbsp;a&nbsp;PDO&nbsp;instance</span></div></li>
 <li><div class="src-line"><span class="src-var">$session&nbsp;</span>=&nbsp;<span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span><span class="src-var">$link</span><span class="src-sym">,&nbsp;</span><span class="src-str">'sEcUr1tY_c0dE'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
-</ol><p>By default, the cookie used by PHP to propagate session data across multiple pages ('PHPSESSID') uses the   current top-level domain and subdomain in the cookie declaration.</p><p>Example: www.domain.com</p><p>This means that the session data is not available to other subdomains. Therefore, a session started on   www.domain.com will not be available on blog.domain.com. The solution is to change the domain PHP uses when it   sets the 'PHPSESSID' cookie by calling the line below *before* instantiating the Zebra_Session library.</p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;takes&nbsp;the&nbsp;domain&nbsp;and&nbsp;removes&nbsp;the&nbsp;subdomain</span></div></li>
+</ol><p>By default, the cookie used by PHP to propagate session data across multiple pages (<code>PHPSESSID</code>) uses the   current top-level domain and subdomain in the cookie declaration.</p><p>Example: <code>www.domain.com</code></p><p>This means that the session data is not available to other subdomains. Therefore, a session started on   <code>www.domain.com</code> will not be available on <code>blog.domain.com</code>. The solution is to change the domain PHP uses when   it sets the <code>PHPSESSID</code> cookie by calling the line below <em>before</em> instantiating the Zebra_Session library:</p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;takes&nbsp;the&nbsp;domain&nbsp;and&nbsp;removes&nbsp;the&nbsp;subdomain</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;blog.domain.com&nbsp;becoming&nbsp;.domain.com</span></div></li>
 <li><div class="src-line"><a href="http://www.php.net/ini_set">ini_set</a><span class="src-sym">(</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-str">'session.cookie_domain'</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.php.net/substr">substr</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'SERVER_NAME'</span><span class="src-sym">]</span><span class="src-sym">,&nbsp;</span><a href="http://www.php.net/strpos">strpos</a><span class="src-sym">(</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'SERVER_NAME'</span><span class="src-sym">]</span><span class="src-sym">,&nbsp;</span><span class="src-str">'.'</span><span class="src-sym">))</span></div></li>
 <li><div class="src-line"><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
-</ol><p>From now on whenever PHP sets the 'PHPSESSID' cookie, the cookie will be available to all subdomains!</p>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
+</ol><p>From now on whenever PHP sets the <code>PHPSESSID</code> cookie, the cookie will be available to all subdomains!</p>
+<div class="doc_block">
+<p class="code">
+void
+<span class="src-var">__construct</span>
+(
+<span class="src-key">resource</span>
+<span class="src-var">&$link</span>
+, 
+<span class="src-key">string</span>
+<span class="src-var">$security_code</span>
+, 
+[ 
+<span class="src-key">integer</span>
+<span class="src-var">$session_lifetime</span>
+=
+<span class="src-num">0</span>
+]
+, 
+[ 
+<span class="src-key">boolean</span>
+<span class="src-var">$lock_to_user_agent</span>
+=
+<span class="src-key">true</span>
+]
+, 
+[ 
+<span class="src-key">boolean</span>
+<span class="src-var">$lock_to_ip</span>
+=
+<span class="src-key">false</span>
+]
+, 
+[ 
+<span class="src-key">string</span>
+<span class="src-var">$lock_timeout</span>
+=
+<span class="src-num">60</span>
+]
+, 
+[ 
+<span class="src-key">string</span>
+<span class="src-var">$table_name</span>
+=
+<span class="src-str">'session_data'</span>
+]
+, 
+[ 
+<span class="src-key">boolean</span>
+<span class="src-var">$start_session</span>
+=
+<span class="src-key">true</span>
+]
+, 
+[ 
+<span class="src-key">boolean</span>
+<span class="src-var">$read_only</span>
+=
+<span class="src-key">false</span>
+]
+) 
+</p>
+<h5>Arguments</h5>
+<table>
 <tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
+<td><em>resource</em></td>
+<td><strong>&$link</strong></td>
+<td><p>An object representing the connection to a MySQL Server, as returned                                           by calling <a href="https://www.php.net/manual/en/mysqli.construct.php">mysqli_connect</a>,                                           or a <a href="https://www.php.net/manual/en/intro.pdo.php">PDO</a> instance.</p><p>If you use <a href="https://github.com/stefangabos/Zebra_Database">Zebra_Database</a>                                           to connect to the database, you can get the connection to the MySQL server                                           via Zebra_Database's <a href="https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link">get_link</a>                                           method.</p></td>
 </tr>
-</table>
-<h5>Parameters:</h5>
-<table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><em>resource</em></td>
-<td valign="top"><strong>&$link</strong></td>
-<td valign="top"><p>An object representing the connection to a MySQL Server, as returned                                           by calling <a href="https://www.php.net/manual/en/mysqli.construct.php">mysqli_connect</a>,                                           or a <a href="https://www.php.net/manual/en/intro.pdo.php">PDO</a> instance.</p><p>If you use <a href="https://github.com/stefangabos/Zebra_Database">Zebra_Database</a>                                           to connect to the database, you can get the connection to the MySQL server                                           via Zebra_Database's <a href="https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link">get_link</a>                                           method.</p></td>
-</tr>
-<tr>
-<td valign="top"><em>string</em></td>
-<td valign="top"><strong>$security_code</strong></td>
-<td valign="top"><p>The value of this argument is appended to the string created by                                           concatenating the user browser's User Agent string (or an empty string                                           if &quot;lock_to_user_agent&quot; is FALSE) and the user's IP address (or an                                           empty string if &quot;lock_to_ip&quot; is FALSE), before creating an MD5 hash out                                           of it and storing it in the database.</p><p>On each call this value will be generated again and compared to the                                           value stored in the database ensuring that the session is correctly linked                                           with the user who initiated the session thus preventing session hijacking.</p><p><div class="highlight">To prevent session hijacking, make sure you choose a string around
+<td><em>string</em></td>
+<td><strong>$security_code</strong></td>
+<td><p>The value of this argument is appended to the string created by                                           concatenating the user browser's User Agent string (or an empty string                                           if <code>lock_to_user_agent</code> is <code>FALSE</code>) and the user's IP address (or an                                           empty string if <code>lock_to_ip</code> is <code>FALSE</code>), before creating an MD5 hash out                                           of it and storing it in the database.</p><p>On each call this value will be generated again and compared to the                                           value stored in the database ensuring that the session is correctly linked                                           with the user who initiated the session thus preventing session hijacking.</p><p><samp>To prevent session hijacking, make sure you choose a string around
 12 characters long containing upper- and lowercase letters, as well as
 digits. To simplify the process, use <a href="https://www.random.org/passwords/?num=1&len=12&format=html&rnd=new">this</a>
-link to generate such a random string.</div></p></td>
+link to generate such a random string.</samp></p></td>
 </tr>
 <tr>
-<td valign="top"><em>integer</em></td>
-<td valign="top"><strong>$session_lifetime</strong></td>
-<td valign="top"><p>(Optional) The number of seconds after which a session will be considered                                           as <em>expired</em>.</p><p>Expired sessions are cleaned up from the database whenever the <em>garbage
-collection routine</em> is run. The probability of the <em>garbage collection
-routine</em> to be executed is given by the values of <em>$gc_probability</em>                                           and <em>$gc_divisor</em>. See below.</p><p>Default is the value of <em>session.gc_maxlifetime</em> as set in in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To clear any confusions that may arise: in reality, <em>session.gc_maxlifetime</em>                                           does not represent a session's lifetime but the number of seconds after                                           which a session is seen as <em>garbage</em> and is deleted by the <em>garbage
-collection routine</em>. The PHP setting that sets a session's lifetime is                                           <em>session.cookie_lifetime</em> and is usually set to &quot;0&quot; - indicating that                                           a session is active until the browser/browser tab is closed. When this class                                           is used, a session is active until the browser/browser tab is closed and/or                                           a session has been inactive for more than the number of seconds specified                                           by <em>session.gc_maxlifetime</em>.</p><p>To see the actual value of <em>session.gc_maxlifetime</em> for your                                           environment, use the <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
+<td><em>integer</em></td>
+<td><strong>$session_lifetime</strong></td>
+<td><p>(Optional) The number of seconds after which a session will be considered                                           as <strong>expired</strong>.</p><p>Expired sessions are cleaned up from the database whenever the <strong>garbage                                           collection routine</strong> is run. The probability of the <strong>garbage collection                                           routine</strong> to be executed is given by the values of <code>$gc_probability</code>                                           and <code>$gc_divisor</code>. See below.</p><p>Default is the value of <code>session.gc_maxlifetime</code> as set in in <code>php.ini</code>.<br>                                           Read more in the <a href="https://www.php.net/manual/en/session.configuration.php">PHP manual</a></p><p>To clear any confusions that may arise: in reality, <code>session.gc_maxlifetime</code>                                           does not represent a session's lifetime but the number of seconds after                                           which a session is seen as <strong>garbage</strong> and is deleted by the <strong>garbage                                           collection routine</strong>. The PHP setting that sets a session's lifetime is                                           <code>session.cookie_lifetime</code> and is usually set to <code>0</code> - indicating that                                           a session is active until the browser/browser tab is closed. When this class                                           is used, a session is active until the browser/browser tab is closed and/or                                           a session has been inactive for more than the number of seconds specified                                           by <code>session.gc_maxlifetime</code>.</p><p>To see the actual value of <code>session.gc_maxlifetime</code> for your environment,                                           use the <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
 </tr>
 <tr>
-<td valign="top"><em>boolean</em></td>
-<td valign="top"><strong>$lock_to_user_agent</strong></td>
-<td valign="top"><p>(Optional) Whether to restrict the session to the same User Agent (browser)                                           as when the session was first opened.</p><p><em>The user agent check only adds minor security, since an attacker that
-hijacks the session cookie will most likely have the same user agent.</em></p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                           change the user agent string from one page to the next by automatically                                           switching into compatibility mode. So, on the first load you would have                                           something like:</p><p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
-</ol><p>and reloading the page you would have</p><p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
-</ol><p>So, if the situation asks for this, change this value to FALSE.</p><p>Default is TRUE.</p></td>
+<td><em>boolean</em></td>
+<td><strong>$lock_to_user_agent</strong></td>
+<td><p>(Optional) Whether to restrict the session to the same User Agent (browser)                                           as when the session was first opened.</p><p class="highlight">The user agent check only adds minor security, since an attacker that                                               hijacks the session cookie will most likely have the same user agent.</p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                           change the user agent string from one page to the next by automatically                                           switching into compatibility mode. So, on the first load you would have                                           something like:</p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
+</ol><p>and reloading the page you would have</p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
+</ol><p>So, if the situation asks for this, change this value to FALSE.</p><p>Default is <code>true</code>.</p></td>
 </tr>
 <tr>
-<td valign="top"><em>boolean</em></td>
-<td valign="top"><strong>$lock_to_ip</strong></td>
-<td valign="top"><p>(Optional) Whether to restrict the session to the same IP as when the                                           session was first opened.</p><p>Use this with caution as users may have a dynamic IP address which may                                           change over time, or may come through proxies.</p><p>This is mostly useful if your know that all your users come from static IPs.</p><p>Default is FALSE.</p></td>
+<td><em>boolean</em></td>
+<td><strong>$lock_to_ip</strong></td>
+<td><p>(Optional) Whether to restrict the session to the same IP as when the                                           session was first opened.</p><p>Use this with caution as users may have a dynamic IP address which may                                           change over time, or may come through proxies.</p><p>This is mostly useful if your know that all your users come from static IPs.</p><p>Default is <code>false</code></p></td>
 </tr>
 <tr>
-<td valign="top"><em>integer</em></td>
-<td valign="top"><strong>$gc_probability</strong></td>
-<td valign="top"><p>(Optional) Used in conjunction with <em>$gc_divisor</em>. It defines the                                           probability that the <em>garbage collection routine</em> is started.</p><p>The probability is expressed by the formula:</p><p><ol class="code"><li><div class="src-line"><span class="src-var">$probability&nbsp;</span>=&nbsp;<span class="src-var">$gc_probability&nbsp;</span>/&nbsp;<span class="src-var">$gc_divisor</span><span class="src-sym">;</span></div></li>
-</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_probability</em> as set in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_probability</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
+<td><em>string</em></td>
+<td><strong>$lock_timeout</strong></td>
+<td><p>(Optional) The maximum amount of time (in seconds) for which a lock on                                           the session data can be kept.</p><p class="highlight">This must be lower than the maximum execution time of the script!</p><p>Session locking is a way to ensure that data is correctly handled in a                                           scenario with multiple concurrent AJAX requests.</p><p>Read more about it                                           <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">here</a>.</p><p>Default is <code>60</code></p></td>
 </tr>
 <tr>
-<td valign="top"><em>integer</em></td>
-<td valign="top"><strong>$gc_divisor</strong></td>
-<td valign="top"><p>(Optional) Used in conjunction with <em>$gc_probability</em>. It defines the                                           probability that the <em>garbage collection routine</em> is started.</p><p>The probability is expressed by the formula:</p><p><ol class="code"><li><div class="src-line"><span class="src-var">$probability&nbsp;</span>=&nbsp;<span class="src-var">$gc_probability&nbsp;</span>/&nbsp;<span class="src-var">$gc_divisor</span><span class="src-sym">;</span></div></li>
-</ol><p>So, if <em>$gc_probability</em> is 1 and <em>$gc_divisor</em> is 100, it means                                           that there is a 1% chance the the <em>garbage collection routine</em> will                                           be called on each request.</p><p>Default is the value of <em>session.gc_divisor</em> as set in php.ini.                                           Read more at <a href="https://www.php.net/manual/en/session.configuration.php">https://www.php.net/manual/en/session.configuration.php</a></p><p>To see the actual value of <em>session.gc_divisor</em> for your                                           environment, and the computed <em>probability</em>, use the                                           <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Pass an empty string to keep default value.</p></td>
+<td><em>string</em></td>
+<td><strong>$table_name</strong></td>
+<td><p>(Optional) Name of the MySQL table to be used by the class.</p><p>Default is <code>session_data</code></p></td>
 </tr>
 <tr>
-<td valign="top"><em>string</em></td>
-<td valign="top"><strong>$table_name</strong></td>
-<td valign="top"><p>(Optional) Name of the MySQL table to be used by the class.</p><p>Default is <em>session_data</em>.</p></td>
+<td><em>boolean</em></td>
+<td><strong>$start_session</strong></td>
+<td><p>(Optional) Whether to start the session right away (by calling <a href="https://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is <code>true</code></p></td>
 </tr>
 <tr>
-<td valign="top"><em>string</em></td>
-<td valign="top"><strong>$lock_timeout</strong></td>
-<td valign="top"><p>(Optional) The maximum amount of time (in seconds) for which a lock on                                           the session data can be kept.</p><p><em>This must be lower than the maximum execution time of the script!</em></p><p>Session locking is a way to ensure that data is correctly handled in a                                           scenario with multiple concurrent AJAX requests.</p><p>Read more about it at                                           <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/</a></p><p>Default is <em>60</em></p></td>
-</tr>
-<tr>
-<td valign="top"><em>boolean</em></td>
-<td valign="top"><strong>$start_session</strong></td>
-<td valign="top"><p>(Optional) Whether to start the session by default after object                                           construction (by calling <a href="https://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is TRUE.</p></td>
-</tr>
-<tr>
-<td valign="top"><em>boolean</em></td>
-<td valign="top"><strong>$read_only</strong></td>
-<td valign="top"><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                           made to $_SESSION will not be saved, although the variable can be read/written.</p><p>Default is FALSE (the default session behaviour).</p></td>
+<td><em>boolean</em></td>
+<td><strong>$read_only</strong></td>
+<td><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                           made to $_SESSION will not be saved, although the variable can be read/written.</p><p>Default is <code>false</code> (the default session behavior).</p></td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
-<a name="methodget_active_sessions"></a>
-<h4 class="method"><span><em>method</em></span> get_active_sessions() <span class="smalllinenumber">[line 407]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>integer</em>
-get_active_sessions (
-)
-</p>
+<h4 id="methodget_active_sessions" class="method"><span><em>method</em></span> get_active_sessions()</h4>
 <p>Gets the number of active (not expired) sessions.</p>
-<p><em>The returned value does not represent the exact number of active users as some sessions may be unused
-although they haven't expired.</em></p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;get&nbsp;the&nbsp;number&nbsp;of&nbsp;active&nbsp;sessions</span></div></li>
+<p><p class="highlight">The returned value does not represent the exact number of active users as some sessions may be unused       although they haven't expired</p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;get&nbsp;the&nbsp;number&nbsp;of&nbsp;active&nbsp;sessions</span></div></li>
 <li><div class="src-line"><span class="src-var">$active_sessions&nbsp;</span>=&nbsp;<span class="src-var">$session</span><span class="src-sym">-&gt;</span><a href="../Zebra_Session/Zebra_Session.html#methodget_active_sessions">get_active_sessions</a><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
 </ol>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
+<div class="doc_block">
+<p class="code">
+integer
+<span class="src-var">get_active_sessions</span>
+()
+</p>
+<h5>Tags</h5>
+<table>
 <tr>
-<td valign="top"><strong>return:</strong>&nbsp;&nbsp;</td>
-<td valign="top">Returns the number of active (not expired) sessions.</td>
-</tr>
-<tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
+<td><strong>return:</strong>&nbsp;&nbsp;</td>
+<td>Returns the number of active (not expired) sessions.</td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
-<a name="methodget_settings"></a>
-<h4 class="method"><span><em>method</em></span> get_settings() <span class="smalllinenumber">[line 453]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>array</em>
-get_settings (
-)
-</p>
-<p>Queries the system for the values of <em>session.gc_maxlifetime</em>, <em>session.gc_probability</em> and <em>session.gc_divisor</em>   and returns them as an associative array.</p>
+<h4 id="methodget_settings" class="method"><span><em>method</em></span> get_settings()</h4>
+<p>Queries the system for the values of <code>session.gc_maxlifetime</code>, <code>session.gc_probability</code>, <code>session.gc_divisor</code>   and <code>session.use_strict_mode</code>, and returns them as an associative array.</p>
 <p>To view the result in a human-readable format use:   <ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;get&nbsp;default&nbsp;settings</span></div></li>
 <li><div class="src-line"><a href="http://www.php.net/print_r">print_r</a><span class="src-sym">(</span><span class="src-str">'&lt;pre&gt;'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
 <li><div class="src-line"><a href="http://www.php.net/print_r">print_r</a><span class="src-sym">(</span><span class="src-var">$session</span><span class="src-sym">-&gt;</span><a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings</a><span class="src-sym">(</span><span class="src-sym">))</span><span class="src-sym">;</span></div></li>
@@ -275,119 +261,101 @@ get_settings (
 <li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[session.gc_maxlifetime]&nbsp;=&gt;&nbsp;1440&nbsp;seconds&nbsp;(24&nbsp;minutes)</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[session.gc_probability]&nbsp;=&gt;&nbsp;1</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[session.gc_divisor]&nbsp;=&gt;&nbsp;1000</span></div></li>
-<li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[probability]&nbsp;=&gt;&nbsp;0.1%</span></div></li>
+<li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[probability]&nbsp;=&gt;&nbsp;0.1%&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&lt;-&nbsp;this&nbsp;is&nbsp;computed&nbsp;from&nbsp;the&nbsp;values&nbsp;above</span></div></li>
+<li><div class="src-line"><span class="src-comm">//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[session.use_strict_mode]&nbsp;=&gt;&nbsp;1</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;)</span></div></li>
 </ol>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
+<div class="doc_block">
+<p class="code">
+array
+<span class="src-var">get_settings</span>
+()
+</p>
+<h5>Tags</h5>
+<table>
 <tr>
-<td valign="top"><strong>return:</strong>&nbsp;&nbsp;</td>
-<td valign="top">Returns the values of <em>session.gc_maxlifetime</em>, <em>session.gc_probability</em> and <em>session.gc_divisor</em>                   as an associative array.</td>
+<td><strong>return:</strong>&nbsp;&nbsp;</td>
+<td>Returns the values of <code>session.gc_maxlifetime</code>, <code>session.gc_probability</code>, <code>session.gc_divisor</code>                   and <code>session.use_strict_mode</code>, as an associative array.</td>
 </tr>
 <tr>
-<td valign="top"><strong>since:</strong>&nbsp;&nbsp;</td>
-<td valign="top">1.0.8</td>
-</tr>
-<tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
+<td><strong>since:</strong>&nbsp;&nbsp;</td>
+<td>1.0.8</td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
-<a name="methodregenerate_id"></a>
-<h4 class="method"><span><em>method</em></span> regenerate_id() <span class="smalllinenumber">[line 564]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>void</em>
-regenerate_id (
-)
-</p>
+<h4 id="methodregenerate_id" class="method"><span><em>method</em></span> regenerate_id()</h4>
 <p>Regenerates the session id.</p>
-<p><strong>Call this method whenever you do a privilege change in order to prevent session hijacking!</strong></p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;regenerate&nbsp;the&nbsp;session's&nbsp;ID</span></div></li>
+<p><p class="highlight">Call this method whenever you do a privilege change, in order to prevent session hijacking!</p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;regenerate&nbsp;the&nbsp;session's&nbsp;ID</span></div></li>
 <li><div class="src-line"><span class="src-var">$session</span><span class="src-sym">-&gt;</span><a href="../Zebra_Session/Zebra_Session.html#methodregenerate_id">regenerate_id</a><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
 </ol>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
-<tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
-</tr>
-</table>
+<div class="doc_block">
+<p class="code">
+void
+<span class="src-var">regenerate_id</span>
+()
+</p>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
-<a name="methodset_flashdata"></a>
-<h4 class="method"><span><em>method</em></span> set_flashdata() <span class="smalllinenumber">[line 602]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>void</em>
-set_flashdata (
-string
-$name
-, 
-string
-$value
-)
-</p>
-<p>Sets a &quot;flash data&quot; session variable which will only be available for the next server request and which will be   automatically deleted afterwards.</p>
-<p>Typically used for informational or status messages (for example: &quot;data has been successfully updated&quot;).</p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;set&nbsp;&quot;myvar&quot;&nbsp;which&nbsp;will&nbsp;only&nbsp;be&nbsp;available</span></div></li>
+<h4 id="methodset_flashdata" class="method"><span><em>method</em></span> set_flashdata()</h4>
+<p>Sets a <strong>flash data</strong> session variable which will only be available for the next server request and which will be   automatically deleted afterwards.</p>
+<p>Typically used for informational or status messages (for example: &quot;data has been successfully updated&quot;).</p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;set&nbsp;&quot;myvar&quot;&nbsp;which&nbsp;will&nbsp;only&nbsp;be&nbsp;available</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;for&nbsp;the&nbsp;next&nbsp;server&nbsp;request&nbsp;and&nbsp;will&nbsp;be</span></div></li>
 <li><div class="src-line"><span class="src-comm">//&nbsp;automatically&nbsp;deleted&nbsp;afterwards</span></div></li>
 <li><div class="src-line"><span class="src-var">$session</span><span class="src-sym">-&gt;</span><a href="../Zebra_Session/Zebra_Session.html#methodset_flashdata">set_flashdata</a><span class="src-sym">(</span><span class="src-str">'myvar'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'myval'</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
-</ol><p>&quot;Flash data&quot; session variables can be retrieved like any other session variable:</p><p><ol class="code"><li><div class="src-line"><span class="src-key">if&nbsp;</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SESSION</span><span class="src-sym">[</span><span class="src-str">'myvar'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-sym">{</span></div></li>
+</ol><p>&quot;Flash data&quot; session variables can be retrieved like any other session variable:</p><ol class="code"><li><div class="src-line"><span class="src-key">if&nbsp;</span><span class="src-sym">(</span>isset<span class="src-sym">(</span><span class="src-var">$_SESSION</span><span class="src-sym">[</span><span class="src-str">'myvar'</span><span class="src-sym">]</span><span class="src-sym">))&nbsp;</span><span class="src-sym">{</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;do&nbsp;something&nbsp;here&nbsp;but&nbsp;remember&nbsp;that&nbsp;the</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;flash&nbsp;data&nbsp;session&nbsp;variable&nbsp;is&nbsp;available</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;for&nbsp;a&nbsp;single&nbsp;server&nbsp;request&nbsp;after&nbsp;it&nbsp;has</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;been&nbsp;set!</span></div></li>
 <li><div class="src-line"><span class="src-sym">}</span></div></li>
 </ol>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
+<div class="doc_block">
+<p class="code">
+void
+<span class="src-var">set_flashdata</span>
+(
+<span class="src-key">string</span>
+<span class="src-var">$name</span>
+, 
+<span class="src-key">string</span>
+<span class="src-var">$value</span>
+) 
+</p>
+<h5>Arguments</h5>
+<table>
 <tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
+<td><em>string</em></td>
+<td><strong>$name</strong></td>
+<td>The name of the session variable.</td>
 </tr>
-</table>
-<h5>Parameters:</h5>
-<table cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top"><em>string</em></td>
-<td valign="top"><strong>$name</strong></td>
-<td valign="top">The name of the session variable.</td>
-</tr>
-<tr>
-<td valign="top"><em>string</em></td>
-<td valign="top"><strong>$value</strong></td>
-<td valign="top">The value of the session variable.</td>
+<td><em>string</em></td>
+<td><strong>$value</strong></td>
+<td>The value of the session variable.</td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
 <div class="clear"></div>
 </div>
-<a name="methodstop"></a>
-<h4 class="method"><span><em>method</em></span> stop() <span class="smalllinenumber">[line 627]</span></h4>
-<div class="doc_block">
-<p class="code">
-<em>void</em>
-stop (
-)
-</p>
+<h4 id="methodstop" class="method"><span><em>method</em></span> stop()</h4>
 <p>Deletes all data related to the session.</p>
-<p><em>This method runs the garbage collector respecting your environment's garbage collector-related properties.
-Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> for more information.</em></p><p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;end&nbsp;current&nbsp;session</span></div></li>
+<p><p class="highlight">This method runs the garbage collector respecting your environment's garbage collector-related properties.       Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> for more information</p><ol class="code"><li><div class="src-line"><span class="src-comm">//&nbsp;end&nbsp;current&nbsp;session</span></div></li>
 <li><div class="src-line"><span class="src-var">$session</span><span class="src-sym">-&gt;</span><a href="../Zebra_Session/Zebra_Session.html#methodstop">stop</a><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
 </ol>
-<h5>Tags:</h5>
-<table cellspacing="0" cellpadding="0">
+<div class="doc_block">
+<p class="code">
+void
+<span class="src-var">stop</span>
+()
+</p>
+<h5>Tags</h5>
+<table>
 <tr>
-<td valign="top"><strong>since:</strong>&nbsp;&nbsp;</td>
-<td valign="top">1.0.1</td>
-</tr>
-<tr>
-<td valign="top"><strong>access:</strong>&nbsp;&nbsp;</td>
-<td valign="top">public</td>
+<td><strong>since:</strong>&nbsp;&nbsp;</td>
+<td>1.0.1</td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
@@ -398,7 +366,7 @@ Read <a href="../Zebra_Session/Zebra_Session.html#method__construct">here</a> fo
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sun, 31 May 20</span> by <a href="http://www.phpdoc.org">phpDocumentor 1.4.3</a>
+Documentation generated on <span>Sat, 16 Apr 22</span>
 </div>
 </div>
 <!-- Global site tag (gtag.js) - Google Analytics -->
