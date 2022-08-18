@@ -8,7 +8,7 @@
 
     <file>Zebra_Session.php</file>
 
-    <ini name="memory_limit" value="256M"/>
+    <ini name="memory_limit" value="64M"/>
     <arg name="report-width" value="130"/>
 
     <rule ref="PSR12">
@@ -37,6 +37,9 @@
         <!-- Allow blank line after the CASE and DEFAULT keywords -->
         <exclude name="PSR2.ControlStructures.SwitchDeclaration.BodyOnNextLineCASE" />
         <exclude name="PSR2.ControlStructures.SwitchDeclaration.BodyOnNextLineDEFAULT" />
+
+        <!-- I write queries as multiline but the first thing after the opening  parenthesis is the opening quote -->
+        <exclude name="PSR2.Methods.FunctionCallSignature.ContentAfterOpenBracket" />
 
         <!-- Allow blank line before the closing brace of a function -->
         <exclude name="PSR2.Methods.FunctionClosingBrace.SpacingBeforeClose" />
