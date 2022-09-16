@@ -9,21 +9,66 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/#zebra-session- here}.
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    4.0.0 (last revision: May 22, 2022)
+ *  @version    4.0.0 (last revision: September 16, 2022)
  *  @copyright  © 2006 - 2022 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
 class Zebra_Session {
 
+    /**
+     *  @var    array<string>
+     */
     private $flash_data;
+
+    /**
+     *  @var    string
+     */
     private $flash_data_var;
+
+    /**
+     *  @var    object
+     */
     private $link;
+
+    /**
+     *  @var    integer
+     */
     private $lock_timeout;
+
+    /**
+     *  @var    boolean
+     */
     private $lock_to_ip;
+
+    /**
+     *  @var    boolean
+     */
     private $lock_to_user_agent;
+
+    /**
+     *  @var    string
+     */
+    private $security_code;
+
+    /**
+     *  @var    string|false
+     */
     private $session_lifetime;
+
+    /**
+     *  @var    string
+     */
+    private $session_lock;
+
+    /**
+     *  @var    string
+     */
     private $table_name;
+
+    /**
+     *  @var    boolean
+     */
     private $read_only = false;
 
     /**
@@ -156,7 +201,7 @@ class Zebra_Session {
      *
      *                                          Default is `false`
      *
-     *  @param  string      $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
+     *  @param  int         $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
      *                                          the session data can be kept.
      *
      *                                          >   This must be lower than the maximum execution time of the script!
@@ -204,23 +249,23 @@ class Zebra_Session {
 
             // make sure session cookies never expire so that session lifetime
             // will depend only on the value of $session_lifetime
-            ini_set('session.cookie_lifetime', 0);
+            ini_set('session.cookie_lifetime', '0');
 
             // tell the browser not to expose the cookie to client side scripting
             // this makes it harder for an attacker to hijack the session ID
-            ini_set('session.cookie_httponly', 1);
+            ini_set('session.cookie_httponly', '1');
 
             // make sure that PHP only uses cookies for sessions and disallow session ID passing as a GET parameter
-            ini_set('session.use_only_cookies', 1);
+            ini_set('session.use_only_cookies', '1');
 
             // if on HTTPS allows access to the session ID cookie only when the protocol is HTTPS
             if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
-                ini_set('session.cookie_secure', 1);
+                ini_set('session.cookie_secure', '1');
             }
 
             // if $session_lifetime is specified and is an integer number, set the new value
             if ($session_lifetime != '' && is_integer($session_lifetime)) {
-                ini_set('session.gc_maxlifetime', (int)$session_lifetime);
+                ini_set('session.gc_maxlifetime', (string)$session_lifetime);
             }
 
             // get session lifetime
@@ -293,6 +338,8 @@ class Zebra_Session {
     /**
      *  Custom close() function
      *
+     *  @return boolean
+     *
      *  @access private
      */
     public function close() {
@@ -309,6 +356,10 @@ class Zebra_Session {
 
     /**
      *  Custom destroy() function
+     *
+     *  @param  string  $session_id     The ID of the session to destroy
+     *
+     *  @return boolean
      *
      *  @access private
      */
@@ -329,6 +380,8 @@ class Zebra_Session {
     /**
      *  Custom gc() function (garbage collector)
      *
+     *  @return boolean
+     *
      *  @access private
      */
     public function gc() {
@@ -342,6 +395,8 @@ class Zebra_Session {
                 session_expire < ?
 
         ', time());
+
+        return true;
 
     }
 
@@ -401,8 +456,8 @@ class Zebra_Session {
      *
      *  @since 1.0.8
      *
-     *  @return array   Returns the values of `session.gc_maxlifetime`, `session.gc_probability`, `session.gc_divisor`
-     *                  and `session.use_strict_mode`, as an associative array.
+     *  @return array<string>   Returns the values of `session.gc_maxlifetime`, `session.gc_probability`, `session.gc_divisor`
+     *                          and `session.use_strict_mode`, as an associative array.
      *
      */
     public function get_settings() {
@@ -418,7 +473,7 @@ class Zebra_Session {
             'session.gc_maxlifetime'    =>  $gc_maxlifetime . ' seconds (' . round($gc_maxlifetime / 60) . ' minutes)',
             'session.gc_probability'    =>  $gc_probability,
             'session.gc_divisor'        =>  $gc_divisor,
-            'probability'               =>  $gc_probability / $gc_divisor * 100 . '%',
+            'probability'               =>  (int)$gc_probability / (int)$gc_divisor * 100 . '%',
             'session.use_strict_mode'   =>  $use_strict_mode,
         );
 
@@ -426,6 +481,8 @@ class Zebra_Session {
 
     /**
      *  Custom open() function
+     *
+     *  @return boolean
      *
      *  @access private
      */
@@ -437,6 +494,10 @@ class Zebra_Session {
 
     /**
      *  Custom read() function
+     *
+     *  @param  string  $session_id     The ID of the session to read from
+     *
+     *  @return string
      *
      *  @access private
      */
@@ -607,6 +668,12 @@ class Zebra_Session {
     /**
      *  Custom write() function
      *
+     *  @param  string  $session_id     The ID of the session to write to
+     *
+     *  @param  mixed   $session_data   The values to be written
+     *
+     *  @return boolean
+     *
      *  @access private
      */
     public function write($session_id, $session_data) {
@@ -649,6 +716,8 @@ class Zebra_Session {
     /**
      *  Manages flash data behind the scenes
      *
+     *  @return void
+     *
      *  @access private
      */
     public function _manage_flash_data() {
@@ -689,6 +758,10 @@ class Zebra_Session {
 
     /**
      *  Mini-wrapper for running MySQL queries with parameter binding with or without PDO
+     *
+     *  @param  string  $query  The MySQL query to execute
+     *
+     *  @return mixed
      *
      *  @access private
      */
