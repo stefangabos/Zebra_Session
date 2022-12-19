@@ -18,6 +18,9 @@
     },
     "autoload": {
         "classmap": [
+            "Zebra_Session_Store.php",
+            "Zebra_Session_MySQLiStore.php",
+            "Zebra_Session_SQLServerStore.php",
             "Zebra_Session.php"
         ]
     },

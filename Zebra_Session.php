@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/Zebra_Session_MySQLiStore.php';
+require_once __DIR__ . '/Zebra_Session_SQLServerStore.php';
+
 /**
  *  A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as
  *  well as better security and protection against session fixation and session hijacking.
@@ -13,6 +16,9 @@
  *  @copyright  © 2006 - 2022 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
+ *
+ *  @author     Prasad
+ *  Introduced Zebra_Session_Store.
  */
 class Zebra_Session {
 
@@ -72,14 +78,20 @@ class Zebra_Session {
     private $read_only = false;
 
     /**
+     *  @var   Zebra_Session_Store
+     */
+    private $store;
+
+    /**
      *  Constructor of class. Initializes the class and, optionally, calls
      *  {@link https://php.net/manual/en/function.session-start.php session_start()}
      *
      *  <code>
      *  // first, connect to a database containing the sessions table, either via PDO or using mysqli_connect
      *
-     *  // include the class
+     *  //  include the class
      *  // (you don't need this if you are using Composer)
+     *  require 'path/to/Zebra_Session_Store.php';
      *  require 'path/to/Zebra_Session.php';
      *
      *  // start the session
@@ -120,7 +132,7 @@ class Zebra_Session {
      *
      *  From now on whenever PHP sets the `PHPSESSID` cookie, the cookie will be available to all subdomains!
      *
-     *  @param  resource    &$link              An object representing the connection to a MySQL Server, as returned
+     * @param resource    &$link An object representing the connection to a MySQL Server, as returned
      *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
      *                                          or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
      *
@@ -129,7 +141,7 @@ class Zebra_Session {
      *                                          via Zebra_Database's {@link https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link get_link}
      *                                          method.
      *
-     *  @param  string      $security_code      The value of this argument is appended to the string created by
+     * @param string $security_code The value of this argument is appended to the string created by
      *                                          concatenating the user browser's User Agent string (or an empty string
      *                                          if `lock_to_user_agent` is `FALSE`) and the user's IP address (or an
      *                                          empty string if `lock_to_ip` is `FALSE`), before creating an MD5 hash out
@@ -144,7 +156,7 @@ class Zebra_Session {
      *                                          digits. To simplify the process, use {@link https://www.random.org/passwords/?num=1&len=12&format=html&rnd=new this}
      *                                          link to generate such a random string.</samp>
      *
-     *  @param  integer     $session_lifetime   (Optional) The number of seconds after which a session will be considered
+     * @param integer $session_lifetime (Optional) The number of seconds after which a session will be considered
      *                                          as **expired**.
      *
      *                                          Expired sessions are cleaned up from the database whenever the **garbage
@@ -170,7 +182,7 @@ class Zebra_Session {
      *
      *                                          Pass an empty string to keep default value.
      *
-     *  @param  boolean     $lock_to_user_agent (Optional) Whether to restrict the session to the same User Agent (browser)
+     * @param boolean $lock_to_user_agent (Optional) Whether to restrict the session to the same User Agent (browser)
      *                                          as when the session was first opened.
      *
      *                                          >   The user agent check only adds minor security, since an attacker that
@@ -191,7 +203,7 @@ class Zebra_Session {
      *
      *                                          Default is `true`.
      *
-     *  @param  boolean     $lock_to_ip         (Optional) Whether to restrict the session to the same IP as when the
+     * @param boolean $lock_to_ip (Optional) Whether to restrict the session to the same IP as when the
      *                                          session was first opened.
      *
      *                                          Use this with caution as users may have a dynamic IP address which may
@@ -201,7 +213,7 @@ class Zebra_Session {
      *
      *                                          Default is `false`
      *
-     *  @param  int         $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
+     * @param int $lock_timeout (Optional) The maximum amount of time (in seconds) for which a lock on
      *                                          the session data can be kept.
      *
      *                                          >   This must be lower than the maximum execution time of the script!
@@ -214,20 +226,22 @@ class Zebra_Session {
      *
      *                                          Default is `60`
      *
-     *  @param  string      $table_name         (Optional) Name of the MySQL table to be used by the class.
+     * @param string $table_name (Optional) Name of the MySQL table to be used by the class.
      *
      *                                          Default is `session_data`
      *
-     *  @param  boolean     $start_session      (Optional) Whether to start the session right away (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
+     * @param boolean $start_session (Optional) Whether to start the session right away (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
      *
      *                                          Default is `true`
      *
-     *  @param  boolean     $read_only          (Optional) Opens session in read-only mode and without row locks. Any changes
+     * @param boolean $read_only (Optional) Opens session in read-only mode and without row locks. Any changes
      *                                          made to `$_SESSION` will not be saved, although the variable can be read/written.
      *
      *                                          Default is `false` (the default session behavior).
+     * @param string $driver Default is 'mysql'
      *
-     *  @return void
+     * @return void
+     * @throws Exception
      */
     public function __construct(
         &$link,
@@ -238,11 +252,27 @@ class Zebra_Session {
         $lock_timeout = 60,
         $table_name = 'session_data',
         $start_session = true,
-        $read_only = false
+        $read_only = false,
+        $driver = 'mysql'
     ) {
 
+        $stores = [
+            'mysql' => Zebra_Session_MySQLiStore::class,
+            'sqlsrv' => Zebra_Session_SQLServerStore::class,
+        ];
+
+        if (array_key_exists($driver, $stores)) {
+            $store_class = $stores[$driver];
+            $store = new $store_class($link, $table_name);
+        } else {
+            //Por defecto MySQL
+            $store = new Zebra_Session_MySQLiStore($link, $table_name);
+        }
+
         // continue if the provided link is valid
-        if (($link instanceof MySQLi && $link->connect_error === null) || $link instanceof PDO) {
+        if ($store->isValid()) {
+
+            $this->store = $store;
 
             // store the connection link
             $this->link = $link;
@@ -345,12 +375,12 @@ class Zebra_Session {
     public function close() {
 
         // release the lock associated with the current session
-        return $this->query('
-
-            SELECT
-                RELEASE_LOCK(?)
-
-        ', $this->session_lock) !== false;
+        try {
+            $this->store->releaseLock($this->session_lock);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
 
     }
 
@@ -365,15 +395,8 @@ class Zebra_Session {
      */
     public function destroy($session_id) {
 
-        // delete the current session from the database
-        return $this->query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = ?
-
-        ', $session_id) !== false;
+        // delete the current session id from the database
+        return $this->store->deleteSession($session_id);
 
     }
 
@@ -387,16 +410,7 @@ class Zebra_Session {
     public function gc() {
 
         // delete expired sessions from database
-        $this->query('
-
-            DELETE FROM
-                ' . $this->table_name . '
-            WHERE
-                session_expire < ?
-
-        ', time());
-
-        return true;
+        return $this->store->deleteExpiredSessions();
 
     }
 
@@ -419,17 +433,7 @@ class Zebra_Session {
         $this->gc();
 
         // count the rows from the database
-        $result = $this->query('
-
-            SELECT
-                COUNT(session_id) as count
-            FROM
-                ' . $this->table_name . '
-
-        ');
-
-        // return the number of found rows
-        return $result['data']['count'];
+        return $this->store->countActiveSessions();
 
     }
 
@@ -514,11 +518,10 @@ class Zebra_Session {
         if (!$this->read_only) {
 
             // try to obtain a lock with the given name and timeout
-            $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
-
-            // stop if there was an error
-            if ($result['num_rows'] != 1) {
-                throw new Exception('Zebra_Session: Could not obtain session lock');
+            try {
+                $this->store->acquireLock($this->session_lock, $this->lock_timeout);
+            } catch (Exception $e) {
+                return false;
             }
 
         }
@@ -538,36 +541,7 @@ class Zebra_Session {
         // append this to the end
         $hash .= $this->security_code;
 
-        // get the active (not expired) result associated with the session id and hash
-        $result = $this->query('
-
-            SELECT
-                session_data
-            FROM
-                ' . $this->table_name . '
-            WHERE
-                session_id = ?
-                AND session_expire > ?
-                AND hash = ?
-            LIMIT
-                1
-
-        ', $session_id, time(), md5($hash));
-
-        // if there were no errors and data was found
-        if ($result !== false && $result['num_rows'] > 0) {
-
-            // return session data
-            // don't bother with the unserialization - PHP handles this automatically
-            return $result['data']['session_data'];
-
-        }
-
-        // if hash has changed or the session expired
-        $this->destroy($session_id);
-
-        // on error return an empty string - this HAS to be an empty string
-        return '';
+        return $this->store->readSessionData($session_id, $hash);
 
     }
 
@@ -686,30 +660,16 @@ class Zebra_Session {
         // insert OR update session's data - this is how it works:
         // first it tries to insert a new row in the database BUT if session_id is already in the database then just
         // update session_data and session_expire for that specific session_id
-        // read more here https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
-        return $this->query('
-            INSERT INTO
-                ' . $this->table_name . '
-                (
-                    session_id,
-                    hash,
-                    session_data,
-                    session_expire
-                )
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                session_data = VALUES(session_data),
-                session_expire = VALUES(session_expire)
-            ',
-            $session_id,
-            md5(
-                ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') .
-                $this->security_code
-            ),
-            $session_data,
-            time() + $this->session_lifetime
-        ) !== false;
+        // read more here http://dev.mysql.com/doc/refman/4.1/en/insert-on-duplicate.html
+        $hash = md5(($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') . $this->security_code);
+
+        $session_expire = time() + $this->session_lifetime;
+
+        $result = $this->store->writeSessionData($session_id, $hash, $session_data, $session_expire);
+
+        // if anything happened, return TRUE
+        // if something went wrong, return false
+        return $result ? true : false;
 
     }
 
@@ -751,94 +711,6 @@ class Zebra_Session {
                 $_SESSION[$this->flash_data_var] = serialize($this->flash_data);
 
             }
-
-        }
-
-    }
-
-    /**
-     *  Mini-wrapper for running MySQL queries with parameter binding with or without PDO
-     *
-     *  @param  string  $query  The MySQL query to execute
-     *
-     *  @return mixed
-     *
-     *  @access private
-     */
-    private function query($query) {
-
-        // if the provided connection link is a PDO instance
-        if ($this->link instanceof PDO) {
-
-            // if executing the query was a success
-            if (($stmt = $this->link->prepare($query)) && $stmt->execute(array_slice(func_get_args(), 1))) {
-
-                // prepare a standardized return value
-                $result = array(
-                    'num_rows'  =>  $stmt->rowCount(),
-                    'data'      =>  $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC),
-                );
-
-                // close the statement
-                $stmt->closeCursor();
-
-                // return result
-                return $result;
-
-            }
-
-        // if link connection is a regular mysqli connection object
-        } else {
-
-            $stmt = mysqli_stmt_init($this->link);
-
-            // if query is valid
-            if ($stmt->prepare($query)) {
-
-                // the arguments minus the first one (the SQL statement)
-                $arguments = array_slice(func_get_args(), 1);
-
-                // if there are any arguments
-                if (!empty($arguments)) {
-
-                    // prepare the data for "bind_param"
-                    $bind_types = '';
-                    $bind_data = array();
-                    foreach ($arguments as $key => $value) {
-                        $bind_types .= is_numeric($value) ? 'i' : 's';
-                        $bind_data[] = &$arguments[$key];
-                    }
-                    array_unshift($bind_data, $bind_types);
-
-                    // call "bind_param" with the prepared arguments
-                    call_user_func_array(array($stmt, 'bind_param'), $bind_data);
-
-                }
-
-                // if the query was successfully executed
-                if ($stmt->execute()) {
-
-                    // get some information about the results
-                    $results = $stmt->get_result();
-
-                    // prepare a standardized return value
-                    $result = array(
-                        'num_rows'  =>  is_bool($results) ? $stmt->affected_rows : $results->num_rows,
-                        'data'      =>  is_bool($results) ? array() : $results->fetch_assoc(),
-                    );
-
-                    // close the statement
-                    $stmt->close();
-
-                    // return result
-                    return $result;
-
-                }
-
-            }
-
-            // if we get this far there must've been an error
-            throw new Exception($stmt->error);
 
         }
 
