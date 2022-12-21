@@ -20,7 +20,7 @@ This class is was inspired by John Herren's code from the [Trick out your sessio
 
 Zebra Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](https://www.php.net/manual/en/function.error-reporting.php).
 
-Starting with version 2.0, Zebra Session implements [row locks](https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
+Starting with version 2.0, Zebra Session implements [row locks](https://dev.mysql.com/doc/refman/8.0/en/locking-functions.html#function_get-lock), ensuring that data is correctly handled in a scenario with multiple concurrent AJAX requests.
 
 Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/), a great article by Andy Bakun:
 
