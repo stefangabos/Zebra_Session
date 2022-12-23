@@ -2,7 +2,7 @@
 
 # Zebra Session &nbsp;[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=A+drop-in+replacement+for+PHP's+default+session+handler+which+stores+session+data+in+a+MySQL+database&url=https://github.com/stefangabos/Zebra_Session&via=stefangabos&hashtags=php)
 
-*A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing both better performance and better security and protection against session fixation and session hijacking*
+*A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing better performance, better security and protection against session fixation and session hijacking*
 
 [![Latest Stable Version](https://poser.pugx.org/stefangabos/zebra_session/v/stable)](https://packagist.org/packages/stefangabos/zebra_session) [![Total Downloads](https://poser.pugx.org/stefangabos/zebra_session/downloads)](https://packagist.org/packages/stefangabos/zebra_session) [![Monthly Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/monthly)](https://packagist.org/packages/stefangabos/zebra_session) [![Daily Downloads](https://poser.pugx.org/stefangabos/zebra_session/d/daily)](https://packagist.org/packages/stefangabos/zebra_session) [![License](https://poser.pugx.org/stefangabos/zebra_session/license)](https://packagist.org/packages/stefangabos/zebra_session)
 

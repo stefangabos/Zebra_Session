@@ -1,8 +1,8 @@
 <?php
 
 /**
- *  A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance as
- *  well as better security and protection against session fixation and session hijacking.
+ *  A drop-in replacement for PHP's default session handler, using MySQL for storage and providing better performance,
+ *  better security and protection against session fixation and session hijacking.
  *
  *  Works with or without PDO.
  *
