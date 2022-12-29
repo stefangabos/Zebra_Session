@@ -87,6 +87,30 @@ class Zebra_Session {
      *  $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
      *  </code>
      *
+     *  >   **The following configuration options are set by the library when instantiated:**
+     *
+     *  <code>
+     *  // only when over HTTPS
+     *  ini_set('session.cookie_secure', 1);
+     *  </code>
+     *
+     *  <code>
+     *  // don't expose the cookie to client side scripting making it harder for an attacker to hijack the session ID
+     *  ini_set('session.cookie_httponly', 1);
+     *  </code>
+     *
+     *  <code>
+     *  // make sure that PHP only uses cookies for sessions and disallow session ID passing as a GET parameter
+     *  ini_set('session.use_only_cookies', 1);
+     *  </code>
+     *
+     *  >   **The following configuration options are recommended to be set before instantiating this library:**
+     *
+     *  <code>
+     *  // disallows supplying session IDs via `session_id('ID HERE')
+     *  ini_set('session.use_strict_mode', 1);`
+     *  </code>
+     *
      *  By default, the cookie used by PHP to propagate session data across multiple pages (`PHPSESSID`) uses the
      *  current top-level domain and subdomain in the cookie declaration.
      *
@@ -95,19 +119,6 @@ class Zebra_Session {
      *  This means that the session data is not available to other subdomains. Therefore, a session started on
      *  `www.domain.com` will not be available on `blog.domain.com`. The solution is to change the domain PHP uses when
      *  it sets the `PHPSESSID` cookie by calling the line below *before* instantiating the Zebra_Session library:
-     *
-     *  >   The following configuration options are set by the library when instantiated:<br><br>
-     *      // only when over HTTPS<br>
-     *      `ini_set('session.cookie_secure', 1);`<br><br>
-     *      // don't expose the cookie to client side scripting making it harder for an attacker to hijack the session ID
-     *      `ini_set('session.cookie_httponly', 1);`<br><br>
-     *      // make sure that PHP only uses cookies for sessions and disallow session ID passing as a GET parameter
-     *      `ini_set('session.use_only_cookies', 1);`
-     *
-     *  >   The following configuration options are recommended to be set before instantiating this library:<br><br>
-     *      // disallows supplying session IDs via `session_id('ID HERE')`<br>
-     *      `ini_set('session.use_strict_mode', 1);`
-     *      <br>
      *
      *  <code>
      *  // takes the domain and removes the subdomain
@@ -147,28 +158,24 @@ class Zebra_Session {
      *  @param  integer     $session_lifetime   (Optional) The number of seconds after which a session will be considered
      *                                          as **expired**.
      *
-     *                                          Expired sessions are cleaned up from the database whenever the **garbage
-     *                                          collection routine** is run. The probability of the **garbage collection
-     *                                          routine** to be executed is given by the values of `$gc_probability`
-     *                                          and `$gc_divisor`. See below.
-     *
-     *                                          Default is the value of `session.gc_maxlifetime` as set in in `php.ini`.<br>
-     *                                          Read more in the {@link https://www.php.net/manual/en/session.configuration.php PHP manual}
-     *
-     *                                          To clear any confusions that may arise: in reality, `session.gc_maxlifetime`
-     *                                          does not represent a session's lifetime but the number of seconds after
-     *                                          which a session is seen as **garbage** and is deleted by the **garbage
-     *                                          collection routine**. The PHP setting that sets a session's lifetime is
-     *                                          `session.cookie_lifetime` and is usually set to `0` - indicating that
-     *                                          a session is active until the browser/browser tab is closed. When this class
-     *                                          is used, a session is active until the browser/browser tab is closed and/or
-     *                                          a session has been inactive for more than the number of seconds specified
+     *                                          >   A session is active for the number of seconds specified by this property
+     *                                          (or until the browser/browser tab is closed if the value is `0`) **OR**
+     *                                          the session has been inactive for more than the number of seconds specified
      *                                          by `session.gc_maxlifetime`.
      *
-     *                                          To see the actual value of `session.gc_maxlifetime` for your environment,
-     *                                          use the {@link get_settings()} method.
+     *                                          >   This property sets the value of {@link https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime session.cookie_lifetime}.
      *
-     *                                          Pass an empty string to keep default value.
+     *                                          Expired sessions are cleaned up from the database whenever the garbage
+     *                                          collection routine runs. The probability for the garbage collection
+     *                                          routine to be executed is given by the values of `gc_probability` and
+     *                                          `gc_divisor`.
+     *
+     *                                          To easily check the values of `session.gc_maxlifetime`, `gc_probability`
+     *                                          and `gc_divisor` for your environment use the {@link get_settings()} method.
+     *
+     *                                          Default is `0` - the session is active until the browser/browser tab is
+     *                                          is closed **OR** the session has been inactive for more than the number
+     *                                          of seconds specified by `session.gc_maxlifetime`.
      *
      *  @param  boolean     $lock_to_user_agent (Optional) Whether to restrict the session to the same User Agent (browser)
      *                                          as when the session was first opened.
@@ -197,7 +204,7 @@ class Zebra_Session {
      *                                          Use this with caution as users may have a dynamic IP address which may
      *                                          change over time, or may come through proxies.
      *
-     *                                          This is mostly useful if your know that all your users come from static IPs.
+     *                                          This is mostly useful if you know that all your users come from static IPs.
      *
      *                                          Default is `false`
      *
@@ -232,7 +239,7 @@ class Zebra_Session {
     public function __construct(
         &$link,
         $security_code,
-        $session_lifetime = '',
+        $session_lifetime = 0,
         $lock_to_user_agent = true,
         $lock_to_ip = false,
         $lock_timeout = 60,
@@ -247,9 +254,8 @@ class Zebra_Session {
             // store the connection link
             $this->link = $link;
 
-            // make sure session cookies never expire so that session lifetime
-            // will depend only on the value of $session_lifetime
-            ini_set('session.cookie_lifetime', '0');
+            // set session's maximum lifetime
+            ini_set('session.cookie_lifetime', $session_lifetime);
 
             // tell the browser not to expose the cookie to client side scripting
             // this makes it harder for an attacker to hijack the session ID
@@ -263,13 +269,8 @@ class Zebra_Session {
                 ini_set('session.cookie_secure', '1');
             }
 
-            // if $session_lifetime is specified and is an integer number, set the new value
-            if ($session_lifetime !== '' && is_integer($session_lifetime)) {
-                ini_set('session.gc_maxlifetime', (string)$session_lifetime);
-            }
-
-            // get session lifetime
-            $this->session_lifetime = ini_get('session.gc_maxlifetime');
+            // session lifetime
+            $this->session_lifetime = max($session_lifetime, ini_get('session.gc_maxlifetime'));
 
             // we'll use this later on in order to try to prevent HTTP_USER_AGENT spoofing
             $this->security_code = $security_code;
