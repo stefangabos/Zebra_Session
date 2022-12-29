@@ -9,7 +9,7 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/#zebra-session- here}.
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    4.0.0 (last revision: September 16, 2022)
+ *  @version    4.0.0 (last revision: December 29, 2022)
  *  @copyright  © 2006 - 2022 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -232,7 +232,7 @@ class Zebra_Session {
     public function __construct(
         &$link,
         $security_code,
-        $session_lifetime = 0,
+        $session_lifetime = '',
         $lock_to_user_agent = true,
         $lock_to_ip = false,
         $lock_timeout = 60,
@@ -264,7 +264,7 @@ class Zebra_Session {
             }
 
             // if $session_lifetime is specified and is an integer number, set the new value
-            if ($session_lifetime != '' && is_integer($session_lifetime)) {
+            if ($session_lifetime !== '' && is_integer($session_lifetime)) {
                 ini_set('session.gc_maxlifetime', (string)$session_lifetime);
             }
 
