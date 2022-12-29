@@ -1,5 +1,6 @@
 ## version 4.0.0 (TBA)
 
+- the library doesn't set `session.cookie_lifetime` to `0` anymore but to the number of seconds specified in the constructor; with this, finally, sessions can be kept alive even if the browser is closed - this fixes [#40](https://github.com/stefangabos/Zebra_Session/issues/40) and [#5](https://github.com/stefangabos/Zebra_Session/issues/5)
 - the library is not setting `gc_probability` and `gc_divisor` properties anymore - this can potentially break your code when updating, as there are now less arguments in the constructor method!
 - the library does not set `session.use_strict_mode` anymore - see [#37](https://github.com/stefangabos/Zebra_Session/issues/37)
 - updated documentation regarding what configuration options are set automatically
