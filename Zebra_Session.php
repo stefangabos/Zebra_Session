@@ -14,6 +14,7 @@
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
+#[\AllowDynamicProperties]
 class Zebra_Session {
 
     /**
