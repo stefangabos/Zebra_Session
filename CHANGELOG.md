@@ -1,11 +1,10 @@
-## version 4.0.0 (TBA)
+## version 4.0.0 (March 24, 2023)
 
 - the library doesn't set `session.cookie_lifetime` to `0` anymore but to the number of seconds specified in the constructor; with this, finally, sessions can be kept alive even if the browser is closed - this fixes [#40](https://github.com/stefangabos/Zebra_Session/issues/40) and [#5](https://github.com/stefangabos/Zebra_Session/issues/5)
 - the library is not setting `gc_probability` and `gc_divisor` properties anymore - this can potentially break your code when updating, as there are now less arguments in the constructor method!
 - the library does not set `session.use_strict_mode` anymore - see [#37](https://github.com/stefangabos/Zebra_Session/issues/37)
 - updated documentation regarding what configuration options are set automatically
 - lots of minor bug fixes and source code formatting because we are now using [PHPStan](https://github.com/phpstan/phpstan) for static code analysis and [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) for detecting coding standards violations, which are now [PSR12](https://www.php-fig.org/psr/psr-12/)-ish with a few of the rules excluded
-
 
 ## version 3.1.0 (May 31, 2020)
 
