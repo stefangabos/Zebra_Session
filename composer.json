@@ -1,5 +1,5 @@
 {
-    "name": "stefangabos/zebra_session",
+    "name": "i07/zebra_session",
     "type": "library",
     "description": "A drop-in replacement for PHP's default session handler which stores session data in a MySQL database, providing better performance, better security and protection against session fixation and session hijacking",
     "keywords": ["session", "locking", "flash", "flashdata", "fixation", "hijack", "mysqli", "mysql", "database"],
