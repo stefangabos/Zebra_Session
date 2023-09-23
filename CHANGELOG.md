@@ -1,3 +1,7 @@
+## version 4.0.1 (September 23, 2023)
+
+- fixed an issue where `get_settings()` would trigger an error if `session.gc_divisor` is set to `0`; this fixes [#48](https://github.com/stefangabos/Zebra_Session/issues/48) - thanks to [Alex](https://github.com/alexp-uk)!
+
 ## version 4.0.0 (March 24, 2023)
 
 - the library doesn't set `session.cookie_lifetime` to `0` anymore but to the number of seconds specified in the constructor; with this, finally, sessions can be kept alive even if the browser is closed - this fixes [#40](https://github.com/stefangabos/Zebra_Session/issues/40) and [#5](https://github.com/stefangabos/Zebra_Session/issues/5)
