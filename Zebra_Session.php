@@ -474,7 +474,7 @@ class Zebra_Session {
             'session.gc_maxlifetime'    =>  $gc_maxlifetime . ' seconds (' . round($gc_maxlifetime / 60) . ' minutes)',
             'session.gc_probability'    =>  $gc_probability,
             'session.gc_divisor'        =>  $gc_divisor,
-            'probability'               =>  (int)$gc_probability / (int)$gc_divisor * 100 . '%',
+            'probability'               =>  ($gc_divisor > 0 ? (int)$gc_probability / (int)$gc_divisor * 100 : 0) . '%',
             'session.use_strict_mode'   =>  $use_strict_mode,
         );
 
