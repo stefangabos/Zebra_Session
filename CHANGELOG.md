@@ -1,4 +1,4 @@
-## version 4.0.1 (September 23, 2023)
+## version 4.0.1 (TBA)
 
 - fixed an issue where `get_settings()` would trigger an error if `session.gc_divisor` is set to `0`; this fixes [#48](https://github.com/stefangabos/Zebra_Session/issues/48) - thanks to [Alex](https://github.com/alexp-uk)!
 
