@@ -532,8 +532,8 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR'])) {
-            $hash .= $_SERVER['REMOTE_ADDR'];
+        if ($this->lock_to_ip && $this->getIPAddress() != '') {
+            $hash .= $this->getIPAddress();
         }
 
         // append this to the end
@@ -705,7 +705,7 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') .
+                ($this->lock_to_ip && $this->getIPAddress() != '' ? $this->getIPAddress() : '') .
                 $this->security_code
             ),
             $session_data,
@@ -847,6 +847,24 @@ class Zebra_Session {
 
         }
 
+    }
+
+    private function getIPAddress() {
+        $ipaddress = '';
+        if (getenv('HTTP_CLIENT_IP')) {
+            $ipaddress = getenv('HTTP_CLIENT_IP');
+        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
+            $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
+        } else if (getenv('HTTP_X_FORWARDED')) {
+            $ipaddress = getenv('HTTP_X_FORWARDED');
+        } else if (getenv('HTTP_FORWARDED_FOR')) {
+            $ipaddress = getenv('HTTP_FORWARDED_FOR');
+        } else if (getenv('HTTP_FORWARDED')) {
+            $ipaddress = getenv('HTTP_FORWARDED');
+        } else if (getenv('REMOTE_ADDR')) {
+            $ipaddress = getenv('REMOTE_ADDR');
+        }
+        return $ipaddress;
     }
 
 }
