@@ -532,8 +532,8 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip && $this->getIPAddress() != '') {
-            $hash .= $this->getIPAddress();
+        if ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '') {
+            $hash .= $ip_address;
         }
 
         // append this to the end
@@ -705,7 +705,7 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && $this->getIPAddress() != '' ? $this->getIPAddress() : '') .
+                ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '' ? $ip_address : '') .
                 $this->security_code
             ),
             $session_data,
@@ -849,22 +849,26 @@ class Zebra_Session {
 
     }
 
-    private function getIPAddress() {
+    /**
+     *  Tries to get client's *real* IP address.
+     *
+     *  This should return the same IP address when using something like an AWS load balancer.
+     *
+     *  @return string
+     *
+     *  @access private
+     */
+    private function get_ip_address() {
+
         $ipaddress = '';
-        if (getenv('HTTP_CLIENT_IP')) {
-            $ipaddress = getenv('HTTP_CLIENT_IP');
-        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
-            $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
-        } else if (getenv('HTTP_X_FORWARDED')) {
-            $ipaddress = getenv('HTTP_X_FORWARDED');
-        } else if (getenv('HTTP_FORWARDED_FOR')) {
-            $ipaddress = getenv('HTTP_FORWARDED_FOR');
-        } else if (getenv('HTTP_FORWARDED')) {
-            $ipaddress = getenv('HTTP_FORWARDED');
-        } else if (getenv('REMOTE_ADDR')) {
-            $ipaddress = getenv('REMOTE_ADDR');
+        foreach (['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'] as $key) {
+            if (($tmp = getenv($key))) {
+                $ipaddress = $tmp;
+                break;
+            }
         }
         return $ipaddress;
+
     }
 
 }
