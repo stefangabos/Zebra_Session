@@ -37,7 +37,7 @@ class Zebra_Session {
     private $lock_timeout;
 
     /**
-     *  @var    boolean
+     *  @var    boolean|callable
      */
     private $lock_to_ip;
 
@@ -198,7 +198,7 @@ class Zebra_Session {
      *
      *                                          Default is `true`.
      *
-     *  @param  boolean     $lock_to_ip         (Optional) Whether to restrict the session to the same IP as when the
+     *  @param  boolean|callable $lock_to_ip    (Optional) Whether to restrict the session to the same IP as when the
      *                                          session was first opened.
      *
      *                                          Use this with caution as users may have a dynamic IP address which may
@@ -207,6 +207,9 @@ class Zebra_Session {
      *                                          This is mostly useful if you know that all your users come from static IPs.
      *
      *                                          Default is `false`
+     * 
+     *                                          If your environment needs a custom way to get the IP address, you can pass
+     *                                          a callable function that will be called to get the IP address.
      *
      *  @param  int         $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
      *                                          the session data can be kept.
@@ -532,8 +535,10 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '') {
+        if ($this->lock_to_ip===true && ($ip_address = $this->get_ip_address()) !== '') {
             $hash .= $ip_address;
+        } elseif ($this->lock_to_ip!== false &&is_callable($this->lock_to_ip)) {
+            $hash .= call_user_func($this->lock_to_ip);
         }
 
         // append this to the end
@@ -705,8 +710,10 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '' ? $ip_address : '') .
-                $this->security_code
+                    ($this->lock_to_ip === true && ($ip_address = $this->get_ip_address()) !== '' ? $ip_address : (
+                        $this->lock_to_ip !== false && is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')
+                    ) .
+                    $this->security_code
             ),
             $session_data,
             time() + $this->session_lifetime
