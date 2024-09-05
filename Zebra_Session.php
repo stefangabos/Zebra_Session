@@ -207,7 +207,7 @@ class Zebra_Session {
      *                                          This is mostly useful if you know that all your users come from static IPs.
      *
      *                                          Default is `false`
-     * 
+     *
      *                                          If your environment needs a custom way to get the IP address, you can pass
      *                                          a callable function that will be called to get the IP address.
      *
@@ -535,9 +535,9 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip===true && ($ip_address = $this->get_ip_address()) !== '') {
+        if ($this->lock_to_ip === true && ($ip_address = $this->get_ip_address()) !== '') {
             $hash .= $ip_address;
-        } elseif ($this->lock_to_ip!== false &&is_callable($this->lock_to_ip)) {
+        } elseif ($this->lock_to_ip !== false && is_callable($this->lock_to_ip)) {
             $hash .= call_user_func($this->lock_to_ip);
         }
 
