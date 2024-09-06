@@ -208,8 +208,10 @@ class Zebra_Session {
      *
      *                                          Default is `false`
      *
-     *                                          If your environment needs a custom way to get the IP address, you can pass
-     *                                          a callable function that will be called to get the IP address.
+     *                                          If your are behinde a reverse proxy and need a custom way to get the IP address
+     *                                          from a different header e.g. 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR' , you can
+     *                                          pass a callable function to $lock_to_ip to returns an IP or unique identifier.
+     *                                          `function get_ip_address() { return $_SERVER['HTTP_CLIENT_IP']; }`
      *
      *  @param  int         $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
      *                                          the session data can be kept.
@@ -535,8 +537,8 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip === true && ($ip_address = $this->get_ip_address()) !== '') {
-            $hash .= $ip_address;
+        if ($this->lock_to_ip === true && isset($_SERVER['REMOTE_ADDR'])) {
+            $hash .= $_SERVER['REMOTE_ADDR'];
         } elseif ($this->lock_to_ip !== false && is_callable($this->lock_to_ip)) {
             $hash .= call_user_func($this->lock_to_ip);
         }
@@ -710,7 +712,7 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                    ($this->lock_to_ip === true && ($ip_address = $this->get_ip_address()) !== '' ? $ip_address : (
+                    ($this->lock_to_ip === true && isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : (
                         $this->lock_to_ip !== false && is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')
                     ) .
                     $this->security_code
@@ -853,28 +855,6 @@ class Zebra_Session {
             throw new Exception($stmt->error);
 
         }
-
-    }
-
-    /**
-     *  Tries to get client's *real* IP address.
-     *
-     *  This should return the same IP address when using something like an AWS load balancer.
-     *
-     *  @return string
-     *
-     *  @access private
-     */
-    private function get_ip_address() {
-
-        $ipaddress = '';
-        foreach (['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'] as $key) {
-            if (($tmp = getenv($key))) {
-                $ipaddress = $tmp;
-                break;
-            }
-        }
-        return $ipaddress;
 
     }
 
