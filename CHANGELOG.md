@@ -1,5 +1,6 @@
 ## version 4.1.0 (TBA)
 
+- the `lock_to_ip` argument of the constructor can now also be a callable; see [#56](https://github.com/stefangabos/Zebra_Session/pull/56) and thanks [Andreas Heissenberger](https://github.com/aheissenberger) for the great idea!
 - added a fix for using the library with an AWS load balancer; see [#43](https://github.com/stefangabos/Zebra_Session/issues/43) and [#54](https://github.com/stefangabos/Zebra_Session/pull/54); thank you [Dvelopin](https://github.com/dvelopin)!
 - fixed (hopefully) [#53](https://github.com/stefangabos/Zebra_Session/issues/53) regarding table locks not being released if script execution ended before the library being able to write session data and release the lock
 - fixed an issue where `get_settings()` would trigger an error if `session.gc_divisor` is set to `0`; this fixes [#48](https://github.com/stefangabos/Zebra_Session/issues/48) - thanks to [Alex](https://github.com/alexp-uk)!
