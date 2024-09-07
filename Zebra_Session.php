@@ -279,7 +279,7 @@ class Zebra_Session {
             $this->link = $link;
 
             // set session's maximum lifetime
-            ini_set('session.cookie_lifetime', $session_lifetime);
+            ini_set('session.cookie_lifetime', (string)$session_lifetime);
 
             // tell the browser not to expose the cookie to client side scripting
             // this makes it harder for an attacker to hijack the session ID
