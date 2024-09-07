@@ -37,7 +37,7 @@ class Zebra_Session {
     private $lock_timeout;
 
     /**
-     *  @var    boolean
+     *  @var    boolean|callable
      */
     private $lock_to_ip;
 
@@ -131,108 +131,132 @@ class Zebra_Session {
      *
      *  From now on whenever PHP sets the `PHPSESSID` cookie, the cookie will be available to all subdomains!
      *
-     *  @param  resource    &$link              An object representing the connection to a MySQL Server, as returned
-     *                                          by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
-     *                                          or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
+     *  @param  resource    &$link                  An object representing the connection to a MySQL Server, as returned
+     *                                              by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
+     *                                              or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
      *
-     *                                          If you use {@link https://github.com/stefangabos/Zebra_Database Zebra_Database}
-     *                                          to connect to the database, you can get the connection to the MySQL server
-     *                                          via Zebra_Database's {@link https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link get_link}
-     *                                          method.
+     *                                              If you use {@link https://github.com/stefangabos/Zebra_Database Zebra_Database}
+     *                                              to connect to the database, you can get the connection to the MySQL server
+     *                                              via Zebra_Database's {@link https://stefangabos.github.io/Zebra_Database/Zebra_Database/Zebra_Database.html#methodget_link get_link}
+     *                                              method.
      *
-     *  @param  string      $security_code      The value of this argument is appended to the string created by
-     *                                          concatenating the user browser's User Agent string (or an empty string
-     *                                          if `lock_to_user_agent` is `FALSE`) and the user's IP address (or an
-     *                                          empty string if `lock_to_ip` is `FALSE`), before creating an MD5 hash out
-     *                                          of it and storing it in the database.
+     *  @param  string      $security_code          The value of this argument is appended to the string created by
+     *                                              concatenating the user browser's User Agent string (or an empty string
+     *                                              if `lock_to_user_agent` is `FALSE`) and the user's IP address (or an
+     *                                              empty string if `lock_to_ip` is `FALSE`), before creating an MD5 hash out
+     *                                              of it and storing it in the database.
      *
-     *                                          On each call this value will be generated again and compared to the
-     *                                          value stored in the database ensuring that the session is correctly linked
-     *                                          with the user who initiated the session thus preventing session hijacking.
+     *                                              On each call this value will be generated again and compared to the
+     *                                              value stored in the database ensuring that the session is correctly linked
+     *                                              with the user who initiated the session thus preventing session hijacking.
      *
-     *                                          <samp>To prevent session hijacking, make sure you choose a string around
-     *                                          12 characters long containing upper- and lowercase letters, as well as
-     *                                          digits. To simplify the process, use {@link https://www.random.org/passwords/?num=1&len=12&format=html&rnd=new this}
-     *                                          link to generate such a random string.</samp>
+     *                                              >   To prevent session hijacking, make sure you choose a string around
+     *                                                  12 characters long containing upper- and lowercase letters, as well as
+     *                                                  digits. To simplify the process, use {@link https://www.random.org/passwords/?num=1&len=12&format=html&rnd=new this}
+     *                                                  link to generate such a random string.
      *
-     *  @param  integer     $session_lifetime   (Optional) The number of seconds after which a session will be considered
-     *                                          as **expired**.
+     *  @param  integer     $session_lifetime       (Optional) The number of seconds after which a session will be considered
+     *                                              as **expired**.
      *
-     *                                          >   A session is active for the number of seconds specified by this property
-     *                                          (or until the browser/browser tab is closed if the value is `0`) **OR**
-     *                                          the session has been inactive for more than the number of seconds specified
-     *                                          by `session.gc_maxlifetime`.
+     *                                              >   A session is active for the number of seconds specified by this property
+     *                                                  (or until the browser/browser tab is closed if the value is `0`) **OR**
+     *                                                  the session has been inactive for more than the number of seconds specified
+     *                                                  by `session.gc_maxlifetime`.
      *
-     *                                          >   This property sets the value of {@link https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime session.cookie_lifetime}.
+     *                                              >   This property sets the value of {@link https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime session.cookie_lifetime}.
      *
-     *                                          Expired sessions are cleaned up from the database whenever the garbage
-     *                                          collection routine runs. The probability for the garbage collection
-     *                                          routine to be executed is given by the values of `gc_probability` and
-     *                                          `gc_divisor`.
+     *                                              Expired sessions are cleaned up from the database whenever the garbage
+     *                                              collection routine runs. The probability for the garbage collection
+     *                                              routine to be executed is given by the values of `gc_probability` and
+     *                                              `gc_divisor`.
      *
-     *                                          To easily check the values of `session.gc_maxlifetime`, `gc_probability`
-     *                                          and `gc_divisor` for your environment use the {@link get_settings()} method.
+     *                                              To easily check the values of `session.gc_maxlifetime`, `gc_probability`
+     *                                              and `gc_divisor` for your environment use the {@link get_settings()} method.
      *
-     *                                          Default is `0` - the session is active until the browser/browser tab is
-     *                                          is closed **OR** the session has been inactive for more than the number
-     *                                          of seconds specified by `session.gc_maxlifetime`.
+     *                                              Default is `0` - the session is active until the browser/browser tab is
+     *                                              is closed **OR** the session has been inactive for more than the number
+     *                                              of seconds specified by `session.gc_maxlifetime`.
      *
-     *  @param  boolean     $lock_to_user_agent (Optional) Whether to restrict the session to the same User Agent (browser)
-     *                                          as when the session was first opened.
+     *  @param  boolean     $lock_to_user_agent     (Optional) Whether to restrict the session to the same User Agent (browser)
+     *                                              as when the session was first opened.
      *
-     *                                          >   The user agent check only adds minor security, since an attacker that
-     *                                              hijacks the session cookie will most likely have the same user agent.
+     *                                              >   The user agent check only adds minor security, since an attacker that
+     *                                                  hijacks the session cookie will most likely have the same user agent.
      *
-     *                                          In certain scenarios involving Internet Explorer, the browser will randomly
-     *                                          change the user agent string from one page to the next by automatically
-     *                                          switching into compatibility mode. So, on the first load you would have
-     *                                          something like:
+     *                                              In certain scenarios involving Internet Explorer, the browser will randomly
+     *                                              change the user agent string from one page to the next by automatically
+     *                                              switching into compatibility mode. So, on the first load you would have
+     *                                              something like:
      *
-     *                                          <code>Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4...</code>
+     *                                              <code>Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4...</code>
      *
-     *                                          and reloading the page you would have
+     *                                              and reloading the page you would have
      *
-     *                                          <code> Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4...</code>
+     *                                              <code> Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4...</code>
      *
-     *                                          So, if the situation asks for this, change this value to `false`.
+     *                                              So, if the situation asks for this, change this value to `false`.
      *
-     *                                          Default is `true`.
+     *                                              Default is `true`.
      *
-     *  @param  boolean     $lock_to_ip         (Optional) Whether to restrict the session to the same IP as when the
-     *                                          session was first opened.
+     *  @param  boolean|callable    $lock_to_ip     (Optional) Whether to restrict the session to the same IP as when the
+     *                                              session was first opened.
      *
-     *                                          Use this with caution as users may have a dynamic IP address which may
-     *                                          change over time, or may come through proxies.
+     *                                              For the actual IP address that is going to be used, the library will
+     *                                              check these entries in the $_SERVER superglobal, in this particular
+     *                                              order:<br><br>- **HTTP_CLIENT_IP**<br>- **HTTP_X_FORWARDED_FOR**<br>-
+     *                                              **HTTP_X_FORWARDED**<br>- **HTTP_FORWARDED_FOR**<br>- **HTTP_FORWARDED**
+     *                                              <br>- **REMOTE_ADDR**<br><br>...and use whichever returns a result first.
      *
-     *                                          This is mostly useful if you know that all your users come from static IPs.
+     *                                              If you have this turned on but the above logic doesn't get you the IP
+     *                                              address that you need, you can pass a **callable function** and whatever
+     *                                              result returned by said function will be used as IP address (it doesn't
+     *                                              even need to be an actual IP address but rather anything unique identifying
+     *                                              a specific user)
      *
-     *                                          Default is `false`
+     *                                              <code>
+     *                                              new Zebra_Session(
+     *                                                  $link,
+     *                                                  'someSecur1tyCode!',
+     *                                                  0,
+     *                                                  false,
+     *                                                  // one way of using a callable for this argument
+     *                                                  function() {
+     *                                                      return $_SERVER['whateverYouWant'];
+     *                                                  }
+     *                                              );
+     *                                              </code>
      *
-     *  @param  int         $lock_timeout       (Optional) The maximum amount of time (in seconds) for which a lock on
-     *                                          the session data can be kept.
+     *                                              >   Use this with caution as users may have a dynamic IP address which
+     *                                                  may change over time, or may come through proxies. This is mostly
+     *                                                  useful if you know that all your users come from static IPs.
      *
-     *                                          >   This must be lower than the maximum execution time of the script!
+     *                                              Default is `false`
      *
-     *                                          Session locking is a way to ensure that data is correctly handled in a
-     *                                          scenario with multiple concurrent AJAX requests.
+     *  @param  int         $lock_timeout           (Optional) The maximum amount of time (in seconds) for which a lock on
+     *                                              the session data can be kept.
      *
-     *                                          Read more about it
-     *                                          {@link http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/ here}.
+     *                                              >   This must be lower than the maximum execution time of the script!
      *
-     *                                          Default is `60`
+     *                                              Session locking is a way to ensure that data is correctly handled in a
+     *                                              scenario with multiple concurrent AJAX requests.
      *
-     *  @param  string      $table_name         (Optional) Name of the MySQL table to be used by the class.
+     *                                              Read more about it
+     *                                              {@link http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/ here}.
      *
-     *                                          Default is `session_data`
+     *                                              Default is `60`
      *
-     *  @param  boolean     $start_session      (Optional) Whether to start the session right away (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
+     *  @param  string      $table_name             (Optional) Name of the MySQL table to be used by the class.
      *
-     *                                          Default is `true`
+     *                                              Default is `session_data`
      *
-     *  @param  boolean     $read_only          (Optional) Opens session in read-only mode and without row locks. Any changes
-     *                                          made to `$_SESSION` will not be saved, although the variable can be read/written.
+     *  @param  boolean     $start_session          (Optional) Whether to start the session right away (by calling {@link https://php.net/manual/en/function.session-start.php session_start()})
      *
-     *                                          Default is `false` (the default session behavior).
+     *                                              Default is `true`
+     *
+     *  @param  boolean     $read_only              (Optional) Opens session in read-only mode and without row locks. Any changes
+     *                                              made to `$_SESSION` will not be saved, although the variable can be read/written.
+     *
+     *                                              Default is `false` (the default session behavior).
      *
      *  @return void
      */
@@ -532,8 +556,20 @@ class Zebra_Session {
         }
 
         // if session is locked to an IP address
-        if ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '') {
-            $hash .= $ip_address;
+
+        // if "lock_to_ip" is truthy but *not* callable
+        // (this is the quickest way in case lock_to_ip is truthy)
+        if ($this->lock_to_ip && !is_callable($this->lock_to_ip)) {
+
+            // append whatever is returned by "get_ip_address"
+            $hash .= $this->get_ip_address();
+
+        // if "lock_to_ip" is callable
+        } elseif (is_callable($this->lock_to_ip)) {
+
+            // append whatever is returned by the callable
+            $hash .= call_user_func($this->lock_to_ip);
+
         }
 
         // append this to the end
@@ -705,7 +741,7 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && ($ip_address = $this->get_ip_address()) !== '' ? $ip_address : '') .
+                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $this->get_ip_address() : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
                 $this->security_code
             ),
             $session_data,
