@@ -1,4 +1,4 @@
-## version 4.1.0 (TBA)
+## version 4.1.0 (September 08, 2024)
 
 - fixed [#49](https://github.com/stefangabos/Zebra_Session/issues/49) where the old `session_set_save_handler` signature with more than 2 arguments was deprecated in PHP 8 and the deprecated signature would become unsupported either in PHP 9.0 or 10.0; the library is still backwards compatible; thanks to [Joe Bordes](https://github.com/joebordes) for the heads up!
 - the `lock_to_ip` argument of the constructor can now also be a callable; see [#56](https://github.com/stefangabos/Zebra_Session/pull/56); this is a better and more secure fix for [#43](https://github.com/stefangabos/Zebra_Session/issues/43) and [#54](https://github.com/stefangabos/Zebra_Session/pull/54); this is also a fix for a **very old** [#7](https://github.com/stefangabos/Zebra_Session/issues/7)! thanks [Andreas Heissenberger](https://github.com/aheissenberger) for the great idea and the feedback
