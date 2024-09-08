@@ -14,7 +14,7 @@
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
-class Zebra_Session {
+class Zebra_Session implements SessionHandlerInterface {
 
     /**
      *  @var    array<string>
@@ -320,15 +320,8 @@ class Zebra_Session {
             // set read-only flag
             $this->read_only = $read_only;
 
-            // register the new handler
-            session_set_save_handler(
-                array(&$this, 'open'),
-                array(&$this, 'close'),
-                array(&$this, 'read'),
-                array(&$this, 'write'),
-                array(&$this, 'destroy'),
-                array(&$this, 'gc')
-            );
+            // register the session handler
+            session_set_save_handler($this, true);
 
             // if a session is already started, destroy it first
             if (session_id() !== '') {
@@ -375,6 +368,7 @@ class Zebra_Session {
      *
      *  @access private
      */
+    #[\ReturnTypeWillChange]
     public function close() {
 
         // release the lock associated with the current session
@@ -396,6 +390,7 @@ class Zebra_Session {
      *
      *  @access private
      */
+    #[\ReturnTypeWillChange]
     public function destroy($session_id) {
 
         // delete the current session from the database
@@ -417,7 +412,8 @@ class Zebra_Session {
      *
      *  @access private
      */
-    public function gc() {
+    #[\ReturnTypeWillChange]
+    public function gc($maxlifetime) {
 
         // delete expired sessions from database
         $this->query('
@@ -519,7 +515,8 @@ class Zebra_Session {
      *
      *  @access private
      */
-    public function open() {
+    #[\ReturnTypeWillChange]
+    public function open($save_path, $session_name) {
 
         return true;
 
@@ -534,6 +531,7 @@ class Zebra_Session {
      *
      *  @access private
      */
+    #[\ReturnTypeWillChange]
     public function read($session_id) {
 
         // get the lock name associated with the current session
@@ -721,6 +719,7 @@ class Zebra_Session {
      *
      *  @access private
      */
+    #[\ReturnTypeWillChange]
     public function write($session_id, $session_data) {
 
         // we don't write session variable when in read-only mode
