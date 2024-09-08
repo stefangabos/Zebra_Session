@@ -202,16 +202,18 @@ class Zebra_Session {
      *                                              session was first opened.
      *
      *                                              For the actual IP address that is going to be used, the library will
-     *                                              check these entries in the $_SERVER superglobal, in this particular
-     *                                              order:<br><br>- **HTTP_CLIENT_IP**<br>- **HTTP_X_FORWARDED_FOR**<br>-
-     *                                              **HTTP_X_FORWARDED**<br>- **HTTP_FORWARDED_FOR**<br>- **HTTP_FORWARDED**
-     *                                              <br>- **REMOTE_ADDR**<br><br>...and use whichever returns a result first.
+     *                                              use the value of `$_SERVER['REMOTE_ADDR']`.
      *
-     *                                              If you have this turned on but the above logic doesn't get you the IP
-     *                                              address that you need, you can pass a **callable function** and whatever
-     *                                              result returned by said function will be used as IP address (it doesn't
-     *                                              even need to be an actual IP address but rather anything unique identifying
-     *                                              a specific user)
+     *                                              If your application is behind a load balancer like an AWS Elastic Load Balancing
+     *                                              or a reverse proxy like Varnish, certain request information will be sent using
+     *                                              either the standard `Forwarded` header or the `X-Forwarded-*` headers. In this case,
+     *                                              the `REMOTE_ADDR` header will likely be the IP address of your reverse proxy while
+     *                                              the user's true IP will be stored in a standard `Forwarded` header or an `X-Forwarded-For`
+     *                                              header.
+     *
+     *                                              In this case you will need to tell the library which reverse proxy IP addresses to
+     *                                              trust and what headers your reverse proxy uses to send information by using a `callable`
+     *                                              value for this argument:
      *
      *                                              <code>
      *                                              new Zebra_Session(
@@ -219,16 +221,22 @@ class Zebra_Session {
      *                                                  'someSecur1tyCode!',
      *                                                  0,
      *                                                  false,
+     *
      *                                                  // one way of using a callable for this argument
      *                                                  function() {
-     *                                                      return $_SERVER['whateverYouWant'];
+     *                                                      $ipaddress = '';
+     *                                                      // use the header(s) you choose to trust
+     *                                                      foreach (['HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED'] as $key) {
+     *                                                          // use the first one containing a value
+     *                                                          if (($tmp = getenv($key))) {
+     *                                                              $ipaddress = $tmp;
+     *                                                              break;
+     *                                                          }
+     *                                                      }
+     *                                                      return $ipaddress;
      *                                                  }
      *                                              );
      *                                              </code>
-     *
-     *                                              >   Use this with caution as users may have a dynamic IP address which
-     *                                                  may change over time, or may come through proxies. This is mostly
-     *                                                  useful if you know that all your users come from static IPs.
      *
      *                                              Default is `false`
      *
@@ -558,11 +566,11 @@ class Zebra_Session {
         // if session is locked to an IP address
 
         // if "lock_to_ip" is truthy but *not* callable
-        // (this is the quickest way in case lock_to_ip is truthy)
+        // (this is the quickest way in case "lock_to_ip" is truthy)
         if ($this->lock_to_ip && !is_callable($this->lock_to_ip)) {
 
-            // append whatever is returned by "get_ip_address"
-            $hash .= $this->get_ip_address();
+            // append the value of "REMOTE_ADDR" header
+            $hash .= $_SERVER['REMOTE_ADDR'];
 
         // if "lock_to_ip" is callable
         } elseif (is_callable($this->lock_to_ip)) {
@@ -741,7 +749,7 @@ class Zebra_Session {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $this->get_ip_address() : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
+                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $_SERVER['REMOTE_ADDR'] : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
                 $this->security_code
             ),
             $session_data,
@@ -882,28 +890,6 @@ class Zebra_Session {
             throw new Exception($stmt->error);
 
         }
-
-    }
-
-    /**
-     *  Tries to get client's *real* IP address.
-     *
-     *  This should return the same IP address when using something like an AWS load balancer.
-     *
-     *  @return string
-     *
-     *  @access private
-     */
-    private function get_ip_address() {
-
-        $ipaddress = '';
-        foreach (['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'] as $key) {
-            if (($tmp = getenv($key))) {
-                $ipaddress = $tmp;
-                break;
-            }
-        }
-        return $ipaddress;
 
     }
 
