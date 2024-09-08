@@ -75,6 +75,10 @@ I have a few other projects that you might be interested in — <a href="https:/
 <ul>
 <li>© 2006 - 2024 Stefan Gabos</li>
 </ul>
+<p>Implements interfaces:</p>
+<ul>
+<li>SessionHandlerInterface (internal interface)</li>
+</ul>
 <div id="top" class="doc_toc">
 <div class="left">
 <h3>Methods</h3>
@@ -207,17 +211,27 @@ void
 <tr>
 <td><em>boolean|callable</em></td>
 <td><strong>$lock_to_ip</strong></td>
-<td><p>(Optional) Whether to restrict the session to the same IP as when the                                               session was first opened.</p><p>For the actual IP address that is going to be used, the library will                                               check these entries in the $_SERVER superglobal, in this particular                                               order:<br><br>- <strong>HTTP_CLIENT_IP</strong><br>- <strong>HTTP_X_FORWARDED_FOR</strong><br>-                                               <strong>HTTP_X_FORWARDED</strong><br>- <strong>HTTP_FORWARDED_FOR</strong><br>- <strong>HTTP_FORWARDED</strong>                                               <br>- <strong>REMOTE_ADDR</strong><br><br>...and use whichever returns a result first.</p><p>If you have this turned on but the above logic doesn't get you the IP                                               address that you need, you can pass a <strong>callable function</strong> and whatever                                               result returned by said function will be used as IP address (it doesn't                                               even need to be an actual IP address but rather anything unique identifying                                               a specific user)</p><ol class="code"><li><div class="src-line"><span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span></div></li>
+<td><p>(Optional) Whether to restrict the session to the same IP as when the                                               session was first opened.</p><p>For the actual IP address that is going to be used, the library will                                               use the value of <code>$_SERVER['REMOTE_ADDR']</code>.</p><p>If your application is behind a load balancer like an AWS Elastic Load Balancing                                               or a reverse proxy like Varnish, certain request information will be sent using                                               either the standard <code>Forwarded</code> header or the <code>X-Forwarded-*</code> headers. In this case,                                               the <code>REMOTE_ADDR</code> header will likely be the IP address of your reverse proxy while                                               the user's true IP will be stored in a standard <code>Forwarded</code> header or an <code>X-Forwarded-For</code>                                               header.</p><p>In this case you will need to tell the library which reverse proxy IP addresses to                                               trust and what headers your reverse proxy uses to send information by using a <code>callable</code>                                               value for this argument:</p><ol class="code"><li><div class="src-line"><span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$link</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-str">'someSecur1tyCode!'</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-num">0</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-id">false</span><span class="src-sym">,</span></div></li>
+<li><div class="src-line">&nbsp;</div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;one&nbsp;way&nbsp;of&nbsp;using&nbsp;a&nbsp;callable&nbsp;for&nbsp;this&nbsp;argument</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">function</span><span class="src-sym">(</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
-<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">return&nbsp;</span><span class="src-var">$_SERVER</span><span class="src-sym">[</span><span class="src-str">'whateverYouWant'</span><span class="src-sym">]</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$ipaddress&nbsp;</span>=&nbsp;<span class="src-str">''</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;use&nbsp;the&nbsp;header(s)&nbsp;you&nbsp;choose&nbsp;to&nbsp;trust</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">foreach&nbsp;</span><span class="src-sym">(</span><span class="src-sym">[</span><span class="src-str">'HTTP_X_FORWARDED_FOR'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'HTTP_X_FORWARDED'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'HTTP_FORWARDED_FOR'</span><span class="src-sym">,&nbsp;</span><span class="src-str">'HTTP_FORWARDED'</span><span class="src-sym">]&nbsp;</span><span class="src-key">as&nbsp;</span><span class="src-var">$key</span><span class="src-sym">)&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-comm">//&nbsp;use&nbsp;the&nbsp;first&nbsp;one&nbsp;containing&nbsp;a&nbsp;value</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if&nbsp;</span><span class="src-sym">((</span><span class="src-var">$tmp&nbsp;</span>=&nbsp;<a href="http://www.php.net/getenv">getenv</a><span class="src-sym">(</span><span class="src-var">$key</span><span class="src-sym">)))&nbsp;</span><span class="src-sym">{</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$ipaddress&nbsp;</span>=&nbsp;<span class="src-var">$tmp</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">break</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
+<li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">return&nbsp;</span><span class="src-var">$ipaddress</span><span class="src-sym">;</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-sym">}</span></div></li>
 <li><div class="src-line"><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
-</ol><p class="highlight">Use this with caution as users may have a dynamic IP address which                                                   may change over time, or may come through proxies. This is mostly                                                   useful if you know that all your users come from static IPs.</p><p>Default is <code>false</code></p></td>
+</ol><p>Default is <code>false</code></p></td>
 </tr>
 <tr>
 <td><em>int</em></td>
@@ -381,7 +395,7 @@ void
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sat, 07 September 2024</span>
+Documentation generated on <span>Sun, 08 September 2024</span>
 </div>
 </div>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-0301ZD47Q7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-0301ZD47Q7');</script></body>
