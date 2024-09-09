@@ -1,3 +1,7 @@
+## version 4.1.1 (TBA)
+
+- fixed a minor bug where we were auto-registering `session_write_close` when calling `session_set_save_handler` but then we were also registering it ourselves later
+
 ## version 4.1.0 (September 08, 2024)
 
 - fixed [#49](https://github.com/stefangabos/Zebra_Session/issues/49) where the old `session_set_save_handler` signature with more than 2 arguments was deprecated in PHP 8 and the deprecated signature would become unsupported either in PHP 9.0 or 10.0; the library is still backwards compatible; thanks to [Joe Bordes](https://github.com/joebordes) for the heads up!
