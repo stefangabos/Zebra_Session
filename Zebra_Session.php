@@ -9,7 +9,7 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/#zebra-session- here}.
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    4.1.0 (last revision: September 08, 2024)
+ *  @version    4.1.1 (last revision: September 09, 2024)
  *  @copyright  © 2006 - 2024 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
@@ -321,7 +321,7 @@ class Zebra_Session implements SessionHandlerInterface {
             $this->read_only = $read_only;
 
             // register the session handler
-            session_set_save_handler($this, true);
+            session_set_save_handler($this, false);
 
             // if a session is already started, destroy it first
             if (session_id() !== '') {
