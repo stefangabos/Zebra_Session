@@ -445,7 +445,7 @@ class Zebra_Session implements SessionHandlerInterface {
     public function get_active_sessions() {
 
         // call the garbage collector
-        $this->gc();
+        $this->gc(0);
 
         // count the rows from the database
         $result = $this->query('
