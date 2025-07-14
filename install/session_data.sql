@@ -4,4 +4,4 @@ CREATE TABLE `session_data` (
   `session_data` blob NOT NULL,
   `session_expire` int(11) NOT NULL default '0',
   PRIMARY KEY  (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
