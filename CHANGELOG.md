@@ -1,6 +1,7 @@
-## version 4.1.1 (TBA)
+## version 4.2.0 (TBA)
 
-- fixed a minor bug where we were auto-registering `session_write_close` when calling `session_set_save_handler` but then we were also registering it ourselves later
+- fixed [#57](https://github.com/stefangabos/Zebra_Session/issues/57); thanks to [Bob Brown](https://github.com/gurubobnz)
+- fixed a minor issue where `session_write_close` was registered twice
 
 ## version 4.1.0 (September 08, 2024)
 
