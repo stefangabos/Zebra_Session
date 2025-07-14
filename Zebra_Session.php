@@ -9,8 +9,8 @@
  *  Read more {@link https://github.com/stefangabos/Zebra_Session/#zebra-session- here}.
  *
  *  @author     Stefan Gabos <contact@stefangabos.ro>
- *  @version    4.1.1 (last revision: September 09, 2024)
- *  @copyright  © 2006 - 2024 Stefan Gabos
+ *  @version    4.2.0 (last revision: September 09, 2024)
+ *  @copyright  © 2006 - 2025 Stefan Gabos
  *  @license    https://www.gnu.org/licenses/lgpl-3.0.txt GNU LESSER GENERAL PUBLIC LICENSE
  *  @package    Zebra_Session
  */
@@ -372,12 +372,17 @@ class Zebra_Session implements SessionHandlerInterface {
     public function close() {
 
         // release the lock associated with the current session
-        return $this->query('
-
+        $result = $this->query('
             SELECT
                 RELEASE_LOCK(?)
+        ', $this->session_lock);
 
-        ', $this->session_lock) !== false;
+        // stop if there was an error
+        if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
+            throw new Exception('Zebra_Session: Could not release session lock');
+        }
+
+        return true;
 
     }
 
@@ -548,7 +553,7 @@ class Zebra_Session implements SessionHandlerInterface {
             $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
 
             // stop if there was an error
-            if ($result['num_rows'] != 1) {
+            if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
                 throw new Exception('Zebra_Session: Could not obtain session lock');
             }
 
