@@ -3,6 +3,7 @@
 - fixed [#57](https://github.com/stefangabos/Zebra_Session/issues/57); thanks to [Bob Brown](https://github.com/gurubobnz)
 - fixed broken `get_active_sessions` method
 - fixed a minor issue where `session_write_close` was registered twice
+- updated table structure to match latest recommended values for MySQL/MariaDB
 
 ## version 4.1.0 (September 08, 2024)
 
