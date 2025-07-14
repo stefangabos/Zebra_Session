@@ -53,7 +53,7 @@ I have a few other projects that you might be interested in — <a href="https:/
 </p>
 </div>
 </td>
-<td style="background: #FFF">
+<td style="background: #FFF; width: 100%">
 <div id="doc_content">
 <h2>Class: <strong>Zebra_Session</strong></h2>
 <h6><strong>source file:</strong> /Zebra_Session.php</h6>
@@ -65,7 +65,7 @@ I have a few other projects that you might be interested in — <a href="https:/
 </ul>
 <h4>Version:</h4>
 <ul>
-<li>4.1.0 (last revision: September 08, 2024)<br>See <a href="https://github.com/stefangabos/Zebra_Session/blob/master/CHANGELOG.md" class="projects-homepage">CHANGELOG</a></li>
+<li>4.2.0 (last revision: September 09, 2024)<br>See <a href="https://github.com/stefangabos/Zebra_Session/blob/master/CHANGELOG.md" class="projects-homepage">CHANGELOG</a></li>
 </ul>
 <h4>License:</h4>
 <ul>
@@ -73,7 +73,7 @@ I have a few other projects that you might be interested in — <a href="https:/
 </ul>
 <h4>Copyright:</h4>
 <ul>
-<li>© 2006 - 2024 Stefan Gabos</li>
+<li>© 2006 - 2025 Stefan Gabos</li>
 </ul>
 <div id="top" class="doc_toc">
 <h4>Implements interfaces:</h4>
@@ -199,19 +199,19 @@ void
 <tr>
 <td><em>integer</em></td>
 <td><strong>$session_lifetime</strong></td>
-<td><p>(Optional) The number of seconds after which a session will be considered                                               as <strong>expired</strong>.</p><p class="highlight">A session is active for the number of seconds specified by this property                                                   (or until the browser/browser tab is closed if the value is <code>0</code>) <strong>OR</strong>                                                   the session has been inactive for more than the number of seconds specified                                                   by <code>session.gc_maxlifetime</code>.</p><p class="highlight">This property sets the value of <a href="https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime">session.cookie_lifetime</a>.</p><p>Expired sessions are cleaned up from the database whenever the garbage                                               collection routine runs. The probability for the garbage collection                                               routine to be executed is given by the values of <code>gc_probability</code> and                                               <code>gc_divisor</code>.</p><p>To easily check the values of <code>session.gc_maxlifetime</code>, <code>gc_probability</code>                                               and <code>gc_divisor</code> for your environment use the <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Default is <code>0</code> - the session is active until the browser/browser tab is                                               is closed <strong>OR</strong> the session has been inactive for more than the number                                               of seconds specified by <code>session.gc_maxlifetime</code>.</p></td>
+<td><p><span class="optional">Optional</span> The number of seconds after which a session will be considered                                               as <strong>expired</strong>.</p><p class="highlight">A session is active for the number of seconds specified by this property                                                   (or until the browser/browser tab is closed if the value is <code>0</code>) <strong>OR</strong>                                                   the session has been inactive for more than the number of seconds specified                                                   by <code>session.gc_maxlifetime</code>.</p><p class="highlight">This property sets the value of <a href="https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime">session.cookie_lifetime</a>.</p><p>Expired sessions are cleaned up from the database whenever the garbage                                               collection routine runs. The probability for the garbage collection                                               routine to be executed is given by the values of <code>gc_probability</code> and                                               <code>gc_divisor</code>.</p><p>To easily check the values of <code>session.gc_maxlifetime</code>, <code>gc_probability</code>                                               and <code>gc_divisor</code> for your environment use the <a href="../Zebra_Session/Zebra_Session.html#methodget_settings">get_settings()</a> method.</p><p>Default is <code>0</code> - the session is active until the browser/browser tab is                                               is closed <strong>OR</strong> the session has been inactive for more than the number                                               of seconds specified by <code>session.gc_maxlifetime</code>.</p></td>
 </tr>
 <tr>
 <td><em>boolean</em></td>
 <td><strong>$lock_to_user_agent</strong></td>
-<td><p>(Optional) Whether to restrict the session to the same User Agent (browser)                                               as when the session was first opened.</p><p class="highlight">The user agent check only adds minor security, since an attacker that                                                   hijacks the session cookie will most likely have the same user agent.</p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                               change the user agent string from one page to the next by automatically                                               switching into compatibility mode. So, on the first load you would have                                               something like:</p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
+<td><p><span class="optional">Optional</span> Whether to restrict the session to the same User Agent (browser)                                               as when the session was first opened.</p><p class="highlight">The user agent check only adds minor security, since an attacker that                                                   hijacks the session cookie will most likely have the same user agent.</p><p>In certain scenarios involving Internet Explorer, the browser will randomly                                               change the user agent string from one page to the next by automatically                                               switching into compatibility mode. So, on the first load you would have                                               something like:</p><ol class="code"><li><div class="src-line"><span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">8.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
 </ol><p>and reloading the page you would have</p><ol class="code"><li><div class="src-line">&nbsp;<span class="src-id">Mozilla</span>/<span class="src-num">4.0&nbsp;</span><span class="src-sym">(</span><span class="src-id">compatible</span><span class="src-sym">;&nbsp;</span><span class="src-id">MSIE&nbsp;</span><span class="src-num">7.0</span><span class="src-sym">;&nbsp;</span><span class="src-id">Windows&nbsp;NT&nbsp;</span><span class="src-num">5.1</span><span class="src-sym">;&nbsp;</span><span class="src-id">Trident</span>/<span class="src-num">4.</span>..</div></li>
 </ol><p>So, if the situation asks for this, change this value to <code>false</code>.</p><p>Default is <code>true</code>.</p></td>
 </tr>
 <tr>
 <td><em>boolean|callable</em></td>
 <td><strong>$lock_to_ip</strong></td>
-<td><p>(Optional) Whether to restrict the session to the same IP as when the                                               session was first opened.</p><p>For the actual IP address that is going to be used, the library will                                               use the value of <code>$_SERVER['REMOTE_ADDR']</code>.</p><p>If your application is behind a load balancer like an AWS Elastic Load Balancing                                               or a reverse proxy like Varnish, certain request information will be sent using                                               either the standard <code>Forwarded</code> header or the <code>X-Forwarded-*</code> headers. In this case,                                               the <code>REMOTE_ADDR</code> header will likely be the IP address of your reverse proxy while                                               the user's true IP will be stored in a standard <code>Forwarded</code> header or an <code>X-Forwarded-For</code>                                               header.</p><p>In this case you will need to tell the library which reverse proxy IP addresses to                                               trust and what headers your reverse proxy uses to send information by using a <code>callable</code>                                               value for this argument:</p><ol class="code"><li><div class="src-line"><span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span></div></li>
+<td><p><span class="optional">Optional</span> Whether to restrict the session to the same IP as when the                                               session was first opened.</p><p>For the actual IP address that is going to be used, the library will                                               use the value of <code>$_SERVER['REMOTE_ADDR']</code>.</p><p>If your application is behind a load balancer like an AWS Elastic Load Balancing                                               or a reverse proxy like Varnish, certain request information will be sent using                                               either the standard <code>Forwarded</code> header or the <code>X-Forwarded-*</code> headers. In this case,                                               the <code>REMOTE_ADDR</code> header will likely be the IP address of your reverse proxy while                                               the user's true IP will be stored in a standard <code>Forwarded</code> header or an <code>X-Forwarded-For</code>                                               header.</p><p>In this case you will need to tell the library which reverse proxy IP addresses to                                               trust and what headers your reverse proxy uses to send information by using a <code>callable</code>                                               value for this argument:</p><ol class="code"><li><div class="src-line"><span class="src-key">new&nbsp;</span><span class="src-id"><a href="../Zebra_Session/Zebra_Session.html">Zebra_Session</a></span><span class="src-sym">(</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-var">$link</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-str">'someSecur1tyCode!'</span><span class="src-sym">,</span></div></li>
 <li><div class="src-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-num">0</span><span class="src-sym">,</span></div></li>
@@ -236,22 +236,22 @@ void
 <tr>
 <td><em>int</em></td>
 <td><strong>$lock_timeout</strong></td>
-<td><p>(Optional) The maximum amount of time (in seconds) for which a lock on                                               the session data can be kept.</p><p class="highlight">This must be lower than the maximum execution time of the script!</p><p>Session locking is a way to ensure that data is correctly handled in a                                               scenario with multiple concurrent AJAX requests.</p><p>Read more about it                                               <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">here</a>.</p><p>Default is <code>60</code></p></td>
+<td><p><span class="optional">Optional</span> The maximum amount of time (in seconds) for which a lock on                                               the session data can be kept.</p><p class="highlight">This must be lower than the maximum execution time of the script!</p><p>Session locking is a way to ensure that data is correctly handled in a                                               scenario with multiple concurrent AJAX requests.</p><p>Read more about it                                               <a href="http://thwartedefforts.org/2006/11/11/race-conditions-with-ajax-and-php-sessions/">here</a>.</p><p>Default is <code>60</code></p></td>
 </tr>
 <tr>
 <td><em>string</em></td>
 <td><strong>$table_name</strong></td>
-<td><p>(Optional) Name of the MySQL table to be used by the class.</p><p>Default is <code>session_data</code></p></td>
+<td><p><span class="optional">Optional</span> Name of the MySQL table to be used by the class.</p><p>Default is <code>session_data</code></p></td>
 </tr>
 <tr>
 <td><em>boolean</em></td>
 <td><strong>$start_session</strong></td>
-<td><p>(Optional) Whether to start the session right away (by calling <a href="https://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is <code>true</code></p></td>
+<td><p><span class="optional">Optional</span> Whether to start the session right away (by calling <a href="https://php.net/manual/en/function.session-start.php">session_start()</a>)</p><p>Default is <code>true</code></p></td>
 </tr>
 <tr>
 <td><em>boolean</em></td>
 <td><strong>$read_only</strong></td>
-<td><p>(Optional) Opens session in read-only mode and without row locks. Any changes                                               made to <code>$_SESSION</code> will not be saved, although the variable can be read/written.</p><p>Default is <code>false</code> (the default session behavior).</p></td>
+<td><p><span class="optional">Optional</span> Opens session in read-only mode and without row locks. Any changes                                               made to <code>$_SESSION</code> will not be saved, although the variable can be read/written.</p><p>Default is <code>false</code> (the default session behavior).</p></td>
 </tr>
 </table>
 <a href="#top" class="top">top</a>
@@ -395,7 +395,7 @@ void
 </tr>
 </table>
 <div id="doc_footer">
-Documentation generated on <span>Sun, 08 September 2024</span>
+Documentation generated on <span>Mon, 14 July 2025</span>
 </div>
 </div>
 <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-0301ZD47Q7"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-0301ZD47Q7');</script></body>
