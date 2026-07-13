@@ -1,1 +1,1 @@
-vendor\bin\phpstan analyse & vendor\bin\phpcs --standard=coding-standards.xml
+vendor\bin\phpunit --configuration phpunit.xml && vendor\bin\phpstan analyse && vendor\bin\phpcs --standard=coding-standards.xml

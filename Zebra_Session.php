@@ -131,7 +131,7 @@ class Zebra_Session implements SessionHandlerInterface {
      *
      *  From now on whenever PHP sets the `PHPSESSID` cookie, the cookie will be available to all subdomains!
      *
-     *  @param  resource    &$link                  An object representing the connection to a MySQL Server, as returned
+     *  @param  resource|\PDO    &$link                  An object representing the connection to a MySQL Server, as returned
      *                                              by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
      *                                              or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
      *
@@ -756,10 +756,54 @@ class Zebra_Session implements SessionHandlerInterface {
             return true;
         }
 
-        // insert OR update session's data - this is how it works:
-        // first it tries to insert a new row in the database BUT if session_id is already in the database then just
-        // update session_data and session_expire for that specific session_id
-        // read more here https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html
+        $hash = md5(
+            ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
+            ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $_SERVER['REMOTE_ADDR'] : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
+            $this->security_code
+        );
+        $session_expire = time() + $this->session_lifetime;
+
+        return $this->writeDb($session_id, $hash, $session_data, $session_expire);
+    }
+
+    /**
+     * Persist session data in the database.
+     * Creates or updates existing session (if session_id is present in the DB).
+     *  @param  string  $session_id
+     *  @param  string  $hash
+     *  @param  mixed   $session_data
+     *  @param  integer $session_expire
+     *
+     *  @return boolean
+     *
+     *  @access private
+     */
+    private function writeDb($session_id, $hash, $session_data, $session_expire)
+    {
+
+        if ($this->link instanceof PDO && $this->link->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+
+            return $this->query('
+                INSERT INTO
+                    ' . $this->table_name . '
+                    (
+                        session_id,
+                        hash,
+                        session_data,
+                        session_expire
+                    )
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(session_id) DO UPDATE SET
+                    session_data = excluded.session_data,
+                    session_expire = excluded.session_expire
+            ',
+                    $session_id,
+                    $hash,
+                    $session_data,
+                    $session_expire
+                ) !== false;
+        }
+
         return $this->query('
             INSERT INTO
                 ' . $this->table_name . '
@@ -774,15 +818,11 @@ class Zebra_Session implements SessionHandlerInterface {
                 session_data = VALUES(session_data),
                 session_expire = VALUES(session_expire)
             ',
-            $session_id,
-            md5(
-                ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $_SERVER['REMOTE_ADDR'] : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
-                $this->security_code
-            ),
-            $session_data,
-            time() + $this->session_lifetime
-        ) !== false;
+                $session_id,
+                $hash,
+                $session_data,
+                $session_expire
+            ) !== false;
 
     }
 
@@ -850,10 +890,14 @@ class Zebra_Session implements SessionHandlerInterface {
             // if executing the query was a success
             if (($stmt = $this->link->prepare($query)) && $stmt->execute(array_slice(func_get_args(), 1))) {
 
+                $data = $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC);
+
                 // prepare a standardized return value
                 $result = array(
-                    'num_rows'  =>  $stmt->rowCount(),
-                    'data'      =>  $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC),
+                    // PDO::rowCount() is unreliable for SELECT statements, so use the fetched row when available and
+                    // fall back to rowCount() only for statements that do not return a result set.
+                    'num_rows'  =>  $stmt->columnCount() == 0 ? $stmt->rowCount() : ($data === false ? 0 : 1),
+                    'data'      =>  $data === false ? array() : $data,
                 );
 
                 // close the statement
