@@ -372,6 +372,21 @@ class Zebra_Session implements SessionHandlerInterface {
     public function close() {
 
         // release the lock associated with the current session
+        $this->release_session_lock();
+
+        return true;
+
+    }
+
+    /**
+     *  Releases the database lock associated with the current session.
+     *
+     *  @return void
+     *
+     *  @access protected
+     */
+    protected function release_session_lock() {
+
         $result = $this->query('
             SELECT
                 RELEASE_LOCK(?)
@@ -381,8 +396,6 @@ class Zebra_Session implements SessionHandlerInterface {
         if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
             throw new Exception('Zebra_Session: Could not release session lock');
         }
-
-        return true;
 
     }
 
@@ -548,15 +561,7 @@ class Zebra_Session implements SessionHandlerInterface {
         // if we are *not* in read-only mode
         // read-only sessions do not need a lock
         if (!$this->read_only) {
-
-            // try to obtain a lock with the given name and timeout
-            $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
-
-            // stop if there was an error
-            if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
-                throw new Exception('Zebra_Session: Could not obtain session lock');
-            }
-
+            $this->acquire_session_lock();
         }
 
         $hash = '';
@@ -616,6 +621,25 @@ class Zebra_Session implements SessionHandlerInterface {
 
         // on error return an empty string - this HAS to be an empty string
         return '';
+
+    }
+
+    /**
+     *  Obtains the database lock associated with the current session.
+     *
+     *  @return void
+     *
+     *  @access protected
+     */
+    protected function acquire_session_lock() {
+
+        // try to obtain a lock with the given name and timeout
+        $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
+
+        // stop if there was an error
+        if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
+            throw new Exception('Zebra_Session: Could not obtain session lock');
+        }
 
     }
 
