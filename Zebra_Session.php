@@ -131,7 +131,7 @@ class Zebra_Session implements SessionHandlerInterface {
      *
      *  From now on whenever PHP sets the `PHPSESSID` cookie, the cookie will be available to all subdomains!
      *
-     *  @param  resource|\PDO    &$link                  An object representing the connection to a MySQL Server, as returned
+     *  @param  resource|\PDO|MySQLi    &$link                  An object representing the connection to a MySQL Server, as returned
      *                                              by calling {@link https://www.php.net/manual/en/mysqli.construct.php mysqli_connect},
      *                                              or a {@link https://www.php.net/manual/en/intro.pdo.php PDO} instance.
      *
