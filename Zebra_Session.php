@@ -778,8 +778,7 @@ class Zebra_Session implements SessionHandlerInterface {
      *
      *  @access private
      */
-    private function writeDb($session_id, $hash, $session_data, $session_expire)
-    {
+    private function writeDb($session_id, $hash, $session_data, $session_expire) {
 
         if ($this->link instanceof PDO && $this->link->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
 
@@ -797,11 +796,11 @@ class Zebra_Session implements SessionHandlerInterface {
                     session_data = excluded.session_data,
                     session_expire = excluded.session_expire
             ',
-                    $session_id,
-                    $hash,
-                    $session_data,
-                    $session_expire
-                ) !== false;
+                $session_id,
+                $hash,
+                $session_data,
+                $session_expire
+            ) !== false;
         }
 
         return $this->query('
@@ -818,11 +817,11 @@ class Zebra_Session implements SessionHandlerInterface {
                 session_data = VALUES(session_data),
                 session_expire = VALUES(session_expire)
             ',
-                $session_id,
-                $hash,
-                $session_data,
-                $session_expire
-            ) !== false;
+            $session_id,
+            $hash,
+            $session_data,
+            $session_expire
+        ) !== false;
 
     }
 
