@@ -534,7 +534,7 @@ class Zebra_Session implements SessionHandlerInterface {
      *  @access private
      */
     #[\ReturnTypeWillChange]
-    public function open($save_path, $session_name) {
+    public function open($path, $name) {
 
         return true;
 
@@ -543,20 +543,20 @@ class Zebra_Session implements SessionHandlerInterface {
     /**
      *  Custom read() function
      *
-     *  @param  string  $session_id     The ID of the session to read from
+     *  @param  string  $id     The ID of the session to read from
      *
      *  @return string
      *
      *  @access private
      */
     #[\ReturnTypeWillChange]
-    public function read($session_id) {
+    public function read($id) {
 
         // get the lock name associated with the current session
         // notice the use of sha1() which shortens the session ID to 40 characters so that it does not exceed the limit of
         // 64 characters for locking string imposed by mySQL >= 5.7.5
         // thanks to Andreas Heissenberger (see https://github.com/stefangabos/Zebra_Session/issues/16)
-        $this->session_lock = 'session_' . sha1($session_id);
+        $this->session_lock = 'session_' . sha1($id);
 
         // if we are *not* in read-only mode
         // read-only sessions do not need a lock
@@ -605,7 +605,7 @@ class Zebra_Session implements SessionHandlerInterface {
             LIMIT
                 1
 
-        ', $session_id, time(), md5($hash));
+        ', $id, time(), md5($hash));
 
         // if there were no errors and data was found
         if ($result !== false && $result['num_rows'] > 0) {
@@ -617,7 +617,7 @@ class Zebra_Session implements SessionHandlerInterface {
         }
 
         // if hash has changed or the session expired
-        $this->destroy($session_id);
+        $this->destroy($id);
 
         // on error return an empty string - this HAS to be an empty string
         return '';
@@ -740,16 +740,16 @@ class Zebra_Session implements SessionHandlerInterface {
     /**
      *  Custom write() function
      *
-     *  @param  string  $session_id     The ID of the session to write to
+     *  @param  string  $id     The ID of the session to write to
      *
-     *  @param  mixed   $session_data   The values to be written
+     *  @param  mixed   $data   The values to be written
      *
      *  @return boolean
      *
      *  @access private
      */
     #[\ReturnTypeWillChange]
-    public function write($session_id, $session_data) {
+    public function write($id, $data) {
 
         // we don't write session variable when in read-only mode
         if ($this->read_only) {
@@ -763,7 +763,7 @@ class Zebra_Session implements SessionHandlerInterface {
         );
         $session_expire = time() + $this->session_lifetime;
 
-        return $this->writeDb($session_id, $hash, $session_data, $session_expire);
+        return $this->writeDb($id, $hash, $data, $session_expire);
     }
 
     /**
