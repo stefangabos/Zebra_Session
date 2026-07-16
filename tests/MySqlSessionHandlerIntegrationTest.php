@@ -8,6 +8,12 @@ use Symfony\Component\Process\Process;
  * These are integration tests, exercising only public session API,
  * except for read-only session which is a Zebra specific feature.
  *
+ * The tests usually spawn PHP processes instead of doing the testing directly.
+ * There are two main reasons for this:
+ * 1. It closely mimics a real world use case (concurrent requests).
+ * 2. New instance of Zebra_Session automatically register itself as the handler.
+ *    I didn't want to change that at this point, and keeping track of registered functions would require adding even more code.
+ *
  * CAUTION: The tests rely on environmental variables, see phpunit.db-tests.xml.dist for the full list.
  */
 class MySqlSessionHandlerIntegrationTest extends TestCase
@@ -116,6 +122,84 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
 
         $sessionLocked = $this->waitForOutput($sessionLockProcess, '{"session_start":"' . self::$testingSid . '"}', 1);
         $this->assertTrue($sessionLocked, "Unable to lock session after it's been closed. Timeout reached.");
+    }
+
+    /**
+     * Test writing data to session:
+     * - verify the data written in one request is available in another
+     * - verify data written in read-only mode is not stored
+     * @return void
+     */
+    public function testSessionWrite(): void
+    {
+        // Open not read-only session and the data in another request.
+        // Instead of closing session and opening it again, we keep it open and spawn a process to better reflect the real use case.
+        $payloadNotToBeOverwritten = uniqid();
+        $env = array_merge(getenv(), [
+            'READ_ONLY' => 'no',
+            'WRITE_DATA_TO_SESSION' => $payloadNotToBeOverwritten,
+            'READ_DATA_FROM_SESSION' => 'yes'
+        ]);
+        $writeToSession = $this->startBackgroundProcess(
+            command: [
+                PHP_BINARY,
+                self::$sessionTestHelperPath,
+            ],
+            env: $env
+        );
+        $sessionLocked = $this->waitForOutput($writeToSession, '{"session_start":"' . self::$testingSid . '"}', 1);
+        $this->assertTrue($sessionLocked, 'Another process opened a locked session.');
+        $writeToSession->stop();
+
+        // Reopen the session and read the data.
+        // We could do it directly, but a new Zebra_Session instance automatically registers itself as the handler, and it will mess up other tests.
+        $env['READ_ONLY'] = 'no';
+        $env['READ_DATA_FROM_SESSION'] = 'yes';
+        $readFromSession = $this->startBackgroundProcess(
+            command: [
+                PHP_BINARY,
+                self::$sessionTestHelperPath,
+            ],
+            env: $env
+        );
+        $expectedOutput = json_encode([self::$testingSid => $payloadNotToBeOverwritten]);
+        $payloadRead = $this->waitForOutput($readFromSession, $expectedOutput, 1);
+        $this->assertTrue($payloadRead, 'Saved value not read from session: '. $readFromSession->getOutput());
+        $readFromSession->stop();
+
+        // Now let's try to write data in RO session
+        $payloadOverwriteTest = uniqid();
+        $env['READ_ONLY'] = 'yes';
+        $env['WRITE_DATA_TO_SESSION'] = $payloadOverwriteTest;
+        $env['READ_DATA_FROM_SESSION'] = 'yes';
+        $writeToSession = $this->startBackgroundProcess(
+            command: [
+                PHP_BINARY,
+                self::$sessionTestHelperPath,
+            ],
+            env: $env
+        );
+        // The script should output the new value, but it should not be saved
+        $expectedOutput = json_encode([self::$testingSid => $payloadOverwriteTest]);
+        $payloadRead = $this->waitForOutput($writeToSession, $expectedOutput, 1);
+        $this->assertTrue($payloadRead, 'Saved value not read from session: '. $readFromSession->getOutput());
+        $writeToSession->stop();
+
+        // Verify that session still holds the previous value
+        $env['READ_ONLY'] = 'yes';
+        $env['READ_DATA_FROM_SESSION'] = 'yes';
+        unset($env['WRITE_DATA_TO_SESSION']);
+        $readFromSession = $this->startBackgroundProcess(
+            command: [
+                PHP_BINARY,
+                self::$sessionTestHelperPath,
+            ],
+            env: $env
+        );
+        $expectedOutput = json_encode([self::$testingSid => $payloadNotToBeOverwritten]);
+        $payloadRead = $this->waitForOutput($readFromSession, $expectedOutput, 1);
+        $this->assertTrue($payloadRead, "Value in session changed from '{$payloadNotToBeOverwritten}' to: " . $readFromSession->getOutput());
+        $readFromSession->stop();
     }
 
     public static function tearDownAfterClass(): void
