@@ -18,6 +18,8 @@ final class SqliteHandlerIntegrationTest extends TestCase
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
+        // Restoring default session handler (currently, Zebra_Session sets itself as a handler when instantiated).
+        session_set_save_handler(new \SessionHandler(), true);
     }
 
     /**
