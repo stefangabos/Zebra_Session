@@ -24,8 +24,8 @@ final class SqliteSessionHarness
 
         $this->pdo->exec('
             CREATE TABLE `session_data` (
-                `session_id` varchar(32) NOT NULL,
-                `hash` varchar(32) NOT NULL,
+                `session_id` varchar(64) NOT NULL,
+                `hash` varchar(64) NOT NULL,
                 `session_data` blob NOT NULL,
                 `session_expire` int(11) NOT NULL,
                 PRIMARY KEY (`session_id`)
