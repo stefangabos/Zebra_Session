@@ -11,7 +11,7 @@ require_once __DIR__ . '/SqliteSessionHarness.php';
  * The tests exercise the public SessionHandlerInterface methods end to end:
  * opening sessions, reading stored data, writing new state, and destroying rows.
  */
-final class ZebraSessionTest extends TestCase
+final class SqliteHandlerIntegrationTest extends TestCase
 {
     protected function tearDown(): void
     {
@@ -174,7 +174,17 @@ final class ZebraSessionTest extends TestCase
 
     private function newSession(SqliteSessionHarness $harness): Zebra_Session
     {
-        return new Zebra_Session($harness->pdo, 'sec-code', 3600, true, false, 60, 'session_data', false, false);
+        return new Zebra_Session(
+            $harness->pdo,
+            'sec-code',
+            3600,
+            true,
+            false,
+            60,
+            'session_data',
+            false,
+            false
+        );
     }
 
     private function newHarness(): SqliteSessionHarness
