@@ -19,6 +19,8 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
     private array $activeProcesses = [];
     private static ?string $testingSid = null;
 
+    private static string $sessionTestHelperPath = __DIR__ . '/fixtures/sessionTestHelper.php';
+
     public static function setUpBeforeClass(): void
     {
         if (getenv('RUN_DB_TESTS') == '') {
@@ -61,13 +63,14 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
     {
         // First we start a long-running process to lock the session.
         $env = array_merge(getenv(), [
-            'READ_ONLY' => 'no'
+            'READ_ONLY' => 'no',
+            'START_LONG_TASK' => 'yes'
         ]);
 
         $sessionLockProcess = $this->startBackgroundProcess(
             command: [
                 PHP_BINARY,
-                __DIR__ . '/fixtures/sessionLock.php',
+                self::$sessionTestHelperPath,
             ],
             env: $env
         );
@@ -76,10 +79,11 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
         $this->assertTrue($sessionLocked, 'Unable to start a normal (locking) session. Timeout reached.');
 
         // The session is locked. We try to lock it again. It should time out.
+        $env['START_LONG_TASK'] = 'no';
         $sessionHangProcess = $this->startBackgroundProcess(
             command: [
                 PHP_BINARY,
-                __DIR__ . '/fixtures/sessionLock.php',
+                self::$sessionTestHelperPath,
             ],
             env: $env
         );
@@ -92,7 +96,7 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
         $sessionROProcess = $this->startBackgroundProcess(
             command: [
                 PHP_BINARY,
-                __DIR__ . '/fixtures/sessionLock.php',
+                self::$sessionTestHelperPath,
             ],
             env: $env
         );
@@ -105,7 +109,7 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
         $sessionLockProcess = $this->startBackgroundProcess(
             command: [
                 PHP_BINARY,
-                __DIR__ . '/fixtures/sessionLock.php',
+                self::$sessionTestHelperPath,
             ],
             env: $env
         );
