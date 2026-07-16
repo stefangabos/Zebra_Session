@@ -1,1 +1,2 @@
 vendor/*
+/phpunit.db-tests.xml

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" cacheDirectory=".phpunit.cache" colors="true">
+    <testsuites>
+        <testsuite name="Zebra Session">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <env name="RUN_DB_TESTS" value="false"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_NAME" value="my_test_db"/>
+        <env name="DB_USER" value="root"/>
+        <env name="DB_PASS" value=""/>
+        <env name="TEST_SESSION_ID" value="zebra-unit-test-session"/>
+    </php>
+</phpunit>
