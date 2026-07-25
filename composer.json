@@ -16,6 +16,11 @@
     "require": {
         "php": ">=5.5.2"
     },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
+    },
     "autoload": {
         "classmap": [
             "Zebra_Session.php"
@@ -23,6 +28,9 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^1.12",
-        "squizlabs/php_codesniffer": "^3.10"
+        "squizlabs/php_codesniffer": "^3.10",
+        "phpunit/phpunit": "^10.5",
+        "symfony/process": "^6.4 || ^7.0 || ^8.0",
+        "ext-pdo": "*"
     }
 }

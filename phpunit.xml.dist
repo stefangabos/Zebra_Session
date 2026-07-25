@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" cacheDirectory=".phpunit.cache" colors="true" testdox="true">
+    <testsuites>
+        <testsuite name="Zebra Session">
+            <directory suffix="Test.php">tests</directory>
+        </testsuite>
+    </testsuites>
+    <!--
+        copy this file to phpunit.xml (which is git-ignored) and adjust the values below to match your setup
+        DB_NAME must point at a database you are happy to have tables created in and dropped from, and DB_TABLE must not
+        be a table you care about - it is dropped before and after the suite runs
+    -->
+    <php>
+        <env name="RUN_DB_TESTS" value="true"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_NAME" value="zebra_session_tests"/>
+        <env name="DB_USER" value="root"/>
+        <env name="DB_PASS" value=""/>
+        <env name="DB_TABLE" value="zebra_session_test_data"/>
+        <env name="TEST_SESSION_ID" value="zebra-unit-test-session"/>
+    </php>
+</phpunit>
