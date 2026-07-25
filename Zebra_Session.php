@@ -826,10 +826,14 @@ class Zebra_Session implements SessionHandlerInterface {
             // if executing the query was a success
             if (($stmt = $this->link->prepare($query)) && $stmt->execute(array_slice(func_get_args(), 1))) {
 
+                $data = $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC);
+
                 // prepare a standardized return value
                 $result = array(
-                    'num_rows'  =>  $stmt->rowCount(),
-                    'data'      =>  $stmt->columnCount() == 0 ? array() : $stmt->fetch(PDO::FETCH_ASSOC),
+                    // PDO's rowCount() is not reliable for SELECT statements - with an unbuffered connection it reports 0 even when rows
+                    // matched - so derive the count from the fetched row, falling back to rowCount() only for statements returning no result set
+                    'num_rows'  =>  $stmt->columnCount() == 0 ? $stmt->rowCount() : ($data === false ? 0 : 1),
+                    'data'      =>  $data === false ? array() : $data,
                 );
 
                 // close the statement
