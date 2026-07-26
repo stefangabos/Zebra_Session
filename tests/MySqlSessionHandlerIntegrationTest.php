@@ -974,6 +974,16 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
 
         $settings = $this->readSettings($process);
 
+        // PHP 8.4 refuses a divisor of 0 outright - "session.gc_divisor must be greater than 0" - and it refuses it both
+        // from ini_set() and from php.ini, so the situation this test is about cannot be created there at all. The guard
+        // in get_settings() still matters for earlier versions, where the value is accepted.
+        if (($settings['session.gc_divisor'] ?? null) !== '0') {
+            $this->markTestSkipped(
+                'This version of PHP does not allow session.gc_divisor to be 0 - it ended up as '
+                . var_export($settings['session.gc_divisor'] ?? null, true)
+            );
+        }
+
         $this->assertSame('0%', $settings['probability'] ?? null, 'A divisor of 0 should mean the garbage collector never runs.');
     }
 
