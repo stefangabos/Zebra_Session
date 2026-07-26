@@ -22,6 +22,11 @@
         <!-- Allow class names to be written in snake_case -->
         <exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
 
+        <!-- The class is not in a namespace, which is deliberate for now - putting it in one would break every existing
+             installation, so it is something for a future major version. Until then this is the only violation reported,
+             and leaving it reported means a permanently failing check that everyone learns to ignore. -->
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+
         <!-- Don't force braces being on the same line as the function's declaration -->
         <exclude name="PSR2.Classes.ClassDeclaration.OpenBraceNewLine" />
         <exclude name="Squiz.Classes.ClassDeclaration.OpenBraceNewLine" />
