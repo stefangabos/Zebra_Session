@@ -866,6 +866,42 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
     }
 
     /**
+     * A lifetime of 0 is the constructor's own default, and it means something different from every other value: the
+     * cookie lasts until the browser is closed, and how long the session itself survives is left to
+     * session.gc_maxlifetime. Every other test here passes an explicit lifetime, so this is the configuration most
+     * people actually run and the one nothing else covers.
+     *
+     * @param string $driver The driver the helper connects with
+     * @return void
+     */
+    #[DataProvider('driverProvider')]
+    #[TestDox('The default lifetime of 0 means a cookie until the browser closes, and gc_maxlifetime in the database ($_dataName)')]
+    public function testDefaultSessionLifetime(string $driver): void
+    {
+        $this->driver = $driver;
+
+        // phpunit and the helper read the same php.ini
+        $gcMaxlifetime = (int)ini_get('session.gc_maxlifetime');
+
+        $before = time();
+        $process = $this->runHelper([
+            'READ_ONLY' => 'no',
+            'SESSION_LIFETIME' => '0',
+            'GET_INI' => 'yes',
+            'WRITE_DATA_TO_SESSION' => uniqid(),
+        ]);
+        $after = time();
+
+        $ini = $this->readIni($process);
+        $this->assertSame('0', $ini['session.cookie_lifetime'] ?? null, 'The session cookie was given a lifetime instead of lasting until the browser closes.');
+
+        // the stored expiration still has to be a real moment in the future, taken from gc_maxlifetime
+        $expire = $this->sessionExpire((string)self::$testingSid);
+        $this->assertGreaterThanOrEqual($before + $gcMaxlifetime, $expire, 'The session expires sooner than session.gc_maxlifetime.');
+        $this->assertLessThanOrEqual($after + $gcMaxlifetime, $expire, 'The session expires later than session.gc_maxlifetime.');
+    }
+
+    /**
      * stop() is the "log out" call - it has to leave nothing behind for the session id to be worth anything afterwards.
      *
      * @param string $driver The driver the helper connects with
@@ -1044,6 +1080,64 @@ class MySqlSessionHandlerIntegrationTest extends TestCase
             ['LOCK_TO_IP' => 'callable:198.51.100.2'],
             'value returned by the lock_to_ip callable'
         );
+    }
+
+    /**
+     * Locking to the user agent is on by default, but turning it off has to actually turn it off - otherwise the option
+     * would be doing nothing and nobody would notice, since the default behaviour would still look correct.
+     *
+     * @param string $driver The driver the helper connects with
+     * @return void
+     */
+    #[DataProvider('driverProvider')]
+    #[TestDox('Turning off lock_to_user_agent lets a session survive a different user agent ($_dataName)')]
+    public function testLockToUserAgentCanBeTurnedOff(string $driver): void
+    {
+        $this->driver = $driver;
+
+        $payload = uniqid();
+        $env = ['READ_ONLY' => 'no', 'LOCK_TO_USER_AGENT' => 'no'];
+
+        $this->runHelper($env + ['USER_AGENT' => 'Mozilla/5.0 (the browser that started it)', 'WRITE_DATA_TO_SESSION' => $payload]);
+
+        $process = $this->runHelper($env + ['USER_AGENT' => 'Mozilla/5.0 (a completely different browser)', 'READ_DATA_FROM_SESSION' => 'yes']);
+        $this->assertSame(
+            $payload,
+            $this->readSessionData($process),
+            'The session was thrown away over a changed user agent even though lock_to_user_agent was off.'
+        );
+    }
+
+    /**
+     * REMOTE_ADDR is not always there - command line scripts have none, and neither do some SAPI configurations. Reading
+     * it blindly raised a warning, and since the warning counts as output it also stopped PHP from sending the session
+     * cookie for that request.
+     *
+     * @param string $driver The driver the helper connects with
+     * @return void
+     */
+    #[DataProvider('driverProvider')]
+    #[TestDox('Locking to the IP address copes with REMOTE_ADDR not being set ($_dataName)')]
+    public function testLockToIpCopesWithoutARemoteAddress(string $driver): void
+    {
+        $this->driver = $driver;
+
+        $payload = uniqid();
+
+        // the helper removes $_SERVER['REMOTE_ADDR'] outright - passing an empty one through the environment would not do,
+        // since PHP copies environment variables into $_SERVER and the key would still be there
+        $env = ['READ_ONLY' => 'no', 'LOCK_TO_IP' => 'yes', 'UNSET_REMOTE_ADDR' => 'yes'];
+
+        $process = $this->runHelper($env + ['WRITE_DATA_TO_SESSION' => $payload]);
+        $this->assertStringNotContainsString(
+            'REMOTE_ADDR',
+            $process->getOutput() . $process->getErrorOutput(),
+            'Locking to the IP address complained about REMOTE_ADDR not being set.'
+        );
+
+        // and the session still works - the missing address just contributes nothing to the hash
+        $process = $this->runHelper($env + ['READ_DATA_FROM_SESSION' => 'yes']);
+        $this->assertSame($payload, $this->readSessionData($process), 'The session was unusable without a REMOTE_ADDR.');
     }
 
     /**

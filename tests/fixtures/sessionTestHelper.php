@@ -35,7 +35,10 @@ $autostartSession = (getenv('AUTOSTART_SESSION') == 'yes');
 // how long the library waits for the session lock - lowered by the test that checks what happens when it gives up
 $lockTimeout = (int)(getenv('LOCK_TIMEOUT') ?: 60);
 // how long a session is meant to last, which is what ends up in the session_expire column
-$sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 3600);
+// "0" is a meaningful value here - it is the constructor's own default and means "until the browser is closed" - so it
+// has to be told apart from the variable not being set at all
+$sessionLifetimeSetting = getenv('SESSION_LIFETIME');
+$sessionLifetime = ($sessionLifetimeSetting === false || $sessionLifetimeSetting === '') ? 3600 : (int)$sessionLifetimeSetting;
 $stopSession = (getenv('STOP_SESSION') == 'yes');
 // base64 so that payloads with null bytes or anything else the environment cannot carry still get through intact
 $writeDataBase64 = getenv('WRITE_DATA_BASE64');
@@ -82,6 +85,12 @@ if (!empty($userAgent)) {
 
 if (!empty($remoteAddr)) {
     $_SERVER['REMOTE_ADDR'] = $remoteAddr;
+}
+
+// PHP copies environment variables into $_SERVER, so passing an empty REMOTE_ADDR through the environment still leaves a
+// key that exists. Testing what happens when there is genuinely no REMOTE_ADDR means removing it here.
+if (getenv('UNSET_REMOTE_ADDR') == 'yes') {
+    unset($_SERVER['REMOTE_ADDR']);
 }
 
 // the library only sets session.cookie_secure when it thinks the connection is over HTTPS
