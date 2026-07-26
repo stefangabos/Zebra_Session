@@ -368,6 +368,11 @@ class Zebra_Session implements SessionHandlerInterface {
     #[\ReturnTypeWillChange]
     public function close() {
 
+        // read-only sessions never obtained a lock in the first place (see read()), so there is nothing to release
+        if ($this->read_only) {
+            return true;
+        }
+
         // release the lock associated with the current session
         $result = $this->query('
             SELECT
