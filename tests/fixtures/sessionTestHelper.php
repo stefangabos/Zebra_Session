@@ -121,7 +121,11 @@ $host = getenv('DB_HOST') ?: '127.0.0.1';
 $port = getenv('DB_PORT') ?: '3306';
 $dbname = getenv('DB_NAME') ?: 'test_db';
 $user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: 'secret';
+
+// an empty password is a perfectly ordinary setting - a plain "?:" here would quietly turn it into the default below,
+// and the connection would then be attempted with a password the server has never heard of
+$pass = getenv('DB_PASS');
+$pass = $pass === false ? 'secret' : $pass;
 $table = getenv('DB_TABLE') ?: 'zebra_session_test_data';
 
 // The library accepts either a PDO instance or a mysqli connection and has a separate code path for each, so the tests
@@ -167,21 +171,31 @@ if ($prestartSession) {
     $_SESSION['left_over_from_the_previous_session'] = 'this should not survive';
 }
 
-// Setting up the handler
-$handler = new \Zebra_Session($link,
-    $securityCode,
-    $sessionLifetime,
-    $lockToUserAgent,
-    $lockToIpArgument,
-    $lockTimeout,
-    $table,
-    $autostartSession,
-    $readOnly
-);
+// Setting up the handler and starting the session.
+// Anything the library throws is reported here rather than being left to PHP: whether an uncaught exception prints
+// anything at all depends on display_errors and log_errors, which differ between machines - with both off there is no
+// output whatsoever, only a non-zero exit code, and the tests would have nothing to look at.
+try {
 
-if (!$autostartSession) {
-    session_id($sid);
-    session_start();
+    $handler = new \Zebra_Session($link,
+        $securityCode,
+        $sessionLifetime,
+        $lockToUserAgent,
+        $lockToIpArgument,
+        $lockTimeout,
+        $table,
+        $autostartSession,
+        $readOnly
+    );
+
+    if (!$autostartSession) {
+        session_id($sid);
+        session_start();
+    }
+
+} catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+    exit(1);
 }
 // Printed text will be analysed by the tests. Also handy for debugging.
 echo json_encode(['session_start' => $sid]);
