@@ -16,7 +16,7 @@ Zebra Session is also a solution for applications that are scaled across multipl
 
 Supports *"flash data"* - session variables which will only be available for the next server request, and which will be automatically deleted afterwards. Typically used for informational or status messages (for example: "data has been successfully updated").
 
-This class is was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](https://web.archive.org/web/20190921001622/http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
+This class was inspired by John Herren's code from the [Trick out your session handler](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141) article (now only available on the [Internet Archive](https://web.archive.org/web/20081221052326/http://devzone.zend.com/node/view/id/141)) and Chris Shiflett's code from his book [Essential PHP Security](https://web.archive.org/web/20190921001622/http://phpsecurity.org/code/ch08-2), chapter 8, Shared Hosting, Pg. 78-80.
 
 Zebra Session's code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to [E_ALL](https://www.php.net/manual/en/function.error-reporting.php).
 
@@ -30,7 +30,7 @@ Citing from [Race Conditions with Ajax and PHP Sessions](http://thwartedefforts.
 
 > In the example above, no matter how P2 and P3 change the session data, the only changes that will be reflected in the session are those that P1 made because they were written last. When locking is used, the process can start up, request a lock on the session data before it reads it, and then get a consistent read of the session once it acquires exclusive access to it. In the following diagram, all reads occur after writes:
 
-![Session access without locking](https://raw.githubusercontent.com/stefangabos/Zebra_Session/22a14834a5928337fb9cb4e47743a3c82e00486b/docs/media/session-access-with-locking.png)
+![Session access with locking](https://raw.githubusercontent.com/stefangabos/Zebra_Session/22a14834a5928337fb9cb4e47743a3c82e00486b/docs/media/session-access-with-locking.png)
 
 > The process execution is interleaved, but access to the session data is serialized. The process is waiting for the lock to be released during the period between when the process requests the session lock and when the session is read. This means that your session data will remain consistent, but it also means that while processes P2 and P3 are waiting for their turn to acquire the lock, nothing is happening. This may not be that important if all of the requests change or write to the session data, but if P2 just needs to read the session data (perhaps to get a login identifier), it is being held up for no reason.
 
@@ -42,21 +42,21 @@ Thanks to [Michael Kliewe](https://www.phpgangsta.de/) who brought this to my at
 
 - acts as a wrapper for PHP's default session handling functions, but instead of storing session data in flat files it stores them in a MySQL database, providing better security and better performance
 
-- it is a drop-in and seamingless replacement for PHP's default session handler: PHP sessions will be used in the same way as prior to using the library; you don't need to change any existing code!
+- it is a drop-in and seamless replacement for PHP's default session handler: PHP sessions will be used in the same way as prior to using the library; you don't need to change any existing code!
 
-- integrates seamlesly with PDO (if you are using PDO) but works perfectly without it
+- integrates seamlessly with PDO (if you are using PDO) but works perfectly without it
 
 - implements *row locks*, ensuring that data is correctly handled in scenarios with multiple concurrent AJAX requests
 
+- supports *read-only* sessions which take no row lock at all, so a request that only needs to read session data - like a polling AJAX call - doesn't have to sit and wait for a long running request to release the session
+
 - because session data is stored in a database, the library represents a solution for applications that are scaled across multiple web servers (using a load balancer or a round-robin DNS)
+
+- sessions can optionally be tied to the visitor's IP address, and what counts as "the visitor's IP address" can be a callable of your own - which is what makes this usable behind a load balancer or a proxy, where the address the server sees is not the visitor's
 
 - has awesome documentation
 
 - the code is heavily commented and generates no warnings/errors/notices when PHP's error reporting level is set to E_ALL
-
-## :notebook_with_decorative_cover: Documentation
-
-Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
 
 ## 🎂 Support the development of this project
 
@@ -69,9 +69,13 @@ I also run [PageDrop](https://pagedrop.pro) — if you need a fast, professional
 
 [<img src="https://img.shields.io/github/stars/stefangabos/zebra_session?color=green&label=star%20it%20on%20GitHub" width="132" height="20" alt="Star it on GitHub">](https://github.com/stefangabos/Zebra_Session) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8J7UKSA7G6372) [<img src="https://img.shields.io/badge/-Sponsor-fafbfc?logo=GitHub%20Sponsors">](https://github.com/sponsors/stefangabos)
 
+## :notebook_with_decorative_cover: Documentation
+
+Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Session/Zebra_Session/Zebra_Session.html)!
+
 ## Requirements
 
-PHP 5.5.2+ with the `mysqli extension` activated, MySQL 4.1.22+
+PHP 5.5.2+ with either the `mysqli` or `pdo_mysql` extensions activated, MySQL 5.5.3+
 
 ## Installation
 
@@ -113,7 +117,7 @@ Notice a directory called *install* containing a file named `session_data.sql`. 
 //      $link = new PDO(
 //      'mysql:host=' . $host . ';dbname=' . $database . ';charset=utf8mb4', $username, $password, array(
 //         PDO::ATTR_ERRMODE   =>  PDO::ERRMODE_EXCEPTION,
-//     ));
+//      ));
 // } catch (\PDOException $e) {
 //     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 // }
