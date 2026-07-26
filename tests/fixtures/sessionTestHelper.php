@@ -7,6 +7,7 @@
  * - imitate long-running request with the session locked (session is closed after the "task" is done)
  * - opens read-only session and print data from session (should work with a locked session)
  * - open read-only session and write some data (no error, data should not be saved)
+ * - report the number of active sessions as seen by the handler
  *
  */
 
@@ -19,6 +20,92 @@ $readOnly = (getenv('READ_ONLY') == 'yes' );
 $writeDataToSession = getenv('WRITE_DATA_TO_SESSION');
 $readData = (getenv('READ_DATA_FROM_SESSION') == 'yes');
 $startLongTask = (getenv('START_LONG_TASK') == 'yes');
+$getActiveSessions = (getenv('GET_ACTIVE_SESSIONS') == 'yes');
+$destroySession = (getenv('DESTROY_SESSION') == 'yes');
+$regenerateId = (getenv('REGENERATE_ID') == 'yes');
+// the maximum lifetime handed to gc() - the library ignores it and goes by the stored session_expire instead, which is
+// exactly what the tests pin down, so it has to be settable to something absurd
+$runGc = getenv('RUN_GC');
+// "name:value" - a flash data variable to set
+$setFlashData = getenv('SET_FLASHDATA');
+// the name of a flash data variable to print
+$readFlashData = getenv('READ_FLASHDATA');
+// let the constructor start the session (with the id passed in a cookie) instead of starting it here afterwards
+$autostartSession = (getenv('AUTOSTART_SESSION') == 'yes');
+// how long the library waits for the session lock - lowered by the test that checks what happens when it gives up
+$lockTimeout = (int)(getenv('LOCK_TIMEOUT') ?: 60);
+// how long a session is meant to last, which is what ends up in the session_expire column
+$sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 3600);
+$stopSession = (getenv('STOP_SESSION') == 'yes');
+// base64 so that payloads with null bytes or anything else the environment cannot carry still get through intact
+$writeDataBase64 = getenv('WRITE_DATA_BASE64');
+// a payload of the given size, built here rather than passed in - the environment cannot carry hundreds of kilobytes
+$writeBigData = (int)getenv('WRITE_BIG_DATA');
+$readDataBase64 = (getenv('READ_DATA_BASE64') == 'yes');
+// which $_SESSION key to write to and read from - two concurrent requests need to write different ones
+$writeKey = getenv('WRITE_KEY') ?: $sid;
+$readKey = getenv('READ_KEY') ?: $sid;
+// report the session related ini settings the library promises to set
+$getIni = (getenv('GET_INI') == 'yes');
+// start a plain PHP session before the library is instantiated, to check that the library gets rid of it
+$prestartSession = (getenv('PRESTART_SESSION') == 'yes');
+// how many seconds the long running task holds the session for
+$longTaskCycles = (int)(getenv('LONG_TASK_CYCLES') ?: 100);
+$getSettings = (getenv('GET_SETTINGS') == 'yes');
+
+// the garbage collection settings get_settings() reports on - a divisor of 0 used to make it fail
+$gcProbability = getenv('GC_PROBABILITY');
+$gcDivisor = getenv('GC_DIVISOR');
+
+if ($gcProbability !== false && $gcProbability !== '') {
+    ini_set('session.gc_probability', $gcProbability);
+}
+
+if ($gcDivisor !== false && $gcDivisor !== '') {
+    ini_set('session.gc_divisor', $gcDivisor);
+}
+
+// Everything below feeds the hash the library stores alongside the session and checks on every read - this is what ties
+// a session to the visitor who started it. There is no web server here, so the values a browser would normally provide
+// have to be put into $_SERVER by hand.
+$userAgent = getenv('USER_AGENT');
+$remoteAddr = getenv('REMOTE_ADDR');
+$securityCode = getenv('SECURITY_CODE') ?: 'sec-code';
+$lockToUserAgent = ((getenv('LOCK_TO_USER_AGENT') ?: 'yes') == 'yes');
+
+// "no", "yes", or "callable:<value>" for the callable form of the argument, in which case the callable returns <value>
+$lockToIp = getenv('LOCK_TO_IP') ?: 'no';
+
+if (!empty($userAgent)) {
+    $_SERVER['HTTP_USER_AGENT'] = $userAgent;
+}
+
+if (!empty($remoteAddr)) {
+    $_SERVER['REMOTE_ADDR'] = $remoteAddr;
+}
+
+// the library only sets session.cookie_secure when it thinks the connection is over HTTPS
+if (getenv('HTTPS') == 'on') {
+    $_SERVER['HTTPS'] = 'on';
+}
+
+if (strpos($lockToIp, 'callable:') === 0) {
+
+    $lockToIpValue = substr($lockToIp, strlen('callable:'));
+    $lockToIpArgument = function () use ($lockToIpValue) {
+        return $lockToIpValue;
+    };
+
+} else {
+    $lockToIpArgument = ($lockToIp == 'yes');
+}
+
+// session_regenerate_id() refuses to run once output has been sent, and everything this script prints counts as output.
+// Buffering keeps that from happening; the buffer is flushed automatically when the script ends. Only done when actually
+// regenerating, because the other scenarios rely on their output appearing while the process is still running.
+if ($regenerateId || $stopSession) {
+    ob_start();
+}
 
 // Establishing connection to the DB
 $host = getenv('DB_HOST') ?: '127.0.0.1';
@@ -27,39 +114,137 @@ $dbname = getenv('DB_NAME') ?: 'test_db';
 $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASS') ?: 'secret';
 $table = getenv('DB_TABLE') ?: 'zebra_session_test_data';
-$dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
+
+// The library accepts either a PDO instance or a mysqli connection and has a separate code path for each, so the tests
+// have to be able to run against both. "pdo" is the default because that is what the suite started out with.
+$driver = getenv('DB_DRIVER') ?: 'pdo';
 
 try {
-    $pdo = new \PDO($dsn, $user, $pass, [
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-    ]);
-} catch (\PDOException $e) {
+
+    if ($driver === 'mysqli') {
+
+        $link = new \mysqli($host, $user, $pass, $dbname, (int)$port);
+        $link->set_charset('utf8mb4');
+
+    } else {
+
+        $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
+        $link = new \PDO($dsn, $user, $pass, [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        ]);
+
+    }
+
+} catch (\Exception $e) {
     header('HTTP/1.1 500 Internal Server Error');
     echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
     exit;
 }
 
+// The session id normally arrives in a cookie, and there is none in CLI, so it is set by hand.
+// Which of the two ways below is used matters for anything that the constructor does with $_SESSION - flash data in
+// particular, which the constructor can only pick up when it is the one starting the session.
+if ($autostartSession) {
+
+    // hand the id over the way a browser would and let the constructor start the session
+    $_COOKIE[session_name()] = $sid;
+
+}
+
+// A session started before the library is instantiated - PHP's own file based one, holding a variable that must not
+// survive. The library is expected to get rid of it.
+if ($prestartSession) {
+    session_start();
+    $_SESSION['left_over_from_the_previous_session'] = 'this should not survive';
+}
+
 // Setting up the handler
-$handler = new \Zebra_Session($pdo,
-    'sec-code',
-    3600,
-    true,
-    false,
-    60,
+$handler = new \Zebra_Session($link,
+    $securityCode,
+    $sessionLifetime,
+    $lockToUserAgent,
+    $lockToIpArgument,
+    $lockTimeout,
     $table,
-    false,
+    $autostartSession,
     $readOnly
 );
 
-session_id($sid);
-session_start();
+if (!$autostartSession) {
+    session_id($sid);
+    session_start();
+}
 // Printed text will be analysed by the tests. Also handy for debugging.
 echo json_encode(['session_start' => $sid]);
 echo json_encode(['readonly' => ($readOnly ? 'yes' : 'no')]);
 
-// If requested, data is written to $_SESSION[$sid]
+// If requested, report the number of active sessions.
+// This runs before session_write_close(), so the row for *this* session does not exist yet and the printed number
+// only reflects what the test seeded into the table.
+// The value is printed exactly as the library returns it - no casting - so the tests also see its type.
+if ($getActiveSessions) {
+    echo json_encode(['active_sessions' => $handler->get_active_sessions()]);
+}
+
+// If requested, report what the library makes of the garbage collection settings.
+if ($getSettings) {
+    echo json_encode(['settings' => $handler->get_settings()]);
+}
+
+// If requested, report the session related ini settings.
+if ($getIni) {
+    echo json_encode(['ini' => [
+        'session.cookie_httponly'   => ini_get('session.cookie_httponly'),
+        'session.use_only_cookies'  => ini_get('session.use_only_cookies'),
+        'session.cookie_lifetime'   => ini_get('session.cookie_lifetime'),
+        'session.cookie_secure'     => ini_get('session.cookie_secure'),
+    ]]);
+}
+
+// If requested, report whether a session variable from before the library was instantiated is still around.
+if ($prestartSession) {
+    echo json_encode(['left_over' => $_SESSION['left_over_from_the_previous_session'] ?? null]);
+}
+
+// If requested, run the garbage collector on its own.
+if ($runGc !== false && $runGc !== '') {
+    $handler->gc((int)$runGc);
+    echo json_encode(['gc' => (int)$runGc]);
+}
+
+// If requested, data is written to $_SESSION[$writeKey], which defaults to the session id
 if (!empty($writeDataToSession)) {
-    $_SESSION[$sid] = $writeDataToSession;
+    $_SESSION[$writeKey] = $writeDataToSession;
+}
+
+// The same, for payloads that cannot be passed through the environment as they are
+if (!empty($writeDataBase64)) {
+    $_SESSION[$writeKey] = base64_decode($writeDataBase64);
+}
+
+// A large payload, built from a repeating pattern the test can reproduce
+if ($writeBigData > 0) {
+    $_SESSION[$writeKey] = substr(str_repeat('abcdefghij', (int)ceil($writeBigData / 10)), 0, $writeBigData);
+}
+
+// If requested, set a flash data variable. Expected format is "name:value".
+if (!empty($setFlashData)) {
+    list($flashName, $flashValue) = explode(':', $setFlashData, 2);
+    $handler->set_flashdata($flashName, $flashValue);
+}
+
+// If requested, print a flash data variable. Flash data is a plain session variable, so it is read as one.
+// READ_FLASHDATA is a comma separated list, so that variables set in different requests can be compared side by side
+if (!empty($readFlashData)) {
+
+    $flashDataRead = [];
+
+    foreach (explode(',', $readFlashData) as $flashDataName) {
+        $flashDataRead[$flashDataName] = $_SESSION[$flashDataName] ?? null;
+    }
+
+    echo json_encode(['flashdata' => $flashDataRead]);
+
 }
 
 // If requested, the data is printed.
@@ -68,16 +253,20 @@ if (!empty($writeDataToSession)) {
 // Read it only when it was asked for, and coalesce the missing key - the value has to be captured before
 // session_write_close() below, but scenarios that never write to the session would otherwise emit an "Undefined array key"
 // warning straight into the stream the tests scan for their expected output.
-$dataToPrint = $readData ? json_encode([$sid => $_SESSION[$sid] ?? null]) : '';
+$dataToPrint = $readData ? json_encode([$sid => $_SESSION[$readKey] ?? null]) : '';
+$dataToPrintBase64 = $readDataBase64
+    ? json_encode(['data_base64' => isset($_SESSION[$readKey]) ? base64_encode($_SESSION[$readKey]) : null])
+    : '';
 
 // Long-running task is supposed to lock the session.
 if ($startLongTask) {
-    $cycleCounter = 100;
+    $cycleCounter = $longTaskCycles;
     for ($i = 0; $i < $cycleCounter; $i++) {
         sleep(1);
         // Sleep until the counter runs out or the sessions table no longer exists (the unit test has ended but failed to kill the process)
+        // both PDO and mysqli throw here when the table is gone, so the same call covers either driver
         try {
-            $result = $pdo->query('SELECT 1 FROM `' . $table . '` LIMIT 1');
+            $result = $link->query('SELECT 1 FROM `' . $table . '` LIMIT 1');
         } catch (Exception $e) {
             // Table not found
             break;
@@ -85,8 +274,37 @@ if ($startLongTask) {
     }
 }
 
-session_write_close();
+// If requested, regenerate the session id. The new id is printed because the tests have to look up its row in the table.
+// The row for the new id only appears once the session is closed, further below.
+if ($regenerateId) {
+    $handler->regenerate_id();
+    echo json_encode(['new_session_id' => session_id()]);
+}
+
+// If requested, stop the session - unlike session_destroy() this also drops the session variables and the cookie.
+if ($stopSession) {
+    $handler->stop();
+    echo json_encode(['stopped' => $sid]);
+}
+
+// If requested, destroy the session - this is what removes the row of the current session from the table.
+if ($destroySession) {
+    session_destroy();
+    echo json_encode(['destroyed' => $sid]);
+}
+
+// Two cases must not close the session here:
+// - flash data is moved into a temporary session variable by the library's shutdown function, which runs *after* this
+//   point, so closing now would mean those changes never reach the database
+// - after session_destroy() there is nothing left to write, and closing would only put the row back
+if (!$setFlashData && !$readFlashData && !$destroySession && !$stopSession) {
+    session_write_close();
+}
 
 if ($readData) {
     echo $dataToPrint;
+}
+
+if ($readDataBase64) {
+    echo $dataToPrintBase64;
 }
