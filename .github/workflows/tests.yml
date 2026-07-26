@@ -1,0 +1,93 @@
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+
+  tests:
+
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      # let every version report, rather than cancelling the rest as soon as one fails
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+
+    services:
+
+      mysql:
+        image: mysql:8.0
+        env:
+          # the defaults in phpunit.xml.dist are root with no password on 3306, so nothing else has to be configured
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: zebra_session_tests
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # the suite runs against both drivers, so both have to be there
+          extensions: mysqli, pdo_mysql
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      # the service is health checked before the job starts, but a container that answers a ping is not always ready to
+      # hand out connections yet, and this uses PHP rather than a mysql client the runner may or may not have
+      - name: Wait for MySQL to accept connections
+        run: |
+          php -r '
+            for ($i = 0; $i < 30; $i++) {
+              try {
+                new PDO("mysql:host=127.0.0.1;port=3306;dbname=zebra_session_tests", "root", "");
+                exit(0);
+              } catch (PDOException $e) {
+                sleep(2);
+              }
+            }
+            fwrite(STDERR, "MySQL never became available: " . $e->getMessage() . PHP_EOL);
+            exit(1);
+          '
+
+      # no phpunit.xml is committed, so this runs against the defaults in phpunit.xml.dist - which is worth having in CI,
+      # since it means those defaults are known to be usable rather than just plausible
+      - name: Run the test suite
+        run: vendor/bin/phpunit
+
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Check the library against the oldest supported PHP version
+        run: vendor/bin/phpcs --standard=php-compatibility.xml
+
+      # this one currently reports a pre-existing violation (the class is not in a namespace), so it is reported without
+      # being allowed to fail the build - drop continue-on-error once that is addressed
+      - name: Coding standards
+        continue-on-error: true
+        run: vendor/bin/phpcs --standard=coding-standards.xml
