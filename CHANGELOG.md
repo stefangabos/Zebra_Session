@@ -1,9 +1,16 @@
-## version 4.2.0 (TBA)
+## version 4.2.0 (July 26, 2026)
 
 - fixed [#57](https://github.com/stefangabos/Zebra_Session/issues/57); thanks to [Bob Brown](https://github.com/gurubobnz)
 - fixed broken `get_active_sessions` method
 - fixed a minor issue where `session_write_close` was registered twice
 - updated table structure to match latest recommended values for MySQL/MariaDB
+- fixed a bug where flash data was never deleted if the class was instantiated with the `start_session` argument set to `FALSE`; flash data was read when the class was instantiated, which is *before* the session is started in that scenario, so it went unnoticed on every subsequent request and both the flash data variables and the library's internal variable used for keeping track of them stayed in the session forever; flash data is now read when it is first needed
+- fixed a bug where instantiating the library while a session was already running didn't work and the library was failing with a warning and silently carrying on using PHP's own session handler; the running session is now closed before anything else happens, and its variables are dropped along with it
+- the `session_data` column is now a `mediumblob` instead of a `blob`; a `blob` stops at 65535 bytes and going over that did not truncate the session quietly - the write failed outright, so the request ended with a fatal error and the visitor lost their session. **If you are updating**, run: `ALTER TABLE session_data MODIFY session_data mediumblob NOT NULL;`
+- fixed a bug where a request using a **read-only** session would end with a fatal error whenever another request was holding the session at the same time - which is the exact scenario read-only sessions exist for; read-only sessions never obtain a lock, but `close()` was asking MySQL to release one anyway, and `RELEASE_LOCK` reports a failure when the lock is held by another connection
+- fixed [#52](https://github.com/stefangabos/Zebra_Session/issues/52) where a failure to release the session lock would go unnoticed; `close()` now throws an exception instead of silently carrying on
+- fixed an issue where PDO's `rowCount()` is not reliable for `SELECT` statements and would report no matching rows even when there were some; thanks to [Se-Ku](https://github.com/Se-Ku), see [#58](https://github.com/stefangabos/Zebra_Session/pull/58)
+- the library now has an integration test suite which runs against a real MySQL instance, covering session locking with concurrent requests, read-only sessions, session writes, session expiration, garbage collection, destroying and stopping sessions, regenerating session ids, flash data, `get_active_sessions()`, `get_settings()`, table names given with backticks, the session related `ini` options the library sets, large and binary session data, concurrent writes not overwriting each other, and the protection against session hijacking (sessions being tied to the user agent, the IP address, the `lock_to_ip` callable and the security code), each of them run against both a PDO and a mysqli connection; thanks to [Se-Ku](https://github.com/Se-Ku) for the idea and the initial pull request, see [#58](https://github.com/stefangabos/Zebra_Session/pull/58)
 
 ## version 4.1.0 (September 08, 2024)
 
