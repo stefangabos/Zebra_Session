@@ -1,3 +1,7 @@
+## version 4.2.1 (July 26, 2026)
+
+- infrastructure updates - continuous integration, tests, tooling, security policy; the library itself is unchanged, so there is nothing to do when updating from `4.2.0`
+
 ## version 4.2.0 (July 26, 2026)
 
 - fixed [#57](https://github.com/stefangabos/Zebra_Session/issues/57); thanks to [Bob Brown](https://github.com/gurubobnz)
