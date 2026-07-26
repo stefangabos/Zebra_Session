@@ -22,6 +22,11 @@ class Zebra_Session implements SessionHandlerInterface {
     private $flash_data;
 
     /**
+     *  @var    boolean
+     */
+    private $flash_data_read = false;
+
+    /**
      *  @var    string
      */
     private $flash_data_var;
@@ -340,16 +345,8 @@ class Zebra_Session implements SessionHandlerInterface {
             // assume no flash data
             $this->flash_data = array();
 
-            // if any flash data exists
-            if (isset($_SESSION[$this->flash_data_var])) {
-
-                // retrieve flash data
-                $this->flash_data = unserialize($_SESSION[$this->flash_data_var]);
-
-                // destroy the temporary session variable
-                unset($_SESSION[$this->flash_data_var]);
-
-            }
+            // read any existing flash data
+            $this->_read_flash_data();
 
             // handle flash data after script execution
             register_shutdown_function(array($this, '_manage_flash_data'));
@@ -671,6 +668,9 @@ class Zebra_Session implements SessionHandlerInterface {
      */
     public function set_flashdata($name, $value) {
 
+        // make sure we know about any flash data that is already in the session
+        $this->_read_flash_data();
+
         // set session variable
         $_SESSION[$name] = $value;
 
@@ -771,6 +771,10 @@ class Zebra_Session implements SessionHandlerInterface {
      */
     public function _manage_flash_data() {
 
+        // make sure we know about any flash data that is already in the session
+        // (if session was started by the caller rather than by the library, this is the first chance we get to read it)
+        $this->_read_flash_data();
+
         // if there is flash data to be handled
         if (!empty($this->flash_data)) {
 
@@ -806,6 +810,45 @@ class Zebra_Session implements SessionHandlerInterface {
         // make sure session data is written
         // not matter how script execution ends
         session_write_close();
+
+    }
+
+    /**
+     *  Reads the flash data left over by the previous request, once.
+     *
+     *  @return void
+     *
+     *  @access private
+     */
+    private function _read_flash_data() {
+
+        // if
+        if (
+
+            // flash data was already read, don't do it again
+            $this->flash_data_read ||
+
+            // OR there is no session to read it from yet, leave it for later (this can happen when the class was
+            // instantiated with the "start_session" argument set to FALSE and the caller has not started the session yet)
+            session_status() !== PHP_SESSION_ACTIVE
+
+        ) {
+            return;
+        }
+
+        // from here on, flash data is considered read
+        $this->flash_data_read = true;
+
+        // if no flash data exists, we're done
+        if (!isset($_SESSION[$this->flash_data_var])) {
+            return;
+        }
+
+        // retrieve flash data
+        $this->flash_data = unserialize($_SESSION[$this->flash_data_var]);
+
+        // destroy the temporary session variable
+        unset($_SESSION[$this->flash_data_var]);
 
     }
 
