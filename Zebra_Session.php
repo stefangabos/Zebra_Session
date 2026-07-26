@@ -575,8 +575,8 @@ class Zebra_Session implements SessionHandlerInterface {
         // (this is the quickest way in case "lock_to_ip" is truthy)
         if ($this->lock_to_ip && !is_callable($this->lock_to_ip)) {
 
-            // append the value of "REMOTE_ADDR" header
-            $hash .= $_SERVER['REMOTE_ADDR'];
+            // append the value of "REMOTE_ADDR" header (if present)
+            $hash .= isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 
         // if "lock_to_ip" is callable
         } elseif (is_callable($this->lock_to_ip)) {
@@ -759,7 +759,7 @@ class Zebra_Session implements SessionHandlerInterface {
             $session_id,
             md5(
                 ($this->lock_to_user_agent && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') .
-                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? $_SERVER['REMOTE_ADDR'] : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
+                ($this->lock_to_ip && !is_callable($this->lock_to_ip) ? (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '') : (is_callable($this->lock_to_ip) ? call_user_func($this->lock_to_ip) : '')) .
                 $this->security_code
             ),
             $session_data,
