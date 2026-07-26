@@ -291,6 +291,12 @@ class Zebra_Session implements SessionHandlerInterface {
             // store the connection link
             $this->link = $link;
 
+            // if a session is already active, get rid of it before doing anything else
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_unset();
+                session_destroy();
+            }
+
             // set session's maximum lifetime
             ini_set('session.cookie_lifetime', (string)$session_lifetime);
 
@@ -327,11 +333,6 @@ class Zebra_Session implements SessionHandlerInterface {
 
             // register the session handler
             session_set_save_handler($this, false);
-
-            // if a session is already started, destroy it first
-            if (session_id() !== '') {
-                session_destroy();
-            }
 
             // start session if required
             if ($start_session) {
