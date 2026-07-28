@@ -380,8 +380,11 @@ class Zebra_Session implements SessionHandlerInterface {
                 RELEASE_LOCK(?)
         ', $this->session_lock);
 
-        // stop if there was an error
-        if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
+        // stop unless the lock was actually released
+        // RELEASE_LOCK answers 1 when the lock was ours and is now let go of, 0 when it belongs to another connection,
+        // and NULL when there was no such lock to begin with. only 1 means the session was held for the whole request and
+        // is being handed over cleanly - the other two both mean it was not, so neither may pass silently
+        if ($result['num_rows'] !== 1 || (int)current($result['data']) !== 1) {
             throw new Exception('Zebra_Session: Could not release session lock');
         }
 
@@ -555,8 +558,12 @@ class Zebra_Session implements SessionHandlerInterface {
             // try to obtain a lock with the given name and timeout
             $result = $this->query('SELECT GET_LOCK(?, ?)', $this->session_lock, $this->lock_timeout);
 
-            // stop if there was an error
-            if ($result['num_rows'] !== 1 || current($result['data']) === 0) {
+            // stop unless the lock was actually obtained
+            // GET_LOCK answers 1 when the lock is ours, 0 when the wait timed out, and NULL when something went wrong at
+            // the server's end - out of memory, or the thread being killed. anything other than 1 means this request does
+            // not hold the session, which is the one situation the lock exists to prevent, so all of them have to stop
+            // here rather than only the timeout
+            if ($result['num_rows'] !== 1 || (int)current($result['data']) !== 1) {
                 throw new Exception('Zebra_Session: Could not obtain session lock');
             }
 

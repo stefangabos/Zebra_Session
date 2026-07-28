@@ -155,9 +155,16 @@ try {
     } else {
 
         $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
-        $link = new \PDO($dsn, $user, $pass, [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-        ]);
+
+        $options = [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
+
+        // the library is handed a connection the caller built, and callers do set this one - it makes every column come
+        // back as a string, GET_LOCK and RELEASE_LOCK included
+        if (getenv('PDO_STRINGIFY') == 'yes') {
+            $options[\PDO::ATTR_STRINGIFY_FETCHES] = true;
+        }
+
+        $link = new \PDO($dsn, $user, $pass, $options);
 
     }
 

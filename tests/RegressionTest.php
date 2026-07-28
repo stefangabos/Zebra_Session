@@ -23,7 +23,8 @@ use PHPUnit\Framework\Attributes\TestDox;
  *   what covers those is the GitHub Actions matrix running the whole suite against 8.1 through 8.4
  *
  * Every other test here was checked by mutating the fix back out of Zebra_Session.php and confirming it turns red, except
- * where its own docblock says otherwise.
+ * where its own docblock says otherwise. The one deliberate exception is testAStringifyingConnectionStillWorks, which is
+ * there to catch the fix going too far rather than not far enough, and so passes either way by design.
  */
 #[TestDox('Regressions')]
 #[Group('regression')]
@@ -121,6 +122,109 @@ class RegressionTest extends SessionTestCase
             'A lock that could not be released was not reported. Output: ' . $output
         );
         $this->assertNotSame(0, $process->getExitCode(), 'The request finished cleanly despite failing to release its lock.');
+    }
+
+    /**
+     * The other way RELEASE_LOCK reports that the session was not held: it answers NULL when there is no such lock at
+     * all, rather than 0 for a lock belonging to somebody else. The check used to test for the integer 0 alone, so this
+     * half went by unnoticed - a request whose lock had vanished mid-flight finished as though nothing had happened.
+     *
+     * Found while writing the test above, which is what the first version of it accidentally produced.
+     *
+     * @see https://github.com/stefangabos/Zebra_Session/issues/52 for the half that was already covered
+     *
+     * @param string $driver The driver the helper connects with
+     * @return void
+     */
+    #[DataProvider('driverProvider')]
+    #[TestDox('A session lock that has vanished is reported just like one held by somebody else ($_dataName)')]
+    public function testAVanishedSessionLockIsReported(string $driver): void
+    {
+        $this->driver = $driver;
+
+        // nobody takes the lock over this time, so by the time close() asks, the lock simply does not exist
+        $process = $this->startHelper([
+            'READ_ONLY' => 'no',
+            'RELEASE_LOCK_EARLY' => 'yes',
+            'RELEASE_LOCK_EARLY_PAUSE' => '0',
+            'WRITE_DATA_TO_SESSION' => uniqid(),
+        ]);
+        $process->wait();
+
+        $output = $process->getOutput() . $process->getErrorOutput();
+
+        $this->assertStringContainsString(
+            'lock_released_early',
+            $output,
+            'The helper never got as far as releasing the lock, so this test proved nothing. Output: ' . $output
+        );
+        $this->assertStringContainsString(
+            'Could not release session lock',
+            $output,
+            'A lock that had vanished was not reported. Output: ' . $output
+        );
+        $this->assertNotSame(0, $process->getExitCode(), 'The request finished cleanly despite its lock having vanished.');
+    }
+
+    /**
+     * The library is handed a connection the caller built, and a caller is free to build it with STRINGIFY_FETCHES on -
+     * plenty of applications do. Every column then comes back as a string, GET_LOCK and RELEASE_LOCK included, and the
+     * checks on them used to compare against the integer 0 with ===, which a '0' never matches.
+     *
+     * The result was the worst possible one: a request that failed to get the session lock carried on as though it had,
+     * and nothing anywhere said so. Only the PDO branch can be built this way, so this one does not run over both drivers.
+     *
+     * @return void
+     */
+    #[TestDox('A request on a stringifying PDO connection still fails loudly without the lock')]
+    public function testAStringifyingConnectionStillNoticesAMissingLock(): void
+    {
+        $this->driver = 'pdo';
+
+        // hold the session for the duration of this test
+        $lockProcess = $this->startHelper([
+            'READ_ONLY' => 'no',
+            'START_LONG_TASK' => 'yes',
+        ]);
+        $this->assertTrue(
+            $this->waitForOutput($lockProcess, '{"session_start":"' . self::$testingSid . '"}'),
+            'Unable to start the session that holds the lock. Timeout reached.'
+        );
+
+        // a second request, on a connection that hands everything back as a string, which gives up after a second
+        $process = $this->startHelper([
+            'READ_ONLY' => 'no',
+            'PDO_STRINGIFY' => 'yes',
+            'LOCK_TIMEOUT' => '1',
+        ]);
+        $process->wait();
+
+        $output = $process->getOutput() . $process->getErrorOutput();
+
+        $this->assertNotSame(0, $process->getExitCode(), 'The request carried on without the lock. Output: ' . $output);
+        $this->assertStringContainsString('Could not obtain session lock', $output, 'The lock timeout was not reported. Output: ' . $output);
+
+        $lockProcess->stop();
+    }
+
+    /**
+     * The flip side of the above - a stringifying connection must not break the ordinary case either, since the check it
+     * goes through is the same one.
+     *
+     * @return void
+     */
+    #[TestDox('A stringifying PDO connection stores and reads a session normally')]
+    public function testAStringifyingConnectionStillWorks(): void
+    {
+        $this->driver = 'pdo';
+
+        $payload = uniqid();
+        $env = ['READ_ONLY' => 'no', 'PDO_STRINGIFY' => 'yes'];
+
+        $this->runHelper($env + ['WRITE_DATA_TO_SESSION' => $payload]);
+
+        $process = $this->runHelper($env + ['READ_DATA_FROM_SESSION' => 'yes']);
+        $this->assertSame($payload, $this->readSessionData($process), 'A session on a stringifying connection did not survive.');
     }
 
     /**
