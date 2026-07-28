@@ -1,7 +1,7 @@
 #!/bin/sh
 # for running the tests a MySQL instance is needed
-# copy phpunit.xml.dist to phpunit.xml (git-ignored) and put your connection details there
-# phpunit uses phpunit.xml when it exists and falls back to phpunit.xml.dist otherwise
+# copy tests/phpunit.xml.dist to tests/phpunit.xml (git-ignored) and put your connection details there
+# phpunit uses tests/phpunit.xml when it exists and falls back to tests/phpunit.xml.dist otherwise
 
 if ! command -v php > /dev/null 2>&1; then
     echo "php was not found in PATH."
@@ -14,11 +14,11 @@ if [ ! -f vendor/bin/phpunit ]; then
     exit 1
 fi
 
-if [ ! -f phpunit.xml ]; then
-    echo "phpunit.xml was not found, so the defaults from phpunit.xml.dist are used and they will most likely not"
-    echo "match your setup. The tests run against a real MySQL instance."
+if [ ! -f tests/phpunit.xml ]; then
+    echo "tests/phpunit.xml was not found, so the defaults from tests/phpunit.xml.dist are used and they will most likely"
+    echo "not match your setup. The tests run against a real MySQL instance."
     echo
-    echo "Copy phpunit.xml.dist to phpunit.xml (it is git-ignored) and set:"
+    echo "Copy tests/phpunit.xml.dist to tests/phpunit.xml (it is git-ignored) and set:"
     echo "  RUN_DB_TESTS     must be true/1/yes/on to run the database tests"
     echo "  DB_HOST          host of the MySQL instance"
     echo "  DB_PORT          port of the MySQL instance"
@@ -31,4 +31,4 @@ if [ ! -f phpunit.xml ]; then
 fi
 
 # the compatibility check runs before the coding standards one because that one currently ends with a non-zero status
-vendor/bin/phpunit && echo && vendor/bin/phpstan analyse && echo && vendor/bin/phpcs --standard=php-compatibility.xml && echo && vendor/bin/phpcs --standard=coding-standards.xml
+vendor/bin/phpunit -c tests && echo && vendor/bin/phpstan analyse && echo && vendor/bin/phpcs --standard=php-compatibility.xml && echo && vendor/bin/phpcs --standard=coding-standards.xml

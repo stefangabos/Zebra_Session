@@ -1,4 +1,4 @@
 vendor/*
-/phpunit.xml
-/.phpunit.cache
+/tests/phpunit.xml
+/tests/.phpunit.cache
 /TODO.md

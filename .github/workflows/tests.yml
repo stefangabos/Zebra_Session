@@ -24,7 +24,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          # the defaults in phpunit.xml.dist are root with no password on 3306, so nothing else has to be configured
+          # the defaults in tests/phpunit.xml.dist are root with no password on 3306, so nothing else has to be configured
           MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
           MYSQL_DATABASE: zebra_session_tests
         ports:
@@ -75,10 +75,10 @@ jobs:
             exit(1);
           '
 
-      # no phpunit.xml is committed, so this runs against the defaults in phpunit.xml.dist - which is worth having in CI,
-      # since it means those defaults are known to be usable rather than just plausible
+      # no tests/phpunit.xml is committed, so this runs against the defaults in tests/phpunit.xml.dist - which is worth
+      # having in CI, since it means those defaults are known to be usable rather than just plausible
       - name: Run the test suite
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit -c tests
 
       - name: Static analysis
         run: vendor/bin/phpstan analyse --no-progress
