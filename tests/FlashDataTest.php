@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -33,11 +34,14 @@ class FlashDataTest extends SessionTestCase
      * Flash data has to survive exactly one further request: it is readable in the request that set it and in the next
      * one, and is gone in the one after that.
      *
+     * @see 21b2185 for the half of this that was broken - the session started by the caller
+     *
      * @param string $driver The driver the helper connects with
      * @param string $autostart Whether the library starts the session ("yes") or the caller does ("no")
      * @return void
      */
     #[DataProvider('sessionStartProvider')]
+    #[Group('regression')]
     #[TestDox('Flash data survives exactly one further request ($_dataName)')]
     public function testFlashData(string $driver, string $autostart): void
     {

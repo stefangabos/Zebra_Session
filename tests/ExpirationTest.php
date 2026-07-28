@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -15,9 +16,13 @@ class ExpirationTest extends SessionTestCase
      * collector first - it also has to remove the expired ones from the table.
      * Both halves matter: the method was silently broken once (commit a20702a called gc() without its argument, which is
      * a fatal ArgumentCountError), so the helper process is also checked for a clean exit.
+     *
+     * @see a20702a
+     *
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('get_active_sessions() counts only unexpired sessions and garbage-collects the rest ($_dataName)')]
     public function testGetActiveSessions(string $driver): void
     {
@@ -111,10 +116,15 @@ class ExpirationTest extends SessionTestCase
      * The session lifetime given to the constructor is what read() later measures against, so it has to end up in the
      * session_expire column - but never below session.gc_maxlifetime, since the library takes the larger of the two.
      *
+     * Taking the larger of the two is the fix: sessions used to time out the moment they were created under PHP 8.
+     *
+     * @see 091ee16 and https://github.com/stefangabos/Zebra_Session/issues/45
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('The session lifetime decides when a session expires ($_dataName)')]
     public function testSessionLifetimeDecidesWhenASessionExpires(string $driver): void
     {
@@ -152,10 +162,13 @@ class ExpirationTest extends SessionTestCase
      * session.gc_maxlifetime. Every other test here passes an explicit lifetime, so this is the configuration most
      * people actually run and the one nothing else covers.
      *
+     * @see 3701e75, https://github.com/stefangabos/Zebra_Session/issues/40 and https://github.com/stefangabos/Zebra_Session/issues/5
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('The default lifetime of 0 means a cookie until the browser closes, and gc_maxlifetime in the database ($_dataName)')]
     public function testDefaultSessionLifetime(string $driver): void
     {

@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -73,10 +74,13 @@ class SessionDataTest extends SessionTestCase
      * into used to be a `blob`, which stops at 65535 bytes. Going over that did not truncate the session quietly: the
      * write failed outright, so the request died and the visitor's session was lost.
      *
+     * @see 32a436e, which widened the column to a mediumblob
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A session larger than 64KB survives being stored ($_dataName)')]
     public function testLargeSessionDataSurvives(string $driver): void
     {
@@ -101,10 +105,16 @@ class SessionDataTest extends SessionTestCase
      * anything a user typed. It goes into the database through a prepared statement and comes back out of a blob column,
      * and the two drivers are handed their character set in different ways, so both need checking.
      *
+     * The quotes and the backslash are also what keeps the library honest about binding its values rather than pasting
+     * them into the query - the class ran on interpolated SQL until prepared statements went in.
+     *
+     * @see 33bc8bd and https://github.com/stefangabos/Zebra_Session/issues/20
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('Session data survives null bytes, quotes and multibyte characters ($_dataName)')]
     public function testAwkwardSessionDataSurvives(string $driver): void
     {

@@ -59,6 +59,9 @@ $getSettings = (getenv('GET_SETTINGS') == 'yes');
 // the garbage collection settings get_settings() reports on - a divisor of 0 used to make it fail
 $gcProbability = getenv('GC_PROBABILITY');
 $gcDivisor = getenv('GC_DIVISOR');
+// the library used to set this one and does not anymore - see issue #37 - so the tests need to be able to give it a
+// value of their own and check that it is still there once the constructor has run
+$useStrictMode = getenv('USE_STRICT_MODE');
 
 if ($gcProbability !== false && $gcProbability !== '') {
     ini_set('session.gc_probability', $gcProbability);
@@ -67,6 +70,16 @@ if ($gcProbability !== false && $gcProbability !== '') {
 if ($gcDivisor !== false && $gcDivisor !== '') {
     ini_set('session.gc_divisor', $gcDivisor);
 }
+
+if ($useStrictMode !== false && $useStrictMode !== '') {
+    ini_set('session.use_strict_mode', $useStrictMode);
+}
+
+// release the session lock behind the library's back, just before it closes the session, and then wait around long enough
+// for the test to take that lock on a connection of its own. the library's own RELEASE_LOCK then runs against a lock held
+// by somebody else, returns 0, and close() has to say so instead of carrying on as if all was well (issue #52)
+$releaseLockEarly = (getenv('RELEASE_LOCK_EARLY') == 'yes');
+$releaseLockEarlyPause = (int)(getenv('RELEASE_LOCK_EARLY_PAUSE') ?: 3);
 
 // Everything below feeds the hash the library stores alongside the session and checks on every read - this is what ties
 // a session to the visitor who started it. There is no web server here, so the values a browser would normally provide
@@ -221,6 +234,10 @@ if ($getIni) {
         'session.use_only_cookies'  => ini_get('session.use_only_cookies'),
         'session.cookie_lifetime'   => ini_get('session.cookie_lifetime'),
         'session.cookie_secure'     => ini_get('session.cookie_secure'),
+        // the three the library deliberately stopped setting - reported so the tests can check they were left alone
+        'session.use_strict_mode'   => ini_get('session.use_strict_mode'),
+        'session.gc_probability'    => ini_get('session.gc_probability'),
+        'session.gc_divisor'        => ini_get('session.gc_divisor'),
     ]]);
 }
 
@@ -314,6 +331,17 @@ if ($stopSession) {
 if ($destroySession) {
     session_destroy();
     echo json_encode(['destroyed' => $sid]);
+}
+
+// Pull the lock out from under the library, on its own connection, so that the RELEASE_LOCK it runs on the way out finds
+// nothing to release. Done here rather than earlier so that the session has definitely been read - and the lock therefore
+// definitely taken - by the time it happens.
+if ($releaseLockEarly) {
+    $link->query('SELECT RELEASE_LOCK(\'session_' . sha1($sid) . '\')');
+    echo json_encode(['lock_released_early' => $sid]);
+    // the pause is what gives the test its window to grab the lock - without somebody else holding it, RELEASE_LOCK would
+    // report that the lock does not exist rather than that it belongs to another connection
+    sleep($releaseLockEarlyPause);
 }
 
 // Two cases must not close the session here:

@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -45,10 +46,16 @@ class SecurityTest extends SessionTestCase
     }
 
     /**
+     * The user agent half was broken once in the other direction: a session became unusable to its own visitor if the
+     * user agent changed after initialization.
+     *
+     * @see e948731
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A session is invalidated when the user agent changes ($_dataName)')]
     public function testSessionIsInvalidatedWhenTheUserAgentChanges(string $driver): void
     {
@@ -99,10 +106,16 @@ class SecurityTest extends SessionTestCase
      * lock_to_ip can also be a callable, which is what makes the library usable behind a load balancer or a proxy: the
      * value that identifies the visitor is then whatever the callable returns rather than REMOTE_ADDR.
      *
+     * It replaced two earlier attempts at the same problem, which is why the callable is the form that has to keep
+     * working - the fixes for #54 and #43 were reverted in favour of it.
+     *
+     * @see 4fc876d, 38b6bb9 and https://github.com/stefangabos/Zebra_Session/issues/56
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A session is invalidated when the value returned by the lock_to_ip callable changes ($_dataName)')]
     public function testSessionIsInvalidatedWhenTheLockToIpCallableReturnsSomethingElse(string $driver): void
     {
@@ -146,10 +159,13 @@ class SecurityTest extends SessionTestCase
      * it blindly raised a warning, and since the warning counts as output it also stopped PHP from sending the session
      * cookie for that request.
      *
+     * @see 1f2a52d
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('Locking to the IP address copes with REMOTE_ADDR not being set ($_dataName)')]
     public function testLockToIpCopesWithoutARemoteAddress(string $driver): void
     {
@@ -178,10 +194,13 @@ class SecurityTest extends SessionTestCase
      * visitor, REMOTE_ADDR changing between requests - which is exactly what happens behind a load balancer - must not
      * cost the visitor their session.
      *
+     * @see 4fc876d, 38b6bb9 and https://github.com/stefangabos/Zebra_Session/issues/56
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A lock_to_ip callable keeps the session alive across a changing REMOTE_ADDR ($_dataName)')]
     public function testLockToIpCallableSurvivesAChangingRemoteAddress(string $driver): void
     {

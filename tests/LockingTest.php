@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -121,10 +122,13 @@ class LockingTest extends SessionTestCase
      *
      * The existing locking test never caught it because it kills the read-only process instead of letting it finish.
      *
+     * @see dfb2873
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A read-only request finishes cleanly while another request holds the session ($_dataName)')]
     public function testReadOnlyRequestFinishesCleanlyWhileTheSessionIsLocked(string $driver): void
     {
@@ -203,10 +207,14 @@ class LockingTest extends SessionTestCase
      * The check for this in read() compares the value MySQL returned against the integer 0, so it only works as long as
      * both drivers really hand back an integer there.
      *
+     * @see https://github.com/stefangabos/Zebra_Session/issues/52 - the other half of that fix, a lock that cannot be
+     *      released, is in RegressionTest
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A request that cannot obtain the session lock fails loudly ($_dataName)')]
     public function testLockTimeoutIsReported(string $driver): void
     {

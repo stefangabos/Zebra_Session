@@ -236,6 +236,38 @@ abstract class SessionTestCase extends TestCase
     }
 
     /**
+     * The name the library derives from a session id for its MySQL lock - see read().
+     *
+     * @param string|null $sessionId Defaults to the session id the helper processes use
+     * @return string
+     */
+    protected function sessionLockName(?string $sessionId = null): string
+    {
+        return 'session_' . sha1($sessionId ?? (string)self::$testingSid);
+    }
+
+    /**
+     * Whether anyone currently holds the given lock - IS_USED_LOCK returns the id of the connection holding it, or NULL
+     * when nobody does.
+     *
+     * Marked impure so that asking twice with the same lock name is understood to be able to give two different answers -
+     * which is the entire point of the tests that wait for a lock to be let go of.
+     *
+     * @phpstan-impure
+     *
+     * @param string $lockName
+     * @return bool
+     */
+    protected function lockIsHeld(string $lockName): bool
+    {
+        $statement = self::$pdo->prepare('SELECT IS_USED_LOCK(?)');
+        $statement->execute([$lockName]);
+        $holder = $statement->fetchColumn();
+
+        return $holder !== null && $holder !== false;
+    }
+
+    /**
      * The stored session data of a session, straight out of the blob column.
      *
      * @param string $sessionId

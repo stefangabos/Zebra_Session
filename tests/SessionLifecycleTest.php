@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -18,10 +19,13 @@ class SessionLifecycleTest extends SessionTestCase
      * active, and the constructor only got rid of the running session *after* making those calls. Every one of them
      * failed with a warning, and the application carried on using PHP's own file based handler without ever being told.
      *
+     * @see e46a02f, and 36a28d7 for the first attempt at the same thing
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A session that is already running is taken over cleanly ($_dataName)')]
     public function testAnAlreadyRunningSessionIsTakenOver(string $driver): void
     {
@@ -69,9 +73,16 @@ class SessionLifecycleTest extends SessionTestCase
     /**
      * regenerate_id() has to move the session to a new id: the old row must be gone (otherwise the point of regenerating
      * the id after a privilege change is lost, since the old id would still work) and the data must survive the move.
+     *
+     * Dropping the old row is the part with the history: session_regenerate_id(true) went into an infinite loop under
+     * PHP 7, so the destroy-the-old-session argument is exactly what has to keep working here.
+     *
+     * @see bcae14a and 4dde64d
+     *
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('Regenerating the id moves the session data to a new row and drops the old one ($_dataName)')]
     public function testRegenerateId(string $driver): void
     {

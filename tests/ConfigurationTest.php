@@ -1,6 +1,7 @@
 <?php
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\TestDox;
 
 /**
@@ -34,10 +35,16 @@ class ConfigurationTest extends SessionTestCase
      * The class documents a handful of ini settings it takes care of on the visitor's behalf, which is the sort of
      * promise that quietly stops being true.
      *
+     * session.cookie_lifetime is the one with a history: it used to be pinned to 0, so a session could not outlive the
+     * browser window no matter what lifetime the constructor was given.
+     *
+     * @see 3701e75, https://github.com/stefangabos/Zebra_Session/issues/40 and https://github.com/stefangabos/Zebra_Session/issues/5
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('The constructor sets the session ini options it promises to ($_dataName)')]
     public function testConstructorSetsItsIniOptions(string $driver): void
     {
@@ -57,10 +64,13 @@ class ConfigurationTest extends SessionTestCase
     }
 
     /**
+     * @see 1c614a1 and https://github.com/stefangabos/Zebra_Session/issues/18
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('The session cookie is marked secure over HTTPS ($_dataName)')]
     public function testCookieIsMarkedSecureOverHttps(string $driver): void
     {
@@ -76,10 +86,13 @@ class ConfigurationTest extends SessionTestCase
      * The table name is wrapped in backticks by the constructor, so passing one that is already wrapped - which is what
      * anyone copying the name out of a database client ends up doing - has to work just the same.
      *
+     * @see ac5157e and https://github.com/stefangabos/Zebra_Session/issues/27
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('A table name that already comes wrapped in backticks works ($_dataName)')]
     public function testTableNameMayComeWrappedInBackticks(string $driver): void
     {
@@ -127,10 +140,13 @@ class ConfigurationTest extends SessionTestCase
      * A divisor of 0 means "never collect garbage". It used to make get_settings() divide by zero, which is a fatal
      * error in PHP 8 - hence the check on the helper's exit code inside runHelper().
      *
+     * @see 2ad3430 and https://github.com/stefangabos/Zebra_Session/issues/48
+     *
      * @param string $driver The driver the helper connects with
      * @return void
      */
     #[DataProvider('driverProvider')]
+    #[Group('regression')]
     #[TestDox('get_settings() copes with a garbage collection divisor of zero ($_dataName)')]
     public function testGetSettingsWithAZeroDivisor(string $driver): void
     {
