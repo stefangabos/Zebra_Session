@@ -1,6 +1,6 @@
 ## version 4.2.2 (July 28, 2026)
 
-- fixed a bug where only the integer 0 counted as a GET_LOCK or RELEASE_LOCK failure, so a request could run without ever holding the session lock, or close a session whose lock had vanished, and nothing would say so - it happens with a PDO connection created with `PDO::ATTR_STRINGIFY_FETCHES` set, which some applications do, and when MySQL fails at the server's end rather than timing out; this completes the fix for [#52](https://github.com/stefangabos/Zebra_Session/issues/52)
+- fixed a bug where only the integer 0 counted as a GET_LOCK or RELEASE_LOCK failure, so a request could run without ever holding the session lock, or close a session whose lock had vanished, and nothing would say so - it happens with a PDO connection created with `PDO::ATTR_STRINGIFY_FETCHES` set, which some applications do, and when MySQL fails at the server's end rather than timing out; this completes the fix for [#52](https://github.com/stefangabos/Zebra_Session/issues/52); note that this means a failure which used to pass unnoticed now ends the request with an exception, the same way a lock timeout always has - if `Zebra_Session: Could not obtain session lock` or `Could not release session lock` starts showing up after updating, it is reporting something that was already happening, not something new
 
 ## version 4.2.1 (July 26, 2026)
 
