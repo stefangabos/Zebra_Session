@@ -64,7 +64,7 @@ run_in_container() {
     # COPYFILE_DISABLE and --no-xattrs keep macOS from putting an AppleDouble "._" twin of every file in
     # the archive - those are not PHP and the lint below would try to parse them
     COPYFILE_DISABLE=1 tar -cf - --no-xattrs \
-        --exclude=./vendor --exclude=./node_modules --exclude=./.git --exclude=./docs --exclude=./mutate.php . \
+        --exclude=./vendor --exclude=./node_modules --exclude=./.git --exclude=./docs --exclude=./tests/mutate.php . \
         | docker run -i --rm --platform linux/amd64 ${2:+--network "$NETWORK"} \
             -e DB_HOST="$DB_HOST" -e DB_PORT="$DB_PORT" -e DB_USER="$DB_USER" \
             -e DB_PASS="$DB_PASS" -e DB_NAME="$DB_NAME" -e DB_TABLE="$DB_TABLE" \

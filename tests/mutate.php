@@ -5,7 +5,7 @@
  *
  * A green suite proves nothing until you have watched it go red.
  *
- *     php mutate.php
+ *     php tests/mutate.php
  *
  * Each entry reverts a fix by replacing "from" with "to", runs only the tests matching "filter", and puts
  * the library back afterwards. Every one of them should come out CAUGHT.
@@ -17,7 +17,7 @@
  * This file is a development tool and is kept out of the package by .gitattributes.
  */
 
-$library = __DIR__ . '/Zebra_Session.php';
+$library = __DIR__ . '/../Zebra_Session.php';
 $php     = getenv('PHP') ? getenv('PHP') : 'php';
 
 $base = file_get_contents($library);
@@ -84,9 +84,11 @@ foreach ($mutations as $label => $mutation) {
 
     file_put_contents($library, str_replace($mutation['from'], $mutation['to'], $base));
 
+    // every path is anchored to this file so the run does not depend on the directory it was started from
     $output = [];
     exec(
-        escapeshellarg($php) . ' vendor/bin/phpunit -c tests --filter ' . escapeshellarg($mutation['filter']) . ' 2>&1',
+        escapeshellarg($php) . ' ' . escapeshellarg(__DIR__ . '/../vendor/bin/phpunit') . ' -c ' . escapeshellarg(__DIR__) .
+            ' --filter ' . escapeshellarg($mutation['filter']) . ' 2>&1',
         $output
     );
 
