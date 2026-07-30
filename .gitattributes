@@ -7,6 +7,5 @@
 composer.lock export-ignore
 phpstan.neon export-ignore
 coding-standards.xml export-ignore
-mutate.php export-ignore
 /tests export-ignore
 /.github export-ignore
