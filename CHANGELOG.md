@@ -1,3 +1,8 @@
+## version 4.3.0 (TBA)
+
+- **the PHP version declared in `composer.json` is now 7.4**, up from 5.5.2; the library itself is unchanged and still works on 5.6.40 - the thing that changed is what `Composer` will install on. 7.4 is the oldest PHP the test suite can run on, so it is the oldest version the library is verified against. support for PHP 5.6.40 is checked by `tests/run-legacy.sh`, which lints the library and round-trips a session on a real PHP 5.6.40, and by `composer check-compat-legacy`, which checks it statically. **if you are on PHP older than 7.4**, install by downloading the release instead of through Composer - nothing about the library has changed for you
+- the test suite was overhauled
+
 ## version 4.2.2 (July 28, 2026)
 
 - fixed a bug where only the integer 0 counted as a GET_LOCK or RELEASE_LOCK failure, so a request could run without ever holding the session lock, or close a session whose lock had vanished, and nothing would say so - it happens with a PDO connection created with `PDO::ATTR_STRINGIFY_FETCHES` set, which some applications do, and when MySQL fails at the server's end rather than timing out; this completes the fix for [#52](https://github.com/stefangabos/Zebra_Session/issues/52); note that this means a failure which used to pass unnoticed now ends the request with an exception, the same way a lock timeout always has - if `Zebra_Session: Could not obtain session lock` or `Could not release session lock` starts showing up after updating, it is reporting something that was already happening, not something new
