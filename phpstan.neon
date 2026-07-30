@@ -21,6 +21,9 @@ parameters:
         - tests/standards
         # written to the library's own floor rather than to 7.3, and never loaded by the suite
         - tests/legacy
+        # a standalone development script rather than suite code - its guard against an emptied mutation list
+        # reads as dead to an analyser that can see the list is a non-empty literal
+        - tests/mutate.php
 
     ignoreErrors:
 
