@@ -8,6 +8,13 @@
 
     <file>Zebra_Session.php</file>
 
+    <!-- the test suite is held to the same standard as the library -->
+    <file>tests</file>
+
+    <!-- written by the tests as they run, or not ours to begin with -->
+    <exclude-pattern>tests/tmp/*</exclude-pattern>
+    <exclude-pattern>tests/coverage-html/*</exclude-pattern>
+
     <ini name="memory_limit" value="64M"/>
     <arg name="report-width" value="130"/>
 
@@ -22,9 +29,7 @@
         <!-- Allow class names to be written in snake_case -->
         <exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
 
-        <!-- The class is not in a namespace, which is deliberate for now - putting it in one would break every existing
-             installation, so it is something for a future major version. Until then this is the only violation reported,
-             and leaving it reported means a permanently failing check that everyone learns to ignore. -->
+        <!-- The class is deliberately not in a namespace - putting it in one is a major version's work -->
         <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
 
         <!-- Don't force braces being on the same line as the function's declaration -->
@@ -65,10 +70,39 @@
         <exclude name="Squiz.WhiteSpace.ControlStructureSpacing.SpacingAfterOpen" />
         <exclude name="Squiz.WhiteSpace.ControlStructureSpacing.SpacingBeforeClose" />
 
+        <!-- Single statement bodies are written without braces throughout this library - "if (!$this->_connected()) return false" -->
+        <exclude name="Generic.ControlStructures.InlineControlStructure"/>
+
+        <!-- Covered by the FunctionKeywordSpacing rule below, which allows the space on a named declaration
+             and forbids it on a closure. Both codes are named because the Squiz sniff extends the PEAR one. -->
+        <exclude name="PEAR.Functions.FunctionDeclaration.SpaceAfterFunction" />
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction" />
+
+        <!-- A closure short enough to sit on one line is written on one line - "function($value) { return $value; }".
+             The Kernighan/Ritchie rule below still checks named declarations, its checkClosures property being off. -->
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration.ContentAfterBrace" />
+        <exclude name="Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore" />
+
+        <!-- Covered by the ClosureAwareMultipleStatements rule below, which allows the statement inside a one line closure -->
+        <exclude name="Generic.Formatting.DisallowMultipleStatements" />
+
     </rule>
+
+    <!-- One space after the "function" keyword when a name follows it, none when it does not - so
+    "function get_tables($database)" and "function($value) { ... }" are both correct. -->
+    <rule ref="tests/standards/Zebra/Sniffs/Functions/FunctionKeywordSpacingSniff.php" />
+
+    <!-- Each statement on a line by itself, except inside a closure - so "array_map(function($row) { return
+    $row['id']; }, $rows)" is fine while "$a = 1; $b = 2;" is still reported. -->
+    <rule ref="tests/standards/Zebra/Sniffs/Formatting/ClosureAwareMultipleStatementsSniff.php" />
 
     <!-- Function declarations follow the "Kernighan/Ritchie style". The function brace is on the same line as the
     function declaration. One space is required between the closing parenthesis and the brace. -->
     <rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie" />
+
+    <!-- Every test file declares a class and includes the bootstrap beside it, which this sniff counts as a side effect -->
+    <rule ref="PSR1.Files.SideEffects">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
 
 </ruleset>
