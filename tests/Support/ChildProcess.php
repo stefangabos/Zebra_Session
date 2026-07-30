@@ -81,6 +81,8 @@ class ChildProcess
             $descriptors,
             $pipes,
             null,
+            // proc_open() drops any entry whose value is an empty string, so the child sees those as never set at
+            // all - whatever reads them there has to treat "not set" and "set to empty" as the same thing
             array_merge(getenv(), $env)
         );
 

@@ -101,8 +101,9 @@ if (!empty($remoteAddr)) {
     $_SERVER['REMOTE_ADDR'] = $remoteAddr;
 }
 
-// PHP copies environment variables into $_SERVER, so passing an empty REMOTE_ADDR through the environment still leaves a
-// key that exists. Testing what happens when there is genuinely no REMOTE_ADDR means removing it here.
+// the child is started with the environment phpunit itself was started with, and PHP copies environment variables into
+// $_SERVER - so a REMOTE_ADDR set in the shell that launched the suite arrives here as a key that exists. Testing what
+// happens when there is genuinely no REMOTE_ADDR means removing it here.
 if (getenv('UNSET_REMOTE_ADDR') == 'yes') {
     unset($_SERVER['REMOTE_ADDR']);
 }
@@ -136,10 +137,11 @@ $port = getenv('DB_PORT') ?: '3306';
 $dbname = getenv('DB_NAME') ?: 'test_db';
 $user = getenv('DB_USER') ?: 'root';
 
-// an empty password is a perfectly ordinary setting - a plain "?:" here would quietly turn it into the default below,
-// and the connection would then be attempted with a password the server has never heard of
+// an empty password is a perfectly ordinary setting, and proc_open() drops environment entries whose value is an empty
+// string - so an empty password arrives here as "not set at all". The suite always passes DB_PASS and its own default
+// is empty, so absent has to mean empty rather than some password the server has never heard of.
 $pass = getenv('DB_PASS');
-$pass = $pass === false ? 'secret' : $pass;
+$pass = $pass === false ? '' : $pass;
 $table = getenv('DB_TABLE') ?: 'zebra_session_test_data';
 
 // The library accepts either a PDO instance or a mysqli connection and has a separate code path for each, so the tests
