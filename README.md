@@ -77,6 +77,10 @@ Check out the [awesome documentation](https://stefangabos.github.io/Zebra_Sessio
 
 PHP 5.5.2+ with either the `mysqli` or `pdo_mysql` extensions activated, MySQL 5.5.3+
 
+Composer declares 7.4 as the minimum - the oldest PHP the test suite is actually run on. The library itself still works
+on 5.5.2, checked on every release by linting and smoke-testing it on PHP 5.6.40 (`tests/run-legacy.sh`) and statically
+with `composer check-compat-legacy`. If you are on a PHP older than 7.4, install by downloading the release rather than through Composer.
+
 ## Installation
 
 You can install via [Composer](https://packagist.org/packages/stefangabos/zebra_session)
@@ -135,4 +139,51 @@ $session = new Zebra_Session($link, 'sEcUr1tY_c0dE');
 $_SESSION['foo'] = 'bar';
 
 // data is in the database!
+```
+## Running the tests
+
+The test suite is not part of the released package - if you want to run it you need a git checkout of the
+repository.
+
+The tests run against a real MySQL instance, creating and dropping their own table in a database of their
+own, so point them at a server you are happy for them to write to.
+
+```bash
+composer install
+
+# copy the defaults and put your connection details in the copy (it is git-ignored)
+cp tests/phpunit.xml.dist tests/phpunit.xml
+
+tests/run-tests.sh
+```
+
+With no arguments it runs the suite and then the compatibility, static analysis and coding standard checks.
+Give it any argument and it runs only the tests you asked for. `PHP` picks the interpreter, which is useful
+for checking the suite against another version:
+
+```bash
+tests/run-tests.sh --testdox                    # readable output
+tests/run-tests.sh --filter Locking             # only tests matching "Locking"
+tests/run-tests.sh LockingTest.php              # a single file
+tests/run-tests.sh --group regression           # every test guarding a past fix
+tests/run-tests.sh --static                     # the checks too, whatever else was given
+PHP=/path/to/php7.4/bin/php tests/run-tests.sh  # a specific interpreter
+```
+
+On Windows use `tests\run-tests.bat`, which does the same things in the same order.
+
+The suite needs PHP 7.4 or newer. `tests/run-legacy.sh` is what checks
+the library still works on the 5.5.2 the requirements claim - it lints everything that ships and round-trips
+one session on PHP 5.6.40 in a container, so it needs Docker running:
+
+```bash
+tests/run-legacy.sh         # lint, then the smoke test
+tests/run-legacy.sh --lint  # the lint alone, which needs no database
+```
+
+Coverage is not produced on an ordinary run. Asking for it requires either
+[pcov](https://github.com/krakjoe/pcov) or [Xdebug](https://xdebug.org/):
+
+```bash
+composer test-coverage      # writes tests/coverage-html
 ```
