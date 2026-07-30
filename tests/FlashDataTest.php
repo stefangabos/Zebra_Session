@@ -1,13 +1,10 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * Flash data - session variables that are available for exactly one further request and are then deleted.
  */
-#[TestDox('Flash data')]
 class FlashDataTest extends SessionTestCase
 {
     /**
@@ -18,13 +15,12 @@ class FlashDataTest extends SessionTestCase
      *
      * @return array<string, array<string>>
      */
-    public static function sessionStartProvider(): array
-    {
+    public function sessionStartModes() {
         $cases = [];
 
-        foreach (self::driverProvider() as $driverName => $driver) {
-            $cases[$driverName . ', session started by the library'] = [$driver[0], 'yes'];
-            $cases[$driverName . ', session started by the caller'] = [$driver[0], 'no'];
+        foreach ($this->drivers() as $driver_name => $driver) {
+            $cases[$driver_name . ', session started by the library'] = [$driver[0], 'yes'];
+            $cases[$driver_name . ', session started by the caller'] = [$driver[0], 'no'];
         }
 
         return $cases;
@@ -36,15 +32,10 @@ class FlashDataTest extends SessionTestCase
      *
      * @see 21b2185 for the half of this that was broken - the session started by the caller
      *
-     * @param string $driver The driver the helper connects with
-     * @param string $autostart Whether the library starts the session ("yes") or the caller does ("no")
-     * @return void
+     * @dataProvider sessionStartModes
+     * @group regression
      */
-    #[DataProvider('sessionStartProvider')]
-    #[Group('regression')]
-    #[TestDox('Flash data survives exactly one further request ($_dataName)')]
-    public function testFlashData(string $driver, string $autostart): void
-    {
+    public function testFlashData($driver, $autostart) {
         $this->driver = $driver;
 
         $payload = uniqid();
@@ -72,13 +63,9 @@ class FlashDataTest extends SessionTestCase
      * Flash data variables are counted one by one, so variables set in different requests have to expire in different
      * requests - a single shared counter would make the older one drag the newer one out with it.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Flash data variables set in different requests expire in different requests ($_dataName)')]
-    public function testFlashDataVariablesExpireIndependently(string $driver): void
-    {
+    public function testFlashDataVariablesExpireIndependently($driver) {
         $this->driver = $driver;
 
         $first = uniqid();

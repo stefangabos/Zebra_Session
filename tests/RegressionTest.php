@@ -1,18 +1,17 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * Bugs that were reported, fixed, and have nothing in the scope-based test files that would notice them coming back.
  *
  * Historical bugs that a scope file already covers stay where they are - they belong with the behaviour they are about -
- * but every one of them carries a #[Group('regression')] tag and a @see line naming the commit or issue it came from, so
+ * but every one of them carries a "@group regression" tag and a @see line naming the commit or issue it came from, so
  *
- *     vendor/bin/phpunit -c tests --group regression
+ *     tests/run-tests.sh --group regression
  *
- * runs the whole set no matter which file it lives in.
+ * runs the whole set no matter which file it lives in. The group is on this class rather than on each of its methods,
+ * because everything in here is a regression by definition.
  *
  * Three fixes are deliberately absent because nothing out here can observe them - a test for any of them would pass
  * whether the fix were in place or not, which is worse than having no test at all:
@@ -25,9 +24,9 @@ use PHPUnit\Framework\Attributes\TestDox;
  * Every other test here was checked by mutating the fix back out of Zebra_Session.php and confirming it turns red, except
  * where its own docblock says otherwise. The one deliberate exception is testAStringifyingConnectionStillWorks, which is
  * there to catch the fix going too far rather than not far enough, and so passes either way by design.
+ *
+ * @group regression
  */
-#[TestDox('Regressions')]
-#[Group('regression')]
 class RegressionTest extends SessionTestCase
 {
     /**
@@ -36,34 +35,30 @@ class RegressionTest extends SessionTestCase
      *
      * @see d1368b4 and https://github.com/stefangabos/Zebra_Session/issues/16
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('The lock name stays within MySQL\'s 64 character limit however long the session id is ($_dataName)')]
-    public function testLockNameFitsWithinMysqlsLimit(string $driver): void
-    {
+    public function testLockNameFitsWithinMysqlsLimit($driver) {
         $this->driver = $driver;
 
         // longer than the limit on its own, so an id used verbatim would go straight over it
-        $longSessionId = str_repeat('abcdefgh', 8);
-        $lockName = $this->sessionLockName($longSessionId);
+        $long_session_id = str_repeat('abcdefgh', 8);
+        $lock_name = $this->sessionLockName($long_session_id);
 
-        $this->assertLessThanOrEqual(64, strlen($lockName), 'The lock name is too long for MySQL to hold on to.');
+        $this->assertLessThanOrEqual(64, strlen($lock_name), 'The lock name is too long for MySQL to hold on to.');
 
-        // the session is held open rather than run to completion - the session_id column is a varchar(32), so an id this
-        // long is only ever meant to reach the lock, not the table
+        // held open rather than run to completion - session_id is a varchar(32), so an id this long is only
+        // ever meant to reach the lock, not the table
         $process = $this->startHelper([
-            'TEST_SESSION_ID' => $longSessionId,
+            'TEST_SESSION_ID' => $long_session_id,
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
         ]);
         $this->assertTrue(
-            $this->waitForOutput($process, '{"session_start":"' . $longSessionId . '"}'),
-            'The session could not be started with a long session id. Output: ' . $process->getOutput() . $process->getErrorOutput()
+            $process->waitForOutput('{"session_start":"' . $long_session_id . '"}'),
+            'The session could not be started with a long session id. Output: ' . $process->output()
         );
 
-        $this->assertTrue($this->lockIsHeld($lockName), 'MySQL did not take the lock for a long session id.');
+        $this->assertTrue($this->lockIsHeld($lock_name), 'MySQL did not take the lock for a long session id.');
 
         $process->stop();
     }
@@ -79,16 +74,12 @@ class RegressionTest extends SessionTestCase
      *
      * @see https://github.com/stefangabos/Zebra_Session/issues/52
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A session lock that cannot be released is reported instead of passing silently ($_dataName)')]
-    public function testFailureToReleaseTheSessionLockIsReported(string $driver): void
-    {
+    public function testFailureToReleaseTheSessionLockIsReported($driver) {
         $this->driver = $driver;
 
-        $lockName = $this->sessionLockName();
+        $lock_name = $this->sessionLockName();
 
         $process = $this->startHelper([
             'READ_ONLY' => 'no',
@@ -97,31 +88,30 @@ class RegressionTest extends SessionTestCase
         ]);
 
         $this->assertTrue(
-            $this->waitForOutput($process, '{"lock_released_early":"' . self::$testingSid . '"}'),
+            $process->waitForOutput('{"lock_released_early":"' . TEST_SESSION_ID . '"}'),
             'The helper never got as far as releasing the lock, so this test proved nothing. Output: '
-                . $process->getOutput() . $process->getErrorOutput()
+                . $process->output()
         );
 
-        // take the lock over on this connection, while the helper is paused - its close() then finds the lock belongs to
-        // somebody else, which is the situation the fix is about
+        // take the lock over while the helper is paused, so that its close() finds it held by somebody else
         $statement = self::$pdo->prepare('SELECT GET_LOCK(?, 5)');
-        $statement->execute([$lockName]);
+        $statement->execute([$lock_name]);
         $this->assertEquals(1, $statement->fetchColumn(), 'The test could not take the lock over from the helper.');
 
         $process->wait();
 
         // display_errors sends the uncaught exception to stdout in CLI, so both streams are searched
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
         // let go of it again before asserting, so a failure here does not leave the lock held for the tests that follow
-        self::$pdo->prepare('SELECT RELEASE_LOCK(?)')->execute([$lockName]);
+        self::$pdo->prepare('SELECT RELEASE_LOCK(?)')->execute([$lock_name]);
 
         $this->assertStringContainsString(
             'Could not release session lock',
             $output,
             'A lock that could not be released was not reported. Output: ' . $output
         );
-        $this->assertNotSame(0, $process->getExitCode(), 'The request finished cleanly despite failing to release its lock.');
+        $this->assertNotSame(0, $process->exitCode(), 'The request finished cleanly despite failing to release its lock.');
     }
 
     /**
@@ -133,13 +123,9 @@ class RegressionTest extends SessionTestCase
      *
      * @see https://github.com/stefangabos/Zebra_Session/issues/52 for the half that was already covered
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A session lock that has vanished is reported just like one held by somebody else ($_dataName)')]
-    public function testAVanishedSessionLockIsReported(string $driver): void
-    {
+    public function testAVanishedSessionLockIsReported($driver) {
         $this->driver = $driver;
 
         // nobody takes the lock over this time, so by the time close() asks, the lock simply does not exist
@@ -151,7 +137,7 @@ class RegressionTest extends SessionTestCase
         ]);
         $process->wait();
 
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
         $this->assertStringContainsString(
             'lock_released_early',
@@ -163,7 +149,7 @@ class RegressionTest extends SessionTestCase
             $output,
             'A lock that had vanished was not reported. Output: ' . $output
         );
-        $this->assertNotSame(0, $process->getExitCode(), 'The request finished cleanly despite its lock having vanished.');
+        $this->assertNotSame(0, $process->exitCode(), 'The request finished cleanly despite its lock having vanished.');
     }
 
     /**
@@ -173,21 +159,17 @@ class RegressionTest extends SessionTestCase
      *
      * The result was the worst possible one: a request that failed to get the session lock carried on as though it had,
      * and nothing anywhere said so. Only the PDO branch can be built this way, so this one does not run over both drivers.
-     *
-     * @return void
      */
-    #[TestDox('A request on a stringifying PDO connection still fails loudly without the lock')]
-    public function testAStringifyingConnectionStillNoticesAMissingLock(): void
-    {
+    public function testAStringifyingConnectionStillNoticesAMissingLock() {
         $this->driver = 'pdo';
 
         // hold the session for the duration of this test
-        $lockProcess = $this->startHelper([
+        $lock_process = $this->startHelper([
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
         ]);
         $this->assertTrue(
-            $this->waitForOutput($lockProcess, '{"session_start":"' . self::$testingSid . '"}'),
+            $lock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}'),
             'Unable to start the session that holds the lock. Timeout reached.'
         );
 
@@ -199,23 +181,19 @@ class RegressionTest extends SessionTestCase
         ]);
         $process->wait();
 
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
-        $this->assertNotSame(0, $process->getExitCode(), 'The request carried on without the lock. Output: ' . $output);
+        $this->assertNotSame(0, $process->exitCode(), 'The request carried on without the lock. Output: ' . $output);
         $this->assertStringContainsString('Could not obtain session lock', $output, 'The lock timeout was not reported. Output: ' . $output);
 
-        $lockProcess->stop();
+        $lock_process->stop();
     }
 
     /**
      * The flip side of the above - a stringifying connection must not break the ordinary case either, since the check it
      * goes through is the same one.
-     *
-     * @return void
      */
-    #[TestDox('A stringifying PDO connection stores and reads a session normally')]
-    public function testAStringifyingConnectionStillWorks(): void
-    {
+    public function testAStringifyingConnectionStillWorks() {
         $this->driver = 'pdo';
 
         $payload = uniqid();
@@ -239,35 +217,31 @@ class RegressionTest extends SessionTestCase
      *
      * @see https://github.com/stefangabos/Zebra_Session/issues/53
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A request killed before it can close its session leaves no lock behind ($_dataName)')]
-    public function testAKilledRequestLeavesNoLockBehind(string $driver): void
-    {
+    public function testAKilledRequestLeavesNoLockBehind($driver) {
         $this->driver = $driver;
 
-        $lockName = $this->sessionLockName();
+        $lock_name = $this->sessionLockName();
 
         $process = $this->startHelper([
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
         ]);
         $this->assertTrue(
-            $this->waitForOutput($process, '{"session_start":"' . self::$testingSid . '"}'),
+            $process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}'),
             'Unable to start the session that holds the lock. Timeout reached.'
         );
-        $this->assertTrue($this->lockIsHeld($lockName), 'The session was started but never took a lock.');
+        $this->assertTrue($this->lockIsHeld($lock_name), 'The session was started but never took a lock.');
 
-        // SIGKILL, so that nothing the library registered - neither close() nor the shutdown function - gets to run
-        $process->stop(0, SIGKILL);
+        // killed outright, so that neither close() nor the shutdown function gets to run
+        $process->kill();
 
         // the lock goes when MySQL notices the connection has gone, which is not instant
         $released = false;
         $start = microtime(true);
         while (microtime(true) - $start < 5) {
-            if (!$this->lockIsHeld($lockName)) {
+            if (!$this->lockIsHeld($lock_name)) {
                 $released = true;
                 break;
             }
@@ -288,13 +262,9 @@ class RegressionTest extends SessionTestCase
      * @see 8354675 and https://github.com/stefangabos/Zebra_Session/issues/37 for session.use_strict_mode
      * @see 70fc740 for session.gc_probability and session.gc_divisor
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('The constructor leaves use_strict_mode, gc_probability and gc_divisor alone ($_dataName)')]
-    public function testTheConstructorLeavesTheSettingsItGaveUpOnAlone(string $driver): void
-    {
+    public function testTheConstructorLeavesTheSettingsItGaveUpOnAlone($driver) {
         $this->driver = $driver;
 
         // values no php.ini would arrive at by itself, so finding them afterwards means nothing overwrote them
@@ -325,17 +295,13 @@ class RegressionTest extends SessionTestCase
      *
      * @see https://github.com/stefangabos/Zebra_Session/issues/49 and 40d04d2 for the untestable half
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Registering the session handler raises no deprecation notices ($_dataName)')]
-    public function testRegisteringTheHandlerIsNotDeprecated(string $driver): void
-    {
+    public function testRegisteringTheHandlerIsNotDeprecated($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper(['READ_ONLY' => 'no', 'WRITE_DATA_TO_SESSION' => uniqid()]);
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
         $this->assertStringNotContainsString('Deprecated', $output, 'Something an ordinary request does is deprecated. Output: ' . $output);
     }
@@ -347,18 +313,14 @@ class RegressionTest extends SessionTestCase
      *
      * @see 258d701
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('stop() does not complain about an uninitialized session ($_dataName)')]
-    public function testStopDoesNotComplainAboutAnUninitializedSession(string $driver): void
-    {
+    public function testStopDoesNotComplainAboutAnUninitializedSession($driver) {
         $this->driver = $driver;
 
         // no write beforehand, so there is no row and nothing was ever stored - the session exists only in this request
         $process = $this->runHelper(['READ_ONLY' => 'no', 'STOP_SESSION' => 'yes']);
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
         $this->assertStringNotContainsString('uninitialized session', $output, 'stop() complained. Output: ' . $output);
         $this->assertStringNotContainsString('Warning', $output, 'stop() raised a warning. Output: ' . $output);

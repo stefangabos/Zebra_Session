@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Script used to simulate different scenarios of using the session.
  * Starts a session with Zebra_Session handler.
@@ -114,7 +115,7 @@ if (getenv('HTTPS') == 'on') {
 if (strpos($lockToIp, 'callable:') === 0) {
 
     $lockToIpValue = substr($lockToIp, strlen('callable:'));
-    $lockToIpArgument = function () use ($lockToIpValue) {
+    $lockToIpArgument = function() use ($lockToIpValue) {
         return $lockToIpValue;
     };
 
@@ -184,11 +185,26 @@ if ($autostartSession) {
 
 }
 
-// A session started before the library is instantiated - PHP's own file based one, holding a variable that must not
-// survive. The library is expected to get rid of it.
-if ($prestartSession) {
+$leftOverKey = 'left_over_from_the_previous_session';
+
+/**
+ * Starts PHP's own file based session and leaves a variable in it that must not survive the library taking over.
+ *
+ * In a function of its own rather than inline, because the library empties $_SESSION when it takes the session
+ * over - which is the thing being checked further down - and static analysis reading a write and a read in one
+ * scope concludes the read can never come up empty.
+ *
+ * @param   string  $key
+ *
+ * @return  void
+ */
+function prestartASession($key) {
     session_start();
-    $_SESSION['left_over_from_the_previous_session'] = 'this should not survive';
+    $_SESSION[$key] = 'this should not survive';
+}
+
+if ($prestartSession) {
+    prestartASession($leftOverKey);
 }
 
 // Setting up the handler and starting the session.
@@ -250,7 +266,7 @@ if ($getIni) {
 
 // If requested, report whether a session variable from before the library was instantiated is still around.
 if ($prestartSession) {
-    echo json_encode(['left_over' => $_SESSION['left_over_from_the_previous_session'] ?? null]);
+    echo json_encode(['left_over' => isset($_SESSION[$leftOverKey]) ? $_SESSION[$leftOverKey] : null]);
 }
 
 // If requested, run the garbage collector on its own.

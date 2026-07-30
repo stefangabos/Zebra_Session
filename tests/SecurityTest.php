@@ -1,14 +1,11 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * Session fixation and session hijacking protection - the library stores a hash of "who started this session" next to
  * the session itself, and this is what that hash is worth.
  */
-#[TestDox('Session hijacking protection')]
 class SecurityTest extends SessionTestCase
 {
     /**
@@ -20,24 +17,21 @@ class SecurityTest extends SessionTestCase
      * usable by the original visitor would still be a hijackable session.
      *
      * @param array<string, string> $identity Environment describing the visitor that starts the session
-     * @param array<string, string> $changedIdentity The same, with one ingredient of the hash changed
+     * @param array<string, string> $changed_identity The same, with one ingredient of the hash changed
      * @param string $what The changed ingredient, for assertion messages
-     * @return void
      */
-    protected function assertSessionIsInvalidatedBy(array $identity, array $changedIdentity, string $what): void
-    {
+    protected function assertSessionIsInvalidatedBy($identity, $changed_identity, $what) {
         $payload = uniqid();
 
         // the original visitor stores something
         $this->runHelper($identity + ['READ_ONLY' => 'no', 'WRITE_DATA_TO_SESSION' => $payload]);
 
-        // ...and gets it back on the next request - without this the rest of the test would pass even if the session
-        // never worked in the first place
+        // ...and gets it back on the next request, which is what makes the rest of the test mean anything
         $process = $this->runHelper($identity + ['READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes']);
         $this->assertSame($payload, $this->readSessionData($process), 'The session could not be read back with an unchanged ' . $what . '.');
 
         // a request with a different identity must not see it
-        $process = $this->runHelper($changedIdentity + ['READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes']);
+        $process = $this->runHelper($changed_identity + ['READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes']);
         $this->assertNull($this->readSessionData($process), 'A changed ' . $what . ' was handed the session data.');
 
         // and the data is gone for good, not just hidden from the impostor
@@ -51,14 +45,10 @@ class SecurityTest extends SessionTestCase
      *
      * @see e948731
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A session is invalidated when the user agent changes ($_dataName)')]
-    public function testSessionIsInvalidatedWhenTheUserAgentChanges(string $driver): void
-    {
+    public function testSessionIsInvalidatedWhenTheUserAgentChanges($driver) {
         $this->driver = $driver;
 
         $this->assertSessionIsInvalidatedBy(
@@ -69,13 +59,9 @@ class SecurityTest extends SessionTestCase
     }
 
     /**
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A session is invalidated when the security code changes ($_dataName)')]
-    public function testSessionIsInvalidatedWhenTheSecurityCodeChanges(string $driver): void
-    {
+    public function testSessionIsInvalidatedWhenTheSecurityCodeChanges($driver) {
         $this->driver = $driver;
 
         $this->assertSessionIsInvalidatedBy(
@@ -86,13 +72,9 @@ class SecurityTest extends SessionTestCase
     }
 
     /**
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A session is invalidated when the IP address changes and lock_to_ip is on ($_dataName)')]
-    public function testSessionIsInvalidatedWhenTheIpChanges(string $driver): void
-    {
+    public function testSessionIsInvalidatedWhenTheIpChanges($driver) {
         $this->driver = $driver;
 
         $this->assertSessionIsInvalidatedBy(
@@ -111,14 +93,10 @@ class SecurityTest extends SessionTestCase
      *
      * @see 4fc876d, 38b6bb9 and https://github.com/stefangabos/Zebra_Session/issues/56
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A session is invalidated when the value returned by the lock_to_ip callable changes ($_dataName)')]
-    public function testSessionIsInvalidatedWhenTheLockToIpCallableReturnsSomethingElse(string $driver): void
-    {
+    public function testSessionIsInvalidatedWhenTheLockToIpCallableReturnsSomethingElse($driver) {
         $this->driver = $driver;
 
         $this->assertSessionIsInvalidatedBy(
@@ -132,13 +110,9 @@ class SecurityTest extends SessionTestCase
      * Locking to the user agent is on by default, but turning it off has to actually turn it off - otherwise the option
      * would be doing nothing and nobody would notice, since the default behaviour would still look correct.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Turning off lock_to_user_agent lets a session survive a different user agent ($_dataName)')]
-    public function testLockToUserAgentCanBeTurnedOff(string $driver): void
-    {
+    public function testLockToUserAgentCanBeTurnedOff($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();
@@ -161,26 +135,22 @@ class SecurityTest extends SessionTestCase
      *
      * @see 1f2a52d
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('Locking to the IP address copes with REMOTE_ADDR not being set ($_dataName)')]
-    public function testLockToIpCopesWithoutARemoteAddress(string $driver): void
-    {
+    public function testLockToIpCopesWithoutARemoteAddress($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();
 
-        // the helper removes $_SERVER['REMOTE_ADDR'] outright - passing an empty one through the environment would not do,
-        // since PHP copies environment variables into $_SERVER and the key would still be there
+        // the helper unsets $_SERVER['REMOTE_ADDR'] - PHP copies the environment into $_SERVER, so an empty
+        // value there would still leave the key in place
         $env = ['READ_ONLY' => 'no', 'LOCK_TO_IP' => 'yes', 'UNSET_REMOTE_ADDR' => 'yes'];
 
         $process = $this->runHelper($env + ['WRITE_DATA_TO_SESSION' => $payload]);
         $this->assertStringNotContainsString(
             'REMOTE_ADDR',
-            $process->getOutput() . $process->getErrorOutput(),
+            $process->output(),
             'Locking to the IP address complained about REMOTE_ADDR not being set.'
         );
 
@@ -196,14 +166,10 @@ class SecurityTest extends SessionTestCase
      *
      * @see 4fc876d, 38b6bb9 and https://github.com/stefangabos/Zebra_Session/issues/56
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A lock_to_ip callable keeps the session alive across a changing REMOTE_ADDR ($_dataName)')]
-    public function testLockToIpCallableSurvivesAChangingRemoteAddress(string $driver): void
-    {
+    public function testLockToIpCallableSurvivesAChangingRemoteAddress($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();

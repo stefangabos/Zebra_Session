@@ -1,14 +1,11 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * When a session stops being usable and when its row stops being there - the two are separate questions, and the
  * library has to get both right.
  */
-#[TestDox('Session expiration and garbage collection')]
 class ExpirationTest extends SessionTestCase
 {
     /**
@@ -19,13 +16,10 @@ class ExpirationTest extends SessionTestCase
      *
      * @see a20702a
      *
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('get_active_sessions() counts only unexpired sessions and garbage-collects the rest ($_dataName)')]
-    public function testGetActiveSessions(string $driver): void
-    {
+    public function testGetActiveSessions($driver) {
         $this->driver = $driver;
 
         $this->seedSession('active-session-1', time() + 3600);
@@ -33,18 +27,17 @@ class ExpirationTest extends SessionTestCase
         $this->seedSession('expired-session-1', time() - 10);
         $this->seedSession('expired-session-2', time() - 3600);
 
-        // read-only, so the helper neither takes a lock nor writes a row of its own on shutdown - the count then depends
-        // on the seeded rows alone
+        // read-only, so the helper adds no row of its own and the count depends on the seeded rows alone
         $process = $this->runHelper([
             'READ_ONLY' => 'yes',
             'GET_ACTIVE_SESSIONS' => 'yes',
         ]);
 
-        $output = $process->getOutput();
+        $output = $process->output();
         $this->assertSame(
             1,
             preg_match('/\{"active_sessions":(.*?)\}/', $output, $matches),
-            'get_active_sessions() produced no output. Got: ' . $output . $process->getErrorOutput()
+            'get_active_sessions() produced no output. Got: ' . $output . $process->output()
         );
 
         // loose comparison - the value comes straight out of the database driver, which may hand back a string
@@ -58,12 +51,10 @@ class ExpirationTest extends SessionTestCase
      * gc() takes a $maxlifetime argument because SessionHandlerInterface requires one, but the library ignores it and
      * expires sessions by the session_expire column it wrote itself. Passing an absurd lifetime therefore has to change
      * nothing - if that ever stops being true, sessions would start outliving their stored expiration.
-     * @return void
+     *
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('gc() expires sessions by their stored expiration and ignores the lifetime it is given ($_dataName)')]
-    public function testGarbageCollectorIgnoresMaxlifetime(string $driver): void
-    {
+    public function testGarbageCollectorIgnoresMaxlifetime($driver) {
         $this->driver = $driver;
 
         $this->seedSession('active-session-1', time() + 3600);
@@ -83,31 +74,27 @@ class ExpirationTest extends SessionTestCase
      * has passed. Without that, an expired session would stay usable for as long as nothing happened to trigger garbage
      * collection - which, with the default probability, can be a long time.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('An expired session is not readable even while its row is still in the table ($_dataName)')]
-    public function testExpiredSessionIsNotReadable(string $driver): void
-    {
+    public function testExpiredSessionIsNotReadable($driver) {
         $this->driver = $driver;
 
-        $userAgent = 'Mozilla/5.0 (expiry test)';
+        $user_agent = 'Mozilla/5.0 (expiry test)';
         $payload = uniqid();
 
         // what the handler will rebuild and compare against: user agent + security code, with lock_to_ip left off
-        $hash = md5($userAgent . 'sec-code');
-        $data = self::$testingSid . '|' . serialize($payload);
-        $env = ['USER_AGENT' => $userAgent, 'READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes'];
+        $hash = md5($user_agent . 'sec-code');
+        $data = TEST_SESSION_ID . '|' . serialize($payload);
+        $env = ['USER_AGENT' => $user_agent, 'READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes'];
 
         // a row that has not expired reads back - this is what makes the second half meaningful
-        $this->seedSession((string)self::$testingSid, time() + 3600, $hash, $data);
+        $this->seedSession(TEST_SESSION_ID, time() + 3600, $hash, $data);
         $process = $this->runHelper($env);
         $this->assertSame($payload, $this->readSessionData($process), 'A seeded session that is still valid could not be read.');
 
         // the very same row, expired
         $this->clearSessions();
-        $this->seedSession((string)self::$testingSid, time() - 10, $hash, $data);
+        $this->seedSession(TEST_SESSION_ID, time() - 10, $hash, $data);
         $process = $this->runHelper($env);
         $this->assertNull($this->readSessionData($process), 'An expired session was still readable.');
     }
@@ -120,27 +107,23 @@ class ExpirationTest extends SessionTestCase
      *
      * @see 091ee16 and https://github.com/stefangabos/Zebra_Session/issues/45
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('The session lifetime decides when a session expires ($_dataName)')]
-    public function testSessionLifetimeDecidesWhenASessionExpires(string $driver): void
-    {
+    public function testSessionLifetimeDecidesWhenASessionExpires($driver) {
         $this->driver = $driver;
 
         // phpunit and the helper read the same php.ini, so this is the value the library will be comparing against
-        $gcMaxlifetime = (int)ini_get('session.gc_maxlifetime');
+        $gc_maxlifetime = (int)ini_get('session.gc_maxlifetime');
 
         // comfortably longer than gc_maxlifetime, so the lifetime is what wins
-        $lifetime = $gcMaxlifetime + 3600;
+        $lifetime = $gc_maxlifetime + 3600;
 
         $before = time();
         $this->runHelper(['READ_ONLY' => 'no', 'SESSION_LIFETIME' => (string)$lifetime, 'WRITE_DATA_TO_SESSION' => uniqid()]);
         $after = time();
 
-        $expire = $this->sessionExpire((string)self::$testingSid);
+        $expire = $this->sessionExpire(TEST_SESSION_ID);
         $this->assertGreaterThanOrEqual($before + $lifetime, $expire, 'The session expires earlier than the lifetime it was given.');
         $this->assertLessThanOrEqual($after + $lifetime, $expire, 'The session expires later than the lifetime it was given.');
 
@@ -151,9 +134,9 @@ class ExpirationTest extends SessionTestCase
         $this->runHelper(['READ_ONLY' => 'no', 'SESSION_LIFETIME' => '1', 'WRITE_DATA_TO_SESSION' => uniqid()]);
         $after = time();
 
-        $expire = $this->sessionExpire((string)self::$testingSid);
-        $this->assertGreaterThanOrEqual($before + $gcMaxlifetime, $expire, 'A short lifetime was not raised to session.gc_maxlifetime.');
-        $this->assertLessThanOrEqual($after + $gcMaxlifetime, $expire, 'A short lifetime ended up longer than session.gc_maxlifetime.');
+        $expire = $this->sessionExpire(TEST_SESSION_ID);
+        $this->assertGreaterThanOrEqual($before + $gc_maxlifetime, $expire, 'A short lifetime was not raised to session.gc_maxlifetime.');
+        $this->assertLessThanOrEqual($after + $gc_maxlifetime, $expire, 'A short lifetime ended up longer than session.gc_maxlifetime.');
     }
 
     /**
@@ -164,18 +147,14 @@ class ExpirationTest extends SessionTestCase
      *
      * @see 3701e75, https://github.com/stefangabos/Zebra_Session/issues/40 and https://github.com/stefangabos/Zebra_Session/issues/5
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('The default lifetime of 0 means a cookie until the browser closes, and gc_maxlifetime in the database ($_dataName)')]
-    public function testDefaultSessionLifetime(string $driver): void
-    {
+    public function testDefaultSessionLifetime($driver) {
         $this->driver = $driver;
 
         // phpunit and the helper read the same php.ini
-        $gcMaxlifetime = (int)ini_get('session.gc_maxlifetime');
+        $gc_maxlifetime = (int)ini_get('session.gc_maxlifetime');
 
         $before = time();
         $process = $this->runHelper([
@@ -190,8 +169,8 @@ class ExpirationTest extends SessionTestCase
         $this->assertSame('0', $ini['session.cookie_lifetime'] ?? null, 'The session cookie was given a lifetime instead of lasting until the browser closes.');
 
         // the stored expiration still has to be a real moment in the future, taken from gc_maxlifetime
-        $expire = $this->sessionExpire((string)self::$testingSid);
-        $this->assertGreaterThanOrEqual($before + $gcMaxlifetime, $expire, 'The session expires sooner than session.gc_maxlifetime.');
-        $this->assertLessThanOrEqual($after + $gcMaxlifetime, $expire, 'The session expires later than session.gc_maxlifetime.');
+        $expire = $this->sessionExpire(TEST_SESSION_ID);
+        $this->assertGreaterThanOrEqual($before + $gc_maxlifetime, $expire, 'The session expires sooner than session.gc_maxlifetime.');
+        $this->assertLessThanOrEqual($after + $gc_maxlifetime, $expire, 'The session expires later than session.gc_maxlifetime.');
     }
 }

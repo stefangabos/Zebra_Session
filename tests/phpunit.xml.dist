@@ -1,23 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="bootstrap.php" cacheDirectory=".phpunit.cache" colors="true" testdox="true">
+
+<!--
+    Default configuration, safe to commit.
+
+    To run the suite against a setup other than the one below, copy this file to "phpunit.xml" (which is
+    git-ignored) and adjust the values in the <php> block. PHPUnit prefers "phpunit.xml" over this file,
+    so nothing else needs changing.
+
+    DB_NAME is created if it is not there, and DB_TABLE is dropped and recreated on every run - so point
+    these at something you are happy to lose. The name in DB_TABLE has to contain "test"; bootstrap.php
+    refuses anything else, which is what stands between a typo here and a real sessions table.
+
+    testdox is off deliberately - the default progress output is one character per test and ends with just
+    what failed. Ask for the other one on the command line when you want it.
+-->
+
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+    bootstrap="bootstrap.php"
+    colors="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    backupGlobals="false"
+    testdox="false"
+    cacheResultFile=".phpunit.result.cache">
+
     <testsuites>
-        <testsuite name="Zebra Session">
+        <testsuite name="Zebra_Session Test Suite">
             <directory suffix="Test.php">.</directory>
         </testsuite>
     </testsuites>
-    <!--
-        copy this file to phpunit.xml (which is git-ignored) and adjust the values below to match your setup
-        DB_NAME must point at a database you are happy to have tables created in and dropped from, and DB_TABLE must not
-        be a table you care about - it is dropped before and after the suite runs
-    -->
+
+    <coverage>
+        <include>
+            <file>../Zebra_Session.php</file>
+        </include>
+        <!--
+            No report is declared on purpose - declaring one makes every run write a full coverage report.
+            Ask for one explicitly with "composer test-coverage", which needs pcov or xdebug.
+        -->
+    </coverage>
+
     <php>
-        <env name="RUN_DB_TESTS" value="true"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="3306"/>
-        <env name="DB_NAME" value="zebra_session_tests"/>
         <env name="DB_USER" value="root"/>
         <env name="DB_PASS" value=""/>
+        <env name="DB_NAME" value="zebra_session_tests"/>
         <env name="DB_TABLE" value="zebra_session_test_data"/>
         <env name="TEST_SESSION_ID" value="zebra-unit-test-session"/>
     </php>
+
 </phpunit>

@@ -1,0 +1,13 @@
+# local configuration - copied from phpunit.xml.dist and adjusted per machine
+phpunit.xml
+
+# phpunit scratch
+.phpunit.result.cache
+.phpunit.cache/
+
+# coverage reports, written only when asked for with "composer test-coverage"
+coverage-html/
+coverage.xml
+
+# whatever the suite writes while it runs
+tmp/

@@ -1,337 +1,297 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
-
 /**
- * The base class every test class in this suite extends - it holds the database connection, the test table and the
- * plumbing for spawning and reading helper processes, so the test classes themselves hold nothing but tests.
+ * The base class every test class in this suite extends.
  *
- * Tests run against a real MySQL instance - the handler depends on MySQL's GET_LOCK/RELEASE_LOCK, so there is no
- * in-memory substitute that would exercise the locking behaviour.
- * These are integration tests, exercising only public session API,
- * except for read-only session which is a Zebra specific feature.
+ * The tests run against a real MySQL instance - the handler depends on MySQL's GET_LOCK/RELEASE_LOCK, so
+ * there is no in-memory substitute that would exercise the locking behaviour at all.
  *
- * The tests usually spawn PHP processes instead of doing the testing directly.
- * There are two main reasons for this:
- * 1. It closely mimics a real world use case (concurrent requests).
- * 2. New instance of Zebra_Session automatically register itself as the handler.
- *    I didn't want to change that at this point, and keeping track of registered functions would require adding even more code.
+ * They also spawn PHP processes rather than driving the library in-process, for two reasons:
  *
- * CAUTION: The tests rely on environmental variables, see tests/phpunit.xml.dist for the full list.
+ * 1. it is what a real use looks like - concurrent requests, each with its own connection, which is the
+ *    only arrangement in which a session lock means anything
+ * 2. a new Zebra_Session registers itself as the session handler, so several of them in one process would
+ *    tread on each other
+ *
+ * Everything shared lives here - the connection the assertions read through, a clean table before each
+ * test, the helper processes and the readers that pick their output apart - so that the test classes hold
+ * nothing but tests.
+ *
+ * There is deliberately no probe class - every member of Zebra_Session is private, and a subclass cannot
+ * reach private. These tests assert against the database and against what the child processes printed.
+ *
+ * CAUTION: the suite relies on environment variables - see tests/phpunit.xml.dist for the full list.
  */
-abstract class SessionTestCase extends TestCase
+abstract class SessionTestCase extends PHPUnit\Framework\TestCase
 {
-    protected static \PDO $pdo;
     /**
-     * @var Process[] Keep track of all started processes to clean up in tearDown
-     */
-    private array $activeProcesses = [];
-    protected static ?string $testingSid = null;
-    /**
-     * @var string The driver the helper processes of the current test connect with - see driverProvider()
-     */
-    protected string $driver = 'pdo';
-    protected static string $tableName = 'zebra_session_test_data';
-
-    protected static string $sessionTestHelperPath = __DIR__ . '/../Fixtures/sessionTestHelper.php';
-
-    /**
-     * Reports a setup problem - something that is wrong with the environment rather than with the library.
+     * The connection the assertions read and seed through - always PDO, whichever driver the helper of the
+     * moment is using. Test infrastructure, not part of what is under test.
      *
-     * The message is written to STDERR instead of being left to PHPUnit: this suite runs with testdox enabled, and the
-     * testdox printer prints nothing at all for errors raised in setUpBeforeClass(), so both the reason and the settings
-     * below would otherwise be invisible - the user would see a bare "Errors: 1".
+     * @var PDO|null
+     */
+    protected static $pdo;
+
+    /**
+     * The driver the helper processes of the current test connect with - see the "drivers" provider
      *
-     * @param string $message
-     * @return void
+     * @var string
      */
-    private static function reportSetupProblem(string $message): void
-    {
-        fwrite(STDERR, "\n" . $message . "\n" . self::requiredSettings() . "\n");
-    }
+    protected $driver = 'pdo';
 
     /**
-     * The settings the suite needs, together with whatever is currently configured, so a misconfigured run says what is
-     * missing instead of only what failed.
-     */
-    private static function requiredSettings(): string
-    {
-        $settings = [
-            'RUN_DB_TESTS'      => 'must be true/1/yes/on to run the database tests',
-            'DB_HOST'           => 'host of the MySQL instance',
-            'DB_PORT'           => 'port of the MySQL instance',
-            'DB_NAME'           => 'an existing database - tables are created in and dropped from it',
-            'DB_USER'           => 'user with CREATE/DROP rights on that database',
-            'DB_PASS'           => 'password for that user',
-            'DB_TABLE'          => 'table used by the suite - must contain "test", it is dropped',
-            'TEST_SESSION_ID'   => 'session id used by the spawned helper processes',
-        ];
-
-        $message = "Copy tests/phpunit.xml.dist to tests/phpunit.xml (git-ignored) and set the values below:\n";
-
-        foreach ($settings as $name => $description) {
-            $value = getenv($name);
-            // distinguish "set to an empty string" (legitimate for DB_PASS) from "not set at all"
-            $current = $value === false ? '<not set>' : ($value === '' ? '<empty>' : $value);
-            // the value goes on its own line - column alignment falls apart as soon as a database or table name is long
-            $message .= sprintf("  %s (currently: %s)\n      %s\n", $name, $current, $description);
-        }
-
-        return $message;
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        // accepts "true", "1", "yes", "on" - anything else, including an unset variable and the literal "false", disables
-        // the suite. the previous check tested for an empty string only, so RUN_DB_TESTS=false switched the tests *on*.
-        if (!filter_var(getenv('RUN_DB_TESTS'), FILTER_VALIDATE_BOOLEAN)) {
-            self::reportSetupProblem('RUN_DB_TESTS is not enabled - the tests below need a real MySQL instance and were skipped.');
-            static::markTestSkipped('RUN_DB_TESTS is not enabled - see tests/phpunit.xml.dist');
-        }
-
-        self::$testingSid = getenv('TEST_SESSION_ID');
-        self::$tableName = getenv('DB_TABLE') ?: self::$tableName;
-
-        // the table is dropped both before and after the suite, so refuse to touch anything that is not clearly a test
-        // table. without this a DB_TABLE pointing at a live "sessions" table would be destroyed by simply running phpunit.
-        if (!str_contains(self::$tableName, 'test')) {
-            self::reportSetupProblem('DB_TABLE must contain "test" - it is dropped by this suite. Got: ' . self::$tableName);
-            static::fail('DB_TABLE must contain "test" - it is dropped by this suite. Got: ' . self::$tableName);
-        }
-
-        $host = getenv('DB_HOST');
-        $port = getenv('DB_PORT');
-        $dbname = getenv('DB_NAME');
-        $user = getenv('DB_USER');
-        $pass = getenv('DB_PASS');
-
-        $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
-
-        // a failed connection here means the settings are wrong, not that the library is broken - say so explicitly,
-        // otherwise the only thing the user sees is a raw "SQLSTATE[HY000] [2002] Connection refused"
-        try {
-            self::$pdo = new \PDO($dsn, $user, $pass);
-        } catch (\PDOException $e) {
-            self::reportSetupProblem("Could not connect to MySQL at {$host}:{$port} as '{$user}': " . $e->getMessage());
-            static::fail('Could not connect to MySQL - see the settings printed above.');
-        }
-
-        self::$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
-        // Recreating table is important. The structure may change in the future.
-        // Table should've been dropped during teardown, but something might've gone wrong.
-        // The definition below is a copy of install/session_data.sql - keep the two in sync, otherwise the suite passes
-        // against a schema no user of the library actually has.
-        self::$pdo->exec('DROP TABLE IF EXISTS `' . self::$tableName . '`');
-        self::$pdo->exec('CREATE TABLE `' . self::$tableName . '` (
-                `session_id` varchar(32) NOT NULL default \'\',
-                `hash` varchar(32) NOT NULL default \'\',
-                `session_data` mediumblob NOT NULL,
-                `session_expire` int(11) NOT NULL default \'0\',
-                PRIMARY KEY (`session_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ');
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        // $pdo is a typed static with no default, so it stays uninitialised when setUpBeforeClass skipped or failed early -
-        // touching it in that state raises "typed static property must not be accessed before initialization"
-        if (!isset(self::$pdo)) {
-            return;
-        }
-
-        self::$pdo->exec('DROP TABLE IF EXISTS `' . self::$tableName . '`');
-    }
-
-    protected function setUp(): void
-    {
-        if (!filter_var(getenv('RUN_DB_TESTS'), FILTER_VALIDATE_BOOLEAN)) {
-            $this->markTestSkipped('RUN_DB_TESTS is not enabled - see tests/phpunit.xml.dist');
-        }
-        self::$pdo->exec('TRUNCATE TABLE `' . self::$tableName . '`');
-    }
-
-    /**
-     * Clean up any processes that were left running during a test.
-     */
-    protected function tearDown(): void
-    {
-        foreach ($this->activeProcesses as $process) {
-            if ($process->isRunning()) {
-                $process->stop(1);
-            }
-        }
-        // Clear the array for the next test method
-        $this->activeProcesses = [];
-
-        parent::tearDown();
-    }
-
-    /**
-     * The library talks to MySQL either through PDO or through mysqli, and query() has a separate implementation for
-     * each - different parameter binding, different way of counting rows, different error handling. Everything the suite
-     * checks therefore has to be checked against both.
+     * Children started during a test, killed in tearDown() so that a failing assertion cannot leave one
+     * running and holding a session lock for whatever runs next
      *
-     * @return array<string, array<string>>
+     * @var array<ChildProcessHandle>
      */
-    public static function driverProvider(): array
-    {
+    private $children = [];
+
+    public static function setUpBeforeClass(): void {
+
+        $dsn = 'mysql:host=' . TEST_DB_HOST . ';port=' . TEST_DB_PORT . ';dbname=' . TEST_DB_NAME . ';charset=utf8mb4';
+
+        self::$pdo = new PDO($dsn, TEST_DB_USER, TEST_DB_PASS);
+
+        self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    }
+
+    public static function tearDownAfterClass(): void {
+
+        self::$pdo = null;
+
+    }
+
+    protected function setUp(): void {
+
+        $this->resetState();
+
+    }
+
+    protected function tearDown(): void {
+
+        foreach ($this->children as $child) if ($child->isRunning()) $child->kill();
+
+        $this->children = [];
+
+    }
+
+    /**
+     * Empties the session table, so that every test starts from nothing.
+     *
+     * DELETE rather than TRUNCATE - TRUNCATE is a DDL statement and costs several milliseconds a time, for a
+     * table that rarely holds more than a couple of rows.
+     *
+     * @return  void
+     */
+    protected function resetState() {
+
+        self::$pdo->exec('DELETE FROM `' . TEST_DB_TABLE . '`');
+
+    }
+
+    /**
+     * The library talks to MySQL either through PDO or through mysqli, and query() has a separate
+     * implementation for each - different parameter binding, different way of counting rows, different
+     * error handling. Everything the suite checks therefore has to be checked against both.
+     *
+     * @return  array<string, array<string>>
+     */
+    public function drivers() {
         return [
-            'PDO' => ['pdo'],
-            'mysqli' => ['mysqli'],
+            'PDO'       => ['pdo'],
+            'mysqli'    => ['mysqli'],
         ];
     }
 
     /**
-     * Starts a helper process and returns straight away, without waiting for it to finish - for the tests that need two
-     * requests to be in flight at the same time, or that watch the output of a request while it is still running.
+     * Starts a helper process and returns straight away - for the tests that need two requests in flight at
+     * once, or that watch what a request prints while it is still running.
      *
-     * @param array<string, string> $extraEnv Added on top of the environment phpunit was started with
-     * @return Process
+     * @param   array<string, string>   $env    added on top of the environment phpunit was started with
+     *
+     * @return  ChildProcessHandle
      */
-    protected function startHelper(array $extraEnv): Process
-    {
-        return $this->startBackgroundProcess(
-            command: [
-                PHP_BINARY,
-                self::$sessionTestHelperPath,
-            ],
-            env: array_merge(getenv(), ['DB_DRIVER' => $this->driver], $extraEnv)
-        );
+    protected function startHelper($env) {
+
+        $child = ChildProcess::start(TEST_SESSION_HELPER, array_merge(['DB_DRIVER' => $this->driver], $env));
+
+        $this->children[] = $child;
+
+        return $child;
+
     }
 
     /**
-     * Runs the helper to completion and asserts it did not die on the way - a fatal error there would otherwise show up
-     * as a confusing assertion failure further down.
+     * Runs a helper to completion and asserts it did not die on the way, so that a fatal error there is
+     * reported as itself and not as a confusing assertion failure further down.
      *
-     * @param array<string, string> $extraEnv Added on top of the environment phpunit was started with
-     * @return Process
+     * @param   array<string, string>   $env    added on top of the environment phpunit was started with
+     *
+     * @return  ChildProcessHandle
      */
-    protected function runHelper(array $extraEnv): Process
-    {
-        $process = $this->startHelper($extraEnv);
-        $process->wait();
+    protected function runHelper($env) {
 
-        $this->assertSame(
-            0,
-            $process->getExitCode(),
-            'Helper process failed: ' . $process->getErrorOutput() . $process->getOutput()
-        );
+        $child = $this->startHelper($env);
 
-        return $process;
+        $child->wait();
+
+        $this->assertSame(0, $child->exitCode(), 'Helper process failed: ' . $child->output());
+
+        return $child;
+
     }
 
     /**
      * The session ids currently in the table, sorted, so assertions can compare against a plain array.
      *
-     * @return array<string>
+     * @return  array<string>
      */
-    protected function sessionIds(): array
-    {
-        $ids = self::$pdo->query('SELECT session_id FROM `' . self::$tableName . '` ORDER BY session_id')->fetchAll(\PDO::FETCH_COLUMN);
+    protected function sessionIds() {
+
+        $ids = self::$pdo->query('SELECT session_id FROM `' . TEST_DB_TABLE . '` ORDER BY session_id')->fetchAll(PDO::FETCH_COLUMN);
 
         return array_map('strval', $ids);
-    }
 
-    /**
-     * The name the library derives from a session id for its MySQL lock - see read().
-     *
-     * @param string|null $sessionId Defaults to the session id the helper processes use
-     * @return string
-     */
-    protected function sessionLockName(?string $sessionId = null): string
-    {
-        return 'session_' . sha1($sessionId ?? (string)self::$testingSid);
-    }
-
-    /**
-     * Whether anyone currently holds the given lock - IS_USED_LOCK returns the id of the connection holding it, or NULL
-     * when nobody does.
-     *
-     * Marked impure so that asking twice with the same lock name is understood to be able to give two different answers -
-     * which is the entire point of the tests that wait for a lock to be let go of.
-     *
-     * @phpstan-impure
-     *
-     * @param string $lockName
-     * @return bool
-     */
-    protected function lockIsHeld(string $lockName): bool
-    {
-        $statement = self::$pdo->prepare('SELECT IS_USED_LOCK(?)');
-        $statement->execute([$lockName]);
-        $holder = $statement->fetchColumn();
-
-        return $holder !== null && $holder !== false;
     }
 
     /**
      * The stored session data of a session, straight out of the blob column.
      *
-     * @param string $sessionId
-     * @return string
+     * @param   string  $session_id
+     *
+     * @return  string
      */
-    protected function storedSessionData(string $sessionId): string
-    {
-        $statement = self::$pdo->prepare('SELECT session_data FROM `' . self::$tableName . '` WHERE session_id = ?');
-        $statement->execute([$sessionId]);
+    protected function storedSessionData($session_id) {
+
+        $statement = self::$pdo->prepare('SELECT session_data FROM `' . TEST_DB_TABLE . '` WHERE session_id = ?');
+        $statement->execute([$session_id]);
 
         return (string)$statement->fetchColumn();
+
     }
 
     /**
-     * Pulls the session value out of the helper's output - the helper prints it keyed by the session id.
+     * The moment a stored session is set to expire.
      *
-     * @param Process $process
-     * @return string|null Null when the session held nothing, which is a result the tests assert on
+     * @param   string  $session_id
+     *
+     * @return  int
      */
-    protected function readSessionData(Process $process): ?string
-    {
-        $output = $process->getOutput();
+    protected function sessionExpire($session_id) {
+
+        $statement = self::$pdo->prepare('SELECT session_expire FROM `' . TEST_DB_TABLE . '` WHERE session_id = ?');
+        $statement->execute([$session_id]);
+
+        return (int)$statement->fetchColumn();
+
+    }
+
+    /**
+     * The name the library derives from a session id for its MySQL lock - see read().
+     *
+     * @param   string|null $session_id     defaults to the session id the helper processes use
+     *
+     * @return  string
+     */
+    protected function sessionLockName($session_id = null) {
+
+        return 'session_' . sha1($session_id === null ? TEST_SESSION_ID : $session_id);
+
+    }
+
+    /**
+     * Whether anyone currently holds the given lock - IS_USED_LOCK returns the id of the connection holding
+     * it, or NULL when nobody does.
+     *
+     * Impure - two calls with the same lock name can give two different answers, which is what the tests
+     * waiting for a lock to be released depend on.
+     *
+     * @phpstan-impure
+     *
+     * @param   string  $lock_name
+     *
+     * @return  bool
+     */
+    protected function lockIsHeld($lock_name) {
+
+        $statement = self::$pdo->prepare('SELECT IS_USED_LOCK(?)');
+        $statement->execute([$lock_name]);
+
+        $holder = $statement->fetchColumn();
+
+        return $holder !== null && $holder !== false;
+
+    }
+
+    /**
+     * Writes a session row straight into the table, bypassing the handler - the point is to control
+     * session_expire, which the handler always derives from time() plus the session lifetime.
+     *
+     * @param   string      $session_id
+     * @param   int         $expire         unix timestamp at which the session expires
+     * @param   string|null $hash           the hash the handler will compare against; defaults to one no
+     *                                      visitor can produce
+     * @param   string      $data           session data in PHP's session serialization format
+     *
+     * @return  void
+     */
+    protected function seedSession($session_id, $expire, $hash = null, $data = '') {
+
+        $statement = self::$pdo->prepare(
+            'INSERT INTO `' . TEST_DB_TABLE . '` (session_id, hash, session_data, session_expire) VALUES (?, ?, ?, ?)'
+        );
+
+        $statement->execute([$session_id, $hash === null ? md5($session_id) : $hash, $data, $expire]);
+
+    }
+
+    /**
+     * Empties the table mid-test, for tests that need to seed a second time.
+     *
+     * @return  void
+     */
+    protected function clearSessions() {
+
+        self::$pdo->exec('DELETE FROM `' . TEST_DB_TABLE . '`');
+
+    }
+
+    /**
+     * Pulls the session value out of a helper's output - the helper prints it keyed by the session id.
+     *
+     * @param   ChildProcessHandle  $child
+     *
+     * @return  string|null     null when the session held nothing, which is a result the tests assert on
+     */
+    protected function readSessionData($child) {
+
+        $output = $child->output();
 
         $this->assertSame(
             1,
-            preg_match('/\{"' . preg_quote((string)self::$testingSid, '/') . '":(.*?)\}/', $output, $matches),
+            preg_match('/\{"' . preg_quote(TEST_SESSION_ID, '/') . '":(.*?)\}/', $output, $matches),
             'The helper printed no session data at all. Got: ' . $output
         );
 
         $value = json_decode($matches[1]);
 
         return $value === null ? null : (string)$value;
+
     }
 
     /**
-     * Pulls the flash data value out of the helper's output.
+     * Pulls a base64 encoded session value out of a helper's output, for payloads that do not survive being
+     * compared as JSON - anything with null bytes or invalid UTF-8 in it.
      *
-     * @param Process $process
-     * @return array<string, string|null> The requested variables, null where the variable was not set
-     */
-    protected function readFlashData(Process $process): array
-    {
-        $output = $process->getOutput();
-
-        // a flat object, so matching up to the first closing brace is enough
-        $this->assertSame(
-            1,
-            preg_match('/"flashdata":(\{[^{}]*\})/', $output, $matches),
-            'The helper printed no flash data at all. Got: ' . $output
-        );
-
-        return (array)json_decode($matches[1], true);
-    }
-
-    /**
-     * Pulls a base64 encoded session value out of the helper's output, for payloads that do not survive being compared
-     * as JSON - anything with null bytes or invalid UTF-8 in it.
+     * @param   ChildProcessHandle  $child
      *
-     * @param Process $process
-     * @return string|null
+     * @return  string|null
      */
-    protected function readSessionDataBase64(Process $process): ?string
-    {
-        $output = $process->getOutput();
+    protected function readSessionDataBase64($child) {
+
+        $output = $child->output();
 
         $this->assertSame(
             1,
@@ -342,17 +302,41 @@ abstract class SessionTestCase extends TestCase
         $value = json_decode($matches[1]);
 
         return $value === null ? null : base64_decode((string)$value);
+
     }
 
     /**
-     * Pulls the reported ini settings out of the helper's output.
+     * Pulls the flash data values out of a helper's output.
      *
-     * @param Process $process
-     * @return array<string, string>
+     * @param   ChildProcessHandle  $child
+     *
+     * @return  array<string, string|null>  the requested variables, null where the variable was not set
      */
-    protected function readIni(Process $process): array
-    {
-        $output = $process->getOutput();
+    protected function readFlashData($child) {
+
+        $output = $child->output();
+
+        // a flat object, so matching up to the first closing brace is enough
+        $this->assertSame(
+            1,
+            preg_match('/"flashdata":(\{[^{}]*\})/', $output, $matches),
+            'The helper printed no flash data at all. Got: ' . $output
+        );
+
+        return (array)json_decode($matches[1], true);
+
+    }
+
+    /**
+     * Pulls the reported ini settings out of a helper's output.
+     *
+     * @param   ChildProcessHandle  $child
+     *
+     * @return  array<string, string>
+     */
+    protected function readIni($child) {
+
+        $output = $child->output();
 
         $this->assertSame(
             1,
@@ -361,17 +345,19 @@ abstract class SessionTestCase extends TestCase
         );
 
         return (array)json_decode($matches[1], true);
+
     }
 
     /**
-     * Pulls what get_settings() returned out of the helper's output.
+     * Pulls what get_settings() returned out of a helper's output.
      *
-     * @param Process $process
-     * @return array<string, string>
+     * @param   ChildProcessHandle  $child
+     *
+     * @return  array<string, string>
      */
-    protected function readSettings(Process $process): array
-    {
-        $output = $process->getOutput();
+    protected function readSettings($child) {
+
+        $output = $child->output();
 
         // the settings are a flat array, so matching up to the first closing brace is enough
         $this->assertSame(
@@ -381,90 +367,60 @@ abstract class SessionTestCase extends TestCase
         );
 
         return (array)json_decode($matches[1], true);
+
     }
 
     /**
-     * Writes a session row straight into the table, bypassing the handler - the point is to control session_expire,
-     * which the handler always derives from time() plus the session lifetime.
+     * Runs the given callback and returns every PHP diagnostic it raised.
      *
-     * @param string $sessionId
-     * @param int $expire Unix timestamp at which the session expires
-     * @param string|null $hash The hash the handler will be comparing against; defaults to one no visitor can produce
-     * @param string $data Session data in PHP's session serialization format
-     * @return void
-     */
-    protected function seedSession(string $sessionId, int $expire, ?string $hash = null, string $data = ''): void
-    {
-        $statement = self::$pdo->prepare(
-            'INSERT INTO `' . self::$tableName . '` (session_id, hash, session_data, session_expire) VALUES (?, ?, ?, ?)'
-        );
-        $statement->execute([$sessionId, $hash ?? md5($sessionId), $data, $expire]);
-    }
-
-    /**
-     * Empties the table mid-test, for tests that need to seed a second time.
+     * Use this to assert that the library does its job without also warning, noticing or deprecating - a
+     * good number of the bugs in these libraries are of the "it works, but it warns" kind, and on the newer
+     * PHP versions today's deprecation is tomorrow's fatal error.
      *
-     * @return void
-     */
-    protected function clearSessions(): void
-    {
-        self::$pdo->exec('TRUNCATE TABLE `' . self::$tableName . '`');
-    }
-
-    /**
-     * The moment a stored session is set to expire.
+     * @param   callable    $callback   the code to watch
      *
-     * @param string $sessionId
-     * @return int
+     * @return  array<string>           the messages raised, in the order they were raised
      */
-    protected function sessionExpire(string $sessionId): int
-    {
-        $statement = self::$pdo->prepare('SELECT session_expire FROM `' . self::$tableName . '` WHERE session_id = ?');
-        $statement->execute([$sessionId]);
+    protected function diagnosticsRaisedBy($callback) {
 
-        return (int)$statement->fetchColumn();
-    }
+        $raised = [];
 
-    /**
-     * Helper to start a background process.
-     *
-     * @param array<string> $command The command to run as an array of arguments
-     * @param string|null $cwd The working directory
-     * @param array<string>|null $env Environment variables
-     * @return Process
-     */
-    protected function startBackgroundProcess(array $command, ?string $cwd = null, ?array $env = null): Process
-    {
-        $process = new Process($command, $cwd, $env);
+        set_error_handler(function($number, $message) use (&$raised) {
 
-        // Disable blocking / run in background
-        $process->start();
+            // a handler is called even for diagnostics the library deliberately silenced with "@", and
+            // those are not something the user ever sees - error_reporting() is what tells them apart
+            if (!(error_reporting() & $number)) return true;
 
-        // Track the process for tearDown cleanup
-        $this->activeProcesses[] = $process;
+            $raised[] = $message;
 
-        return $process;
-    }
+            return true;
 
-    /**
-     * Wait for a specific string to appear in the process output.
-     * @param Process $process
-     * @param string $needle
-     * @param float $timeoutInSeconds
-     * @return bool
-     */
-    protected function waitForOutput(Process $process, string $needle, float $timeoutInSeconds = 5): bool
-    {
-        // microtime() rather than time() - time() only advances on whole-second boundaries, so a one second timeout could
-        // expire after a couple of milliseconds depending on when in the current second the call happened to be made, and
-        // every positive assertion here needs a PHP process to spawn, connect to the database and start a session first
-        $start = microtime(true);
-        while (microtime(true) - $start < $timeoutInSeconds) {
-            if (str_contains($process->getOutput(), $needle)) {
-                return true;
-            }
-            usleep(50000); // Sleep for 50ms to prevent CPU pegging
+        });
+
+        try {
+            call_user_func($callback);
+        } catch (Exception $exception) {
+            restore_error_handler();
+            throw $exception;
         }
-        return false;
+
+        restore_error_handler();
+
+        return $raised;
+
+    }
+
+    /**
+     * Asserts that the callback raised no PHP diagnostics at all.
+     *
+     * @param   callable    $callback
+     * @param   string      $message
+     *
+     * @return  void
+     */
+    protected function assertRaisesNoDiagnostics($callback, $message = '') {
+
+        $this->assertSame([], $this->diagnosticsRaisedBy($callback), $message);
+
     }
 }

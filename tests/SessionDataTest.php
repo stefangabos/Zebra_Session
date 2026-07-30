@@ -1,72 +1,65 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * What goes into a session comes back out of it unchanged, however big or however awkward - and a read-only session
  * never writes.
  */
-#[TestDox('Session data')]
 class SessionDataTest extends SessionTestCase
 {
     /**
      * Test writing data to session:
      * - verify the data written in one request is available in another
      * - verify data written in read-only mode is not stored
-     * @return void
+     *
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Data written in one request is visible in the next, and read-only writes are discarded ($_dataName)')]
-    public function testSessionWrite(string $driver): void
-    {
+    public function testSessionWrite($driver) {
         $this->driver = $driver;
 
-        // Open not read-only session and the data in another request.
-        // Instead of closing session and opening it again, we keep it open and spawn a process to better reflect the real use case.
-        $payloadNotToBeOverwritten = uniqid();
+        // a writable session, held open while a second process works with it - what two real requests look like
+        $payload_not_to_be_overwritten = uniqid();
         $env = [
             'READ_ONLY' => 'no',
-            'WRITE_DATA_TO_SESSION' => $payloadNotToBeOverwritten,
+            'WRITE_DATA_TO_SESSION' => $payload_not_to_be_overwritten,
             'READ_DATA_FROM_SESSION' => 'yes',
         ];
-        $writeToSession = $this->startHelper($env);
-        $sessionLocked = $this->waitForOutput($writeToSession, '{"session_start":"' . self::$testingSid . '"}');
-        $this->assertTrue($sessionLocked, 'Another process opened a locked session.');
-        $writeToSession->stop();
+        $write_to_session = $this->startHelper($env);
+        $session_locked = $write_to_session->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');
+        $this->assertTrue($session_locked, 'Another process opened a locked session.');
+        $write_to_session->stop();
 
-        // Reopen the session and read the data.
-        // We could do it directly, but a new Zebra_Session instance automatically registers itself as the handler, and it will mess up other tests.
+        // read it back in a process of its own - a Zebra_Session registers itself as the session handler
         $env['READ_ONLY'] = 'no';
         $env['READ_DATA_FROM_SESSION'] = 'yes';
-        $readFromSession = $this->startHelper($env);
-        $expectedOutput = json_encode([self::$testingSid => $payloadNotToBeOverwritten]);
-        $payloadRead = $this->waitForOutput($readFromSession, $expectedOutput);
-        $this->assertTrue($payloadRead, 'Saved value not read from session: '. $readFromSession->getOutput());
-        $readFromSession->stop();
+        $read_from_session = $this->startHelper($env);
+        $expected_output = json_encode([TEST_SESSION_ID => $payload_not_to_be_overwritten]);
+        $payload_read = $read_from_session->waitForOutput($expected_output);
+        $this->assertTrue($payload_read, 'Saved value not read from session: ' . $read_from_session->output());
+        $read_from_session->stop();
 
         // Now let's try to write data in RO session
-        $payloadOverwriteTest = uniqid();
+        $payload_overwrite_test = uniqid();
         $env['READ_ONLY'] = 'yes';
-        $env['WRITE_DATA_TO_SESSION'] = $payloadOverwriteTest;
+        $env['WRITE_DATA_TO_SESSION'] = $payload_overwrite_test;
         $env['READ_DATA_FROM_SESSION'] = 'yes';
-        $writeToSession = $this->startHelper($env);
+        $write_to_session = $this->startHelper($env);
         // The script should output the new value, but it should not be saved
-        $expectedOutput = json_encode([self::$testingSid => $payloadOverwriteTest]);
-        $payloadRead = $this->waitForOutput($writeToSession, $expectedOutput);
-        $this->assertTrue($payloadRead, 'Saved value not read from session: '. $writeToSession->getOutput());
-        $writeToSession->stop();
+        $expected_output = json_encode([TEST_SESSION_ID => $payload_overwrite_test]);
+        $payload_read = $write_to_session->waitForOutput($expected_output);
+        $this->assertTrue($payload_read, 'Saved value not read from session: ' . $write_to_session->output());
+        $write_to_session->stop();
 
         // Verify that session still holds the previous value
         $env['READ_ONLY'] = 'yes';
         $env['READ_DATA_FROM_SESSION'] = 'yes';
         unset($env['WRITE_DATA_TO_SESSION']);
-        $readFromSession = $this->startHelper($env);
-        $expectedOutput = json_encode([self::$testingSid => $payloadNotToBeOverwritten]);
-        $payloadRead = $this->waitForOutput($readFromSession, $expectedOutput);
-        $this->assertTrue($payloadRead, "Value in session changed from '{$payloadNotToBeOverwritten}' to: " . $readFromSession->getOutput());
-        $readFromSession->stop();
+        $read_from_session = $this->startHelper($env);
+        $expected_output = json_encode([TEST_SESSION_ID => $payload_not_to_be_overwritten]);
+        $payload_read = $read_from_session->waitForOutput($expected_output);
+        $this->assertTrue($payload_read, "Value in session changed from '{$payload_not_to_be_overwritten}' to: " . $read_from_session->output());
+        $read_from_session->stop();
     }
 
     /**
@@ -76,14 +69,10 @@ class SessionDataTest extends SessionTestCase
      *
      * @see 32a436e, which widened the column to a mediumblob
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A session larger than 64KB survives being stored ($_dataName)')]
-    public function testLargeSessionDataSurvives(string $driver): void
-    {
+    public function testLargeSessionDataSurvives($driver) {
         $this->driver = $driver;
 
         // comfortably past what a blob column can hold
@@ -110,14 +99,10 @@ class SessionDataTest extends SessionTestCase
      *
      * @see 33bc8bd and https://github.com/stefangabos/Zebra_Session/issues/20
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('Session data survives null bytes, quotes and multibyte characters ($_dataName)')]
-    public function testAwkwardSessionDataSurvives(string $driver): void
-    {
+    public function testAwkwardSessionDataSurvives($driver) {
         $this->driver = $driver;
 
         $payload = "héllo—wörld 日本語 \x00 null byte, \"double\" and 'single' quotes, \\ backslash, \x01\x02\xff high bytes";

@@ -1,14 +1,11 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * The session lock: who takes it, who does not, what happens to a request that cannot get it, and what it is ultimately
  * there to prevent.
  */
-#[TestDox('Session locking')]
 class LockingTest extends SessionTestCase
 {
     /**
@@ -16,12 +13,10 @@ class LockingTest extends SessionTestCase
      * A long-running process is started to lock the session.
      * Then we verify that a concurrent session cannot be opened, unless it's read-only.
      * Finally, we terminate the locking process and verify the session has been unlocked.
-     * @return void
+     *
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A locked session blocks a second request, but still allows a read-only one ($_dataName)')]
-    public function testSessionLock(string $driver): void
-    {
+    public function testSessionLock($driver) {
         $this->driver = $driver;
 
         // First we start a long-running process to lock the session.
@@ -30,37 +25,35 @@ class LockingTest extends SessionTestCase
             'START_LONG_TASK' => 'yes',
         ];
 
-        $sessionLockProcess = $this->startHelper($env);
+        $session_lock_process = $this->startHelper($env);
 
-        $sessionLocked = $this->waitForOutput($sessionLockProcess, '{"session_start":"' . self::$testingSid . '"}');
-        $this->assertTrue($sessionLocked, 'Unable to start a normal (locking) session. Timeout reached.');
+        $session_locked = $session_lock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');
+        $this->assertTrue($session_locked, 'Unable to start a normal (locking) session. Timeout reached.');
 
         // The session is locked. We try to lock it again. It should time out.
         $env['START_LONG_TASK'] = 'no';
-        $sessionHangProcess = $this->startHelper($env);
-        $sessionHanged = $this->waitForOutput($sessionHangProcess, '{"session_start":"' . self::$testingSid . '"}', 2);
-        $this->assertFalse($sessionHanged, 'Another process opened a locked session.');
+        $session_hang_process = $this->startHelper($env);
+        $session_hanged = $session_hang_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}', 2);
+        $this->assertFalse($session_hanged, 'Another process opened a locked session.');
 
-        // this process is blocked inside GET_LOCK - it has to be stopped here, otherwise it would grab the lock the moment
-        // the long-running process releases it, and the final step below would then fail for the wrong reason
-        $sessionHangProcess->stop();
+        // stopped here so that it cannot take the lock the moment the long-running process lets go of it
+        $session_hang_process->stop();
 
         // The session is still locked. We try to open a read-only session. It should normally start the session.
         $env['READ_ONLY'] = 'yes';
-        $sessionROProcess = $this->startHelper($env);
-        $sessionStarted = $this->waitForOutput($sessionROProcess, '{"session_start":"' . self::$testingSid . '"}');
-        $this->assertTrue($sessionStarted, 'Unable to start read-only session. Timeout reached.');
-        $sessionROProcess->stop();
+        $session_read_only_process = $this->startHelper($env);
+        $session_started = $session_read_only_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');
+        $this->assertTrue($session_started, 'Unable to start read-only session. Timeout reached.');
+        $session_read_only_process->stop();
 
-        // Stopping the session locking process and running it again to verify the session has actually been released.
-        // back to a normal session - a read-only one never takes a lock, so it would prove nothing here
-        $sessionLockProcess->stop(0.1);
+        // release the lock and take it again, with a normal session - a read-only one takes no lock at all
+        $session_lock_process->stop(0.1);
         $env['READ_ONLY'] = 'no';
-        $sessionRelockProcess = $this->startHelper($env);
+        $session_relock_process = $this->startHelper($env);
 
-        $sessionLocked = $this->waitForOutput($sessionRelockProcess, '{"session_start":"' . self::$testingSid . '"}');
-        $this->assertTrue($sessionLocked, "Unable to lock session after it's been closed. Timeout reached.");
-        $sessionRelockProcess->stop();
+        $session_locked = $session_relock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');
+        $this->assertTrue($session_locked, "Unable to lock session after it's been closed. Timeout reached.");
+        $session_relock_process->stop();
     }
 
     /**
@@ -68,17 +61,13 @@ class LockingTest extends SessionTestCase
      * without the lock the second one reads the session before the first one has written it, and then overwrites it,
      * losing the first one's work.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Two requests writing at the same time do not lose each other\'s data ($_dataName)')]
-    public function testConcurrentWritesDoNotLoseData(string $driver): void
-    {
+    public function testConcurrentWritesDoNotLoseData($driver) {
         $this->driver = $driver;
 
-        $slowPayload = uniqid();
-        $fastPayload = uniqid();
+        $slow_payload = uniqid();
+        $fast_payload = uniqid();
 
         // a request that holds the session for a couple of seconds and only then writes
         $slow = $this->startHelper([
@@ -86,10 +75,10 @@ class LockingTest extends SessionTestCase
             'START_LONG_TASK' => 'yes',
             'LONG_TASK_CYCLES' => '2',
             'WRITE_KEY' => 'written_by_the_slow_request',
-            'WRITE_DATA_TO_SESSION' => $slowPayload,
+            'WRITE_DATA_TO_SESSION' => $slow_payload,
         ]);
         $this->assertTrue(
-            $this->waitForOutput($slow, '{"session_start":"' . self::$testingSid . '"}'),
+            $slow->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}'),
             'The slow request never started its session.'
         );
 
@@ -97,19 +86,19 @@ class LockingTest extends SessionTestCase
         $fast = $this->startHelper([
             'READ_ONLY' => 'no',
             'WRITE_KEY' => 'written_by_the_fast_request',
-            'WRITE_DATA_TO_SESSION' => $fastPayload,
+            'WRITE_DATA_TO_SESSION' => $fast_payload,
         ]);
 
         $slow->wait();
         $fast->wait();
 
-        $this->assertSame(0, $slow->getExitCode(), 'The slow request failed: ' . $slow->getErrorOutput() . $slow->getOutput());
-        $this->assertSame(0, $fast->getExitCode(), 'The fast request failed: ' . $fast->getErrorOutput() . $fast->getOutput());
+        $this->assertSame(0, $slow->exitCode(), 'The slow request failed: ' . $slow->output());
+        $this->assertSame(0, $fast->exitCode(), 'The fast request failed: ' . $fast->output());
 
-        $stored = $this->storedSessionData((string)self::$testingSid);
+        $stored = $this->storedSessionData(TEST_SESSION_ID);
 
-        $this->assertStringContainsString($slowPayload, $stored, 'The slow request\'s data was overwritten by the request that came after it.');
-        $this->assertStringContainsString($fastPayload, $stored, 'The fast request\'s data never made it into the session.');
+        $this->assertStringContainsString($slow_payload, $stored, 'The slow request\'s data was overwritten by the request that came after it.');
+        $this->assertStringContainsString($fast_payload, $stored, 'The fast request\'s data never made it into the session.');
     }
 
     /**
@@ -124,23 +113,19 @@ class LockingTest extends SessionTestCase
      *
      * @see dfb2873
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A read-only request finishes cleanly while another request holds the session ($_dataName)')]
-    public function testReadOnlyRequestFinishesCleanlyWhileTheSessionIsLocked(string $driver): void
-    {
+    public function testReadOnlyRequestFinishesCleanlyWhileTheSessionIsLocked($driver) {
         $this->driver = $driver;
 
         // hold the session for the duration of this test
-        $lockProcess = $this->startHelper([
+        $lock_process = $this->startHelper([
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
         ]);
         $this->assertTrue(
-            $this->waitForOutput($lockProcess, '{"session_start":"' . self::$testingSid . '"}'),
+            $lock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}'),
             'Unable to start the session that holds the lock. Timeout reached.'
         );
 
@@ -149,49 +134,45 @@ class LockingTest extends SessionTestCase
 
         $this->assertStringNotContainsString(
             'Could not release session lock',
-            $process->getOutput() . $process->getErrorOutput(),
+            $process->output(),
             'A read-only request tried to release a lock it never took.'
         );
 
-        $lockProcess->stop();
+        $lock_process->stop();
     }
 
     /**
      * The flip side of the above: a read-only session must not take the lock at all, otherwise it would block the very
      * requests it is meant to run alongside. Asked straight of MySQL rather than inferred from timing.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('A read-only session takes no lock, a normal one does ($_dataName)')]
-    public function testReadOnlySessionTakesNoLock(string $driver): void
-    {
+    public function testReadOnlySessionTakesNoLock($driver) {
         $this->driver = $driver;
 
         // the name the library derives from the session id - see read()
-        $lockName = 'session_' . sha1((string)self::$testingSid);
+        $lock_name = 'session_' . sha1(TEST_SESSION_ID);
 
-        foreach (['yes' => false, 'no' => true] as $readOnly => $lockExpected) {
+        foreach (['yes' => false, 'no' => true] as $read_only => $lock_expected) {
 
             $process = $this->startHelper([
-                'READ_ONLY' => $readOnly,
+                'READ_ONLY' => $read_only,
                 'START_LONG_TASK' => 'yes',
             ]);
             $this->assertTrue(
-                $this->waitForOutput($process, '{"readonly":"' . $readOnly . '"}'),
+                $process->waitForOutput('{"readonly":"' . $read_only . '"}'),
                 'Unable to start the session. Timeout reached.'
             );
 
             // IS_USED_LOCK returns the id of the connection holding the lock, or NULL when nobody holds it
             $statement = self::$pdo->prepare('SELECT IS_USED_LOCK(?)');
-            $statement->execute([$lockName]);
+            $statement->execute([$lock_name]);
             $holder = $statement->fetchColumn();
 
             $this->assertSame(
-                $lockExpected,
+                $lock_expected,
                 $holder !== null && $holder !== false,
-                $readOnly === 'yes'
+                $read_only === 'yes'
                     ? 'A read-only session took the session lock, which would block the requests it is meant to run alongside.'
                     : 'A normal session did not take the session lock.'
             );
@@ -210,27 +191,23 @@ class LockingTest extends SessionTestCase
      * @see https://github.com/stefangabos/Zebra_Session/issues/52 - the other half of that fix, a lock that cannot be
      *      released, is in RegressionTest
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A request that cannot obtain the session lock fails loudly ($_dataName)')]
-    public function testLockTimeoutIsReported(string $driver): void
-    {
+    public function testLockTimeoutIsReported($driver) {
         $this->driver = $driver;
 
         // hold the lock for as long as this test needs it
-        $lockProcess = $this->startHelper([
+        $lock_process = $this->startHelper([
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
         ]);
         $this->assertTrue(
-            $this->waitForOutput($lockProcess, '{"session_start":"' . self::$testingSid . '"}'),
+            $lock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}'),
             'Unable to start the session that holds the lock. Timeout reached.'
         );
 
-        // a second request which gives up after a second instead of the usual minute
+        // a second request, with a one second lock timeout
         $process = $this->startHelper([
             'READ_ONLY' => 'no',
             'LOCK_TIMEOUT' => '1',
@@ -238,11 +215,11 @@ class LockingTest extends SessionTestCase
         $process->wait();
 
         // display_errors sends the uncaught exception to stdout in CLI, so both streams are searched
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
-        $this->assertNotSame(0, $process->getExitCode(), 'The request carried on without ever getting the lock. Output: ' . $output);
+        $this->assertNotSame(0, $process->exitCode(), 'The request carried on without ever getting the lock. Output: ' . $output);
         $this->assertStringContainsString('Could not obtain session lock', $output, 'The lock timeout was not reported. Output: ' . $output);
 
-        $lockProcess->stop();
+        $lock_process->stop();
     }
 }

@@ -1,14 +1,11 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * Starting, taking over, regenerating, destroying and stopping a session - everything that changes whether a session
  * exists at all, and under which id.
  */
-#[TestDox('Session lifecycle')]
 class SessionLifecycleTest extends SessionTestCase
 {
     /**
@@ -21,18 +18,14 @@ class SessionLifecycleTest extends SessionTestCase
      *
      * @see e46a02f, and 36a28d7 for the first attempt at the same thing
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A session that is already running is taken over cleanly ($_dataName)')]
-    public function testAnAlreadyRunningSessionIsTakenOver(string $driver): void
-    {
+    public function testAnAlreadyRunningSessionIsTakenOver($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper(['READ_ONLY' => 'no', 'PRESTART_SESSION' => 'yes']);
-        $output = $process->getOutput() . $process->getErrorOutput();
+        $output = $process->output();
 
         // every one of the constructor's setup calls has to have been allowed to run
         $this->assertStringNotContainsString('Warning', $output, 'Setting the library up over a running session complained. Output: ' . $output);
@@ -41,18 +34,16 @@ class SessionLifecycleTest extends SessionTestCase
         $this->assertStringContainsString('{"left_over":null}', $output, 'A variable from the previous session survived.');
 
         // and the library really did take over - the session went into the table rather than into a file
-        $this->assertSame([self::$testingSid], $this->sessionIds(), 'The session was not stored by the library.');
+        $this->assertSame([TEST_SESSION_ID], $this->sessionIds(), 'The session was not stored by the library.');
     }
 
     /**
      * Destroying a session has to remove its row - a session that outlives session_destroy() in the database is still a
      * valid session for anyone holding its id.
-     * @return void
+     *
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('Destroying a session removes its row from the table ($_dataName)')]
-    public function testDestroySession(string $driver): void
-    {
+    public function testDestroySession($driver) {
         $this->driver = $driver;
 
         // first request writes something, which is what creates the row
@@ -60,7 +51,7 @@ class SessionLifecycleTest extends SessionTestCase
             'READ_ONLY' => 'no',
             'WRITE_DATA_TO_SESSION' => uniqid(),
         ]);
-        $this->assertSame([self::$testingSid], $this->sessionIds(), 'The session row was not created in the first place.');
+        $this->assertSame([TEST_SESSION_ID], $this->sessionIds(), 'The session row was not created in the first place.');
 
         // second request destroys the session
         $this->runHelper([
@@ -79,13 +70,10 @@ class SessionLifecycleTest extends SessionTestCase
      *
      * @see bcae14a and 4dde64d
      *
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('Regenerating the id moves the session data to a new row and drops the old one ($_dataName)')]
-    public function testRegenerateId(string $driver): void
-    {
+    public function testRegenerateId($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();
@@ -94,45 +82,40 @@ class SessionLifecycleTest extends SessionTestCase
             'READ_ONLY' => 'no',
             'WRITE_DATA_TO_SESSION' => $payload,
         ]);
-        $this->assertSame([self::$testingSid], $this->sessionIds(), 'The session row was not created in the first place.');
+        $this->assertSame([TEST_SESSION_ID], $this->sessionIds(), 'The session row was not created in the first place.');
 
         $process = $this->runHelper([
             'READ_ONLY' => 'no',
             'REGENERATE_ID' => 'yes',
         ]);
 
-        $output = $process->getOutput();
+        $output = $process->output();
         $this->assertSame(
             1,
             preg_match('/\{"new_session_id":"(.*?)"\}/', $output, $matches),
             'The helper did not report a new session id. Got: ' . $output
         );
 
-        $newSessionId = $matches[1];
-        $this->assertNotSame(self::$testingSid, $newSessionId, 'The session id did not change.');
-        $this->assertSame([$newSessionId], $this->sessionIds(), 'The old session row was not removed.');
+        $new_session_id = $matches[1];
+        $this->assertNotSame(TEST_SESSION_ID, $new_session_id, 'The session id did not change.');
+        $this->assertSame([$new_session_id], $this->sessionIds(), 'The old session row was not removed.');
 
-        // the data is checked straight in the blob - the helper stores it under the *old* id as its key, so it stays
-        // reachable under that key no matter what the session is now called
-        $this->assertStringContainsString($payload, $this->storedSessionData($newSessionId), 'Session data was lost when the id was regenerated.');
+        // read straight out of the blob - the helper keys the value by the old id, whatever the session is called
+        $this->assertStringContainsString($payload, $this->storedSessionData($new_session_id), 'Session data was lost when the id was regenerated.');
     }
 
     /**
      * stop() is the "log out" call - it has to leave nothing behind for the session id to be worth anything afterwards.
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('stop() leaves nothing of the session behind ($_dataName)')]
-    public function testStopRemovesTheSession(string $driver): void
-    {
+    public function testStopRemovesTheSession($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();
 
         $this->runHelper(['READ_ONLY' => 'no', 'WRITE_DATA_TO_SESSION' => $payload]);
-        $this->assertSame([self::$testingSid], $this->sessionIds(), 'The session row was not created in the first place.');
+        $this->assertSame([TEST_SESSION_ID], $this->sessionIds(), 'The session row was not created in the first place.');
 
         $this->runHelper(['READ_ONLY' => 'no', 'STOP_SESSION' => 'yes']);
         $this->assertSame([], $this->sessionIds(), 'The session row survived stop().');

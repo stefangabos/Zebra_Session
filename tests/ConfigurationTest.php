@@ -1,14 +1,11 @@
 <?php
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\TestDox;
+require_once __DIR__ . '/bootstrap.php';
 
 /**
  * What the constructor is given and what it does with it - the ini settings it takes over, the table name it is pointed
  * at, and what get_settings() reports back.
  */
-#[TestDox('Configuration')]
 class ConfigurationTest extends SessionTestCase
 {
     /**
@@ -17,18 +14,26 @@ class ConfigurationTest extends SessionTestCase
      *
      * This one runs in the phpunit process rather than in a helper: the constructor throws before it registers itself as
      * the session handler, so there is nothing for it to leave behind.
-     *
-     * @return void
      */
-    #[TestDox('The constructor refuses anything that is not a database connection')]
-    public function testConstructorRejectsAnInvalidLink(): void
-    {
-        $link = new \stdClass();
+    public function testConstructorRejectsAnInvalidLink() {
+        // a variable rather than the call inline, because the constructor takes $link by reference
+        $link = $this->somethingThatIsNotAConnection();
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Zebra_Session: No MySQL connection');
 
         new \Zebra_Session($link, 'sec-code');
+    }
+
+    /**
+     * The constructor's $link has no native type, only a "\MySQLi|\PDO" docblock, so what actually arrives
+     * there is whatever the caller passed. That is the path the test above covers, and saying so with a
+     * mixed return is what makes it describable rather than a type error waiting to be argued about.
+     *
+     * @return  mixed
+     */
+    private function somethingThatIsNotAConnection() {
+        return new \stdClass();
     }
 
     /**
@@ -40,14 +45,10 @@ class ConfigurationTest extends SessionTestCase
      *
      * @see 3701e75, https://github.com/stefangabos/Zebra_Session/issues/40 and https://github.com/stefangabos/Zebra_Session/issues/5
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('The constructor sets the session ini options it promises to ($_dataName)')]
-    public function testConstructorSetsItsIniOptions(string $driver): void
-    {
+    public function testConstructorSetsItsIniOptions($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper(['READ_ONLY' => 'yes', 'GET_INI' => 'yes', 'SESSION_LIFETIME' => '1234']);
@@ -66,14 +67,10 @@ class ConfigurationTest extends SessionTestCase
     /**
      * @see 1c614a1 and https://github.com/stefangabos/Zebra_Session/issues/18
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('The session cookie is marked secure over HTTPS ($_dataName)')]
-    public function testCookieIsMarkedSecureOverHttps(string $driver): void
-    {
+    public function testCookieIsMarkedSecureOverHttps($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper(['READ_ONLY' => 'yes', 'GET_INI' => 'yes', 'HTTPS' => 'on']);
@@ -88,18 +85,14 @@ class ConfigurationTest extends SessionTestCase
      *
      * @see ac5157e and https://github.com/stefangabos/Zebra_Session/issues/27
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('A table name that already comes wrapped in backticks works ($_dataName)')]
-    public function testTableNameMayComeWrappedInBackticks(string $driver): void
-    {
+    public function testTableNameMayComeWrappedInBackticks($driver) {
         $this->driver = $driver;
 
         $payload = uniqid();
-        $env = ['READ_ONLY' => 'no', 'DB_TABLE' => '`' . self::$tableName . '`'];
+        $env = ['READ_ONLY' => 'no', 'DB_TABLE' => '`' . TEST_DB_TABLE . '`'];
 
         $this->runHelper($env + ['WRITE_DATA_TO_SESSION' => $payload]);
 
@@ -107,17 +100,13 @@ class ConfigurationTest extends SessionTestCase
         $this->assertSame($payload, $this->readSessionData($process), 'The session was not stored in the table the backticked name refers to.');
 
         // and it went into the table the test knows about, not one that got created along the way
-        $this->assertSame([self::$testingSid], $this->sessionIds());
+        $this->assertSame([TEST_SESSION_ID], $this->sessionIds());
     }
 
     /**
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
      */
-    #[DataProvider('driverProvider')]
-    #[TestDox('get_settings() reports the garbage collection settings ($_dataName)')]
-    public function testGetSettingsReportsTheGarbageCollectionSettings(string $driver): void
-    {
+    public function testGetSettingsReportsTheGarbageCollectionSettings($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper([
@@ -142,14 +131,10 @@ class ConfigurationTest extends SessionTestCase
      *
      * @see 2ad3430 and https://github.com/stefangabos/Zebra_Session/issues/48
      *
-     * @param string $driver The driver the helper connects with
-     * @return void
+     * @dataProvider drivers
+     * @group regression
      */
-    #[DataProvider('driverProvider')]
-    #[Group('regression')]
-    #[TestDox('get_settings() copes with a garbage collection divisor of zero ($_dataName)')]
-    public function testGetSettingsWithAZeroDivisor(string $driver): void
-    {
+    public function testGetSettingsWithAZeroDivisor($driver) {
         $this->driver = $driver;
 
         $process = $this->runHelper([
@@ -161,9 +146,7 @@ class ConfigurationTest extends SessionTestCase
 
         $settings = $this->readSettings($process);
 
-        // PHP 8.4 refuses a divisor of 0 outright - "session.gc_divisor must be greater than 0" - and it refuses it both
-        // from ini_set() and from php.ini, so the situation this test is about cannot be created there at all. The guard
-        // in get_settings() still matters for earlier versions, where the value is accepted.
+        // PHP 8.4 refuses a divisor of 0 from both ini_set() and php.ini, so this case cannot be built there
         if (($settings['session.gc_divisor'] ?? null) !== '0') {
             $this->markTestSkipped(
                 'This version of PHP does not allow session.gc_divisor to be 0 - it ended up as '

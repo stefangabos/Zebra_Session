@@ -14,11 +14,14 @@
         }
     ],
     "require": {
-        "php": ">=5.5.2"
+        "php": ">=7.4.0"
     },
     "config": {
         "platform": {
-            "php": "8.1"
+            "php": "7.4.0"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "autoload": {
@@ -26,12 +29,26 @@
             "Zebra_Session.php"
         ]
     },
+    "autoload-dev": {
+        "classmap": [
+            "tests/Support/"
+        ]
+    },
     "require-dev": {
-        "phpstan/phpstan": "^1.12",
+        "phpunit/phpunit": "^9.6",
+        "phpstan/phpstan": "^2.1",
         "squizlabs/php_codesniffer": "^3.10",
-        "phpunit/phpunit": "^10.5",
-        "symfony/process": "^6.4 || ^7.0 || ^8.0",
-        "ext-pdo": "*",
-        "phpcompatibility/php-compatibility": "^9.3"
+        "phpcompatibility/php-compatibility": "^9.3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "ext-pdo": "*"
+    },
+    "scripts": {
+        "test": "phpunit -c tests",
+        "test-coverage": "phpunit -c tests --coverage-html tests/coverage-html",
+        "check-compat": "phpcs -p --standard=tests/php-compatibility.xml --runtime-set ignore_warnings_on_exit 1",
+        "check-compat-legacy": "phpcs -p --standard=tests/php-compatibility.xml --runtime-set testVersion 5.5- --runtime-set ignore_warnings_on_exit 1",
+        "check-style": "phpcs -p --standard=coding-standards.xml --runtime-set ignore_warnings_on_exit 1",
+        "fix-style": "phpcbf -p --standard=coding-standards.xml",
+        "analyse": "phpstan analyse --no-progress"
     }
 }

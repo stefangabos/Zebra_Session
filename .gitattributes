@@ -6,9 +6,7 @@
 .gitignore export-ignore
 composer.lock export-ignore
 phpstan.neon export-ignore
-run-tests.bat export-ignore
-run-tests.sh export-ignore
 coding-standards.xml export-ignore
-php-compatibility.xml export-ignore
+mutate.php export-ignore
 /tests export-ignore
 /.github export-ignore

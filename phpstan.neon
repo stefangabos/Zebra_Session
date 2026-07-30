@@ -1,5 +1,35 @@
 parameters:
-	level: 6
-	paths:
-		- Zebra_Session.php
-		- tests
+
+    level: 6
+
+    paths:
+        - Zebra_Session.php
+        - tests
+
+    # phpstan learns a constant exists only by executing the define(). tests/settings.php declares them and
+    # does nothing else, so running it keeps the analysis independent of the database.
+    bootstrapFiles:
+        - tests/settings.php
+
+    excludePaths:
+        # both are written by a run rather than committed, so they may not be there at all - "(?)" is what
+        # keeps phpstan from stopping over an excluded path it cannot find
+        - tests/tmp (?)
+        - tests/coverage-html (?)
+        # phpcs sniffs, which phpstan cannot reason about without the whole of PHP_CodeSniffer loaded -
+        # its tokens are constants defined at runtime, so even T_CLOSURE comes back as "not found"
+        - tests/standards
+        # written to the library's own floor rather than to 7.3, and never loaded by the suite
+        - tests/legacy
+
+    ignoreErrors:
+
+        # The library ships and is held to the full level. The suite is held to everything except declaring
+        # types on its own methods - a test method returns nothing and says so by being a test. Everything
+        # else phpstan finds there is still reported.
+        -
+            identifier: missingType.return
+            path: tests/*
+        -
+            identifier: missingType.parameter
+            path: tests/*
