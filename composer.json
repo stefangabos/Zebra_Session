@@ -47,6 +47,7 @@
         "test-coverage": "phpunit -c tests --coverage-html tests/coverage-html",
         "check-compat": "phpcs -p --standard=tests/php-compatibility.xml --runtime-set ignore_warnings_on_exit 1",
         "check-compat-legacy": "phpcs -p --standard=tests/php-compatibility.xml --runtime-set testVersion 5.5- --runtime-set ignore_warnings_on_exit 1",
+        "mutate": "@php tests/mutate.php",
         "check-style": "phpcs -p --standard=coding-standards.xml --runtime-set ignore_warnings_on_exit 1",
         "fix-style": "phpcbf -p --standard=coding-standards.xml",
         "analyse": "phpstan analyse --no-progress"
