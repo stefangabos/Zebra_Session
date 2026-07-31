@@ -172,9 +172,8 @@ PHP=/path/to/php7.4/bin/php tests/run-tests.sh  # a specific interpreter
 
 On Windows use `tests\run-tests.bat`, which does the same things in the same order.
 
-The suite needs PHP 7.4 or newer. `tests/run-legacy.sh` is what checks
-The library still works on the 5.6.40 - it lints everything that ships and round-trips one session on PHP 5.6.40 in a
-container, so it needs Docker running:
+The suite needs PHP 7.4 or newer. `tests/run-legacy.sh` is what checks the library still works on 5.6.40 - it lints
+everything that ships and round-trips one session on that version in a container, so it needs Docker running:
 
 ```bash
 tests/run-legacy.sh         # lint, then the smoke test
