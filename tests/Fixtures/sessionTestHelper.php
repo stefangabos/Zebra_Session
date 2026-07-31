@@ -16,11 +16,28 @@ require_once __DIR__ . '/../../Zebra_Session.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * Reads a whole number from the environment.
+ * Reads a setting from the environment.
  *
- * "0" is a meaningful value for every one of these and a plain "?:" would quietly replace it with the default, so only
- * a variable that is missing falls back. Missing covers empty as well: proc_open() drops environment entries whose
- * value is an empty string, so a knob set to "" arrives here as one that was never set.
+ * A knob a test deliberately set to "0" has to survive: "0" is a legal payload and a legal number of seconds, and a
+ * plain "?:" would quietly replace either with the default. Only a variable that is missing falls back - which covers
+ * empty as well, since proc_open() drops environment entries whose value is an empty string and a knob set to ""
+ * therefore arrives here as one that was never set.
+ *
+ * The knobs that stay on "?:" are the ones where "0" is not a value they can take - "yes"/"no" switches, the
+ * connection settings, the $_SESSION keys, and the flash data ones, which are "name:value" and lists of names.
+ *
+ * @param   string  $name       name of the environment variable
+ * @param   string  $default    what to use when it is not set
+ *
+ * @return  string
+ */
+function env_string($name, $default) {
+    $value = getenv($name);
+    return ($value === false || $value === '') ? $default : $value;
+}
+
+/**
+ * The same, for a setting that is a whole number.
  *
  * @param   string  $name       name of the environment variable
  * @param   int     $default    what to use when it is not set
@@ -28,14 +45,13 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * @return  int
  */
 function env_int($name, $default) {
-    $value = getenv($name);
-    return ($value === false || $value === '') ? $default : (int)$value;
+    return (int)env_string($name, (string)$default);
 }
 
 // Configuration
 $sid = getenv('TEST_SESSION_ID') ?: 'zebra-unit-test-session';
 $readOnly = (getenv('READ_ONLY') == 'yes' );
-$writeDataToSession = getenv('WRITE_DATA_TO_SESSION');
+$writeDataToSession = env_string('WRITE_DATA_TO_SESSION', '');
 $readData = (getenv('READ_DATA_FROM_SESSION') == 'yes');
 $startLongTask = (getenv('START_LONG_TASK') == 'yes');
 $getActiveSessions = (getenv('GET_ACTIVE_SESSIONS') == 'yes');
@@ -63,6 +79,8 @@ $writeDataBase64 = getenv('WRITE_DATA_BASE64');
 $writeBigData = (int)getenv('WRITE_BIG_DATA');
 $readDataBase64 = (getenv('READ_DATA_BASE64') == 'yes');
 // which $_SESSION key to write to and read from - two concurrent requests need to write different ones
+// "?:" rather than env_string() because "0" is not a key a session can have - PHP turns a numeric string key into an
+// int and session_encode() then skips it, so falling back to the session id is the only useful thing to do with one
 $writeKey = getenv('WRITE_KEY') ?: $sid;
 $readKey = getenv('READ_KEY') ?: $sid;
 // report the session related ini settings the library promises to set
@@ -103,7 +121,7 @@ $releaseLockEarlyPause = env_int('RELEASE_LOCK_EARLY_PAUSE', 3);
 // have to be put into $_SERVER by hand.
 $userAgent = getenv('USER_AGENT');
 $remoteAddr = getenv('REMOTE_ADDR');
-$securityCode = getenv('SECURITY_CODE') ?: 'sec-code';
+$securityCode = env_string('SECURITY_CODE', 'sec-code');
 $lockToUserAgent = ((getenv('LOCK_TO_USER_AGENT') ?: 'yes') == 'yes');
 
 // "no", "yes", or "callable:<value>" for the callable form of the argument, in which case the callable returns <value>
@@ -294,7 +312,7 @@ if ($runGc !== false && $runGc !== '') {
 }
 
 // If requested, data is written to $_SESSION[$writeKey], which defaults to the session id
-if (!empty($writeDataToSession)) {
+if ($writeDataToSession !== '') {
     $_SESSION[$writeKey] = $writeDataToSession;
 }
 
