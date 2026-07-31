@@ -7,7 +7,7 @@
  * point is only to catch the obvious: the library parses, it loads, and a session still round-trips.
  * Anything finer belongs in the real suite, which runs from 7.3 upward.
  *
- * Written to 5.6 syntax - no short array syntax, no "??", nothing PHPUnit. It has to run where it is aimed.
+ * Written to 5.6 syntax - no "??", no return types, nothing PHPUnit. It has to run where it is aimed.
  *
  * Run through tests/run-legacy.sh rather than directly.
  */

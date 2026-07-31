@@ -2,9 +2,9 @@
 #
 # Checks the library on PHP 5.6.40
 #
-# The suite itself stops at 7.3, which is as far back as PHPUnit 9.6 goes. This is for testing the library on PHP 5.6.40:
-# a lint pass over everything that ships, and a smoke script that round-trips one session on a real PHP 5.6, against a
-# MySQL of its own.
+# The suite itself stops at 7.3, which is as far back as PHPUnit 9.6 goes. This is for testing the library on PHP
+# 5.6.40: a lint pass over everything that ships, and a smoke script that round-trips one session on a real PHP 5.6,
+# against a MySQL of its own.
 #
 #   tests/run-legacy.sh                 lint, then the smoke script
 #   tests/run-legacy.sh --lint          the lint alone, which needs no database
@@ -33,8 +33,9 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# the smoke test brings its own MySQL rather than using the one the suite runs against. PHP 5.6's client does
-# not know the collation MySQL 8 defaults to - utf8mb4_0900_ai_ci - 5.7 works with PHP 5.6.40 and needs no client configuration.
+# the smoke test brings its own MySQL rather than using the one the suite runs against. PHP 5.6's client does not know
+# the collation MySQL 8 defaults to - utf8mb4_0900_ai_ci - and the connection dies during the handshake with "Server
+# sent charset unknown to the client". 5.7 works with PHP 5.6.40 and needs no client configuration.
 MYSQL_IMAGE="mysql:5.7"
 MYSQL_CONTAINER="zebra-session-legacy-mysql"
 NETWORK="zebra-session-legacy"
