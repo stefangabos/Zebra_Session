@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 #
-# Checks the library on the oldest PHP it claims to support.
+# Checks the library on PHP 5.6.40
 #
-# The suite itself stops at 7.3, which is as far back as PHPUnit 9.6 goes, while the README says the library
-# works on 5.5.2. This is what backs that claim: a lint pass over everything that ships, and a smoke script
-# that round-trips one session on a real PHP 5.6, against a MySQL of its own.
+# The suite itself stops at 7.3, which is as far back as PHPUnit 9.6 goes. This is for testing the library on PHP 5.6.40:
+# a lint pass over everything that ships, and a smoke script that round-trips one session on a real PHP 5.6, against a
+# MySQL of its own.
 #
 #   tests/run-legacy.sh                 lint, then the smoke script
 #   tests/run-legacy.sh --lint          the lint alone, which needs no database
-#
-# It runs in a container because there is no arm64 build of PHP 5.6 - MAMP ships one, but it links against
-# OpenSSL 1.0, readline 6 and OpenLDAP 2.4, none of which exist on a current macOS. The image is built once
-# and cached; the first run takes a few minutes.
 
 set -euo pipefail
 
@@ -38,9 +34,7 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # the smoke test brings its own MySQL rather than using the one the suite runs against. PHP 5.6's client does
-# not know the collation MySQL 8 defaults to - utf8mb4_0900_ai_ci - and the connection dies during the
-# handshake with "Server sent charset unknown to the client", before any client option can be applied. 5.7
-# matches the era of the library's floor and needs no client configuration.
+# not know the collation MySQL 8 defaults to - utf8mb4_0900_ai_ci - 5.7 works with PHP 5.6.40 and needs no client configuration.
 MYSQL_IMAGE="mysql:5.7"
 MYSQL_CONTAINER="zebra-session-legacy-mysql"
 NETWORK="zebra-session-legacy"
