@@ -32,6 +32,13 @@ setlocal enabledelayedexpansion
 
 cd /d "%~dp0"
 
+:: a run starts on a clean screen
+cls
+
+:: phpunit and phpstan work out their own widths, and phpstan's result banner is drawn across the whole of it.
+:: COLUMNS is what both of them read first, so setting it lines their output up with the 80 column rules below
+set COLUMNS=80
+
 if "%PHP%"=="" set "PHP=php"
 
 :: with nothing asked for in particular, check everything
@@ -82,6 +89,11 @@ call :heading "STATIC ANALYSIS"
 
 call :heading "CODING STANDARD"
 "%PHP%" vendor\bin\phpcs -p --standard=coding-standards.xml --report=summary
+
+:: the PHP 5.6 check needs Docker, so it runs from tests/run-legacy.sh rather than from here
+call :heading "PHP 5.6"
+echo   not run - it needs Docker, so it is kept out of this script.
+echo   run tests/run-legacy.sh before tagging a release.
 
 exit /b %TEST_RESULT%
 

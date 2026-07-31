@@ -13,9 +13,8 @@
 /**
  * Reads a setting from the environment.
  *
- * We cannot use "?:" here - an empty value is perfectly valid for some of these (an empty password, most
- * obviously) and "?:" would silently replace it with the fallback. Only a value that is not set at all
- * may fall back.
+ * "?:" cannot be used here - an empty value is valid for some of these, an empty password most obviously,
+ * and "?:" would silently replace it with the fallback. Only a value that is not set at all may fall back.
  *
  * @param   string  $name       name of the environment variable, as set in phpunit.xml
  * @param   mixed   $default    what to use when it is not set at all
@@ -37,7 +36,7 @@ define('TEST_DB_NAME', test_env('DB_NAME', 'zebra_session_tests'));
 define('TEST_DB_PORT', (string)test_env('DB_PORT', 3306));
 
 // the table the handler stores sessions in. bootstrap.php drops it, and refuses any name without "test" in
-// it - the guard between a typo in phpunit.xml and somebody's real sessions table
+// it - the guard between a typo in phpunit.xml and a real sessions table
 define('TEST_DB_TABLE', test_env('DB_TABLE', 'zebra_session_test_data'));
 
 // the session id the helper processes use. There is no browser here to hand one over in a cookie, so every

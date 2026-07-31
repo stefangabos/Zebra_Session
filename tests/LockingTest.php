@@ -9,17 +9,15 @@ require_once __DIR__ . '/bootstrap.php';
 class LockingTest extends SessionTestCase
 {
     /**
-     * Test spawns PHP processes to verify session locking for concurrent requests.
-     * A long-running process is started to lock the session.
-     * Then we verify that a concurrent session cannot be opened, unless it's read-only.
-     * Finally, we terminate the locking process and verify the session has been unlocked.
+     * Spawns PHP processes to check session locking across concurrent requests. A long-running process takes the
+     * lock, a second one is refused unless it is read-only, and the lock is released once the first one ends.
      *
      * @dataProvider drivers
      */
     public function testSessionLock($driver) {
         $this->driver = $driver;
 
-        // First we start a long-running process to lock the session.
+        // a long-running process to hold the lock
         $env = [
             'READ_ONLY' => 'no',
             'START_LONG_TASK' => 'yes',
@@ -30,7 +28,7 @@ class LockingTest extends SessionTestCase
         $session_locked = $session_lock_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');
         $this->assertTrue($session_locked, 'Unable to start a normal (locking) session. Timeout reached.');
 
-        // The session is locked. We try to lock it again. It should time out.
+        // locking it again while it is held has to time out
         $env['START_LONG_TASK'] = 'no';
         $session_hang_process = $this->startHelper($env);
         $session_hanged = $session_hang_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}', 2);
@@ -39,7 +37,7 @@ class LockingTest extends SessionTestCase
         // stopped here so that it cannot take the lock the moment the long-running process lets go of it
         $session_hang_process->stop();
 
-        // The session is still locked. We try to open a read-only session. It should normally start the session.
+        // a read-only session starts even while the lock is still held
         $env['READ_ONLY'] = 'yes';
         $session_read_only_process = $this->startHelper($env);
         $session_started = $session_read_only_process->waitForOutput('{"session_start":"' . TEST_SESSION_ID . '"}');

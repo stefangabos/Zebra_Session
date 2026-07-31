@@ -76,17 +76,14 @@ class ChildProcess
 
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
 
-        // proc_open() runs a command string through "/bin/sh -c", which leaves the shell as the process this handle
-        // holds and PHP as its child - proc_terminate() would then signal the shell and leave PHP orphaned, still
-        // holding its session lock. "exec" has the shell replace itself with PHP, so there is only ever one process
-        // to signal. bash happens to do that on its own for a simple command, dash does not.
+        // "exec" so that the shell replaces itself with PHP - without it proc_open() runs the command through
+        // "/bin/sh -c" and this handle holds the shell, so proc_terminate() signals that and leaves PHP running
         $process = proc_open(
             'exec ' . escapeshellarg(self::interpreter()) . ' ' . escapeshellarg($resolved['path']),
             $descriptors,
             $pipes,
             null,
-            // proc_open() drops any entry whose value is an empty string, so the child sees those as never set at
-            // all - whatever reads them there has to treat "not set" and "set to empty" as the same thing
+            // proc_open() drops entries whose value is an empty string - the child sees those as never set
             array_merge(getenv(), $env)
         );
 

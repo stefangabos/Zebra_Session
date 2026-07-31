@@ -12,8 +12,7 @@
 # wants - a constant --platform in a FROM is reported as FromPlatformFlagConstDisallowed
 FROM php:5.6-cli
 
-# the extensions a database-backed library needs. For one that does not talk to a database, drop this and
-# install whatever that library does need - gd for Zebra_Image, curl for Zebra_cURL.
+# the extensions this library needs to reach a database
 RUN docker-php-ext-install mysqli pdo_mysql > /dev/null
 
 WORKDIR /library

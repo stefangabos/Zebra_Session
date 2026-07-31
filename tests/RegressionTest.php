@@ -93,7 +93,7 @@ class RegressionTest extends SessionTestCase
                 . $process->output()
         );
 
-        // take the lock over while the helper is paused, so that its close() finds it held by somebody else
+        // take the lock over while the helper is paused, so that its close() finds it held by another connection
         $statement = self::$pdo->prepare('SELECT GET_LOCK(?, 5)');
         $statement->execute([$lock_name]);
         $this->assertEquals(1, $statement->fetchColumn(), 'The test could not take the lock over from the helper.');

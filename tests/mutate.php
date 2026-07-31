@@ -3,7 +3,7 @@
 /**
  * Mutation check - reverts one fix at a time and reports whether the test that claims to guard it fails.
  *
- * A green suite proves nothing until you have watched it go red.
+ * A green suite proves nothing until it has been watched going red.
  *
  *     php tests/mutate.php
  *

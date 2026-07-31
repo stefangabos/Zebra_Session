@@ -35,6 +35,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+# a run starts on a clean screen, unless the output is going somewhere other than a terminal
+if [ -t 1 ]; then clear; fi
+
 PHP="${PHP:-php}"
 
 # with nothing asked for in particular, check everything
@@ -56,6 +59,10 @@ else
 fi
 
 WIDTH=$( (command -v tput > /dev/null 2>&1 && tput cols) 2>/dev/null || echo 80)
+
+# phpunit and phpstan work out their own widths, and phpstan's result banner is drawn across the whole of it.
+# COLUMNS is what both of them read first, so setting it lines their output up with the rules drawn below
+export COLUMNS=$WIDTH
 
 # the rule is drawn with U+2550 where the terminal can take it, and with "=" where it cannot - a locale
 # that is not UTF-8 would otherwise print three replacement characters per character of rule
@@ -112,6 +119,11 @@ heading 'STATIC ANALYSIS'
 
 heading 'CODING STANDARD'
 "$PHP" vendor/bin/phpcs -p --standard=coding-standards.xml --report=summary || true
+
+# the PHP 5.6 check needs Docker, so it runs from tests/run-legacy.sh rather than from here
+heading 'PHP 5.6'
+echo "  not run - it needs Docker, so it is kept out of this script."
+echo "  run tests/run-legacy.sh before tagging a release."
 
 # the suite's result is what decides whether this run passed - the findings are work in progress
 exit $test_result

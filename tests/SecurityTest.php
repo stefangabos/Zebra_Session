@@ -26,7 +26,7 @@ class SecurityTest extends SessionTestCase
         // the original visitor stores something
         $this->runHelper($identity + ['READ_ONLY' => 'no', 'WRITE_DATA_TO_SESSION' => $payload]);
 
-        // ...and gets it back on the next request, which is what makes the rest of the test mean anything
+        // ...and gets it back on the next request
         $process = $this->runHelper($identity + ['READ_ONLY' => 'no', 'READ_DATA_FROM_SESSION' => 'yes']);
         $this->assertSame($payload, $this->readSessionData($process), 'The session could not be read back with an unchanged ' . $what . '.');
 

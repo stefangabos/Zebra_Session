@@ -17,6 +17,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+# a run starts on a clean screen, unless the output is going somewhere other than a terminal
+if [ -t 1 ]; then clear; fi
+
 IMAGE="zebra-session-legacy-php56"
 LINT_ONLY=0
 
@@ -30,14 +33,14 @@ if ! command -v docker > /dev/null 2>&1; then
 fi
 
 if ! docker info > /dev/null 2>&1; then
-    echo "The docker daemon is not running - start Docker Desktop and try again." >&2
+    echo "the docker daemon is not running - start Docker Desktop and try again." >&2
     exit 1
 fi
 
 # the smoke test brings its own MySQL rather than using the one the suite runs against. PHP 5.6's client does
 # not know the collation MySQL 8 defaults to - utf8mb4_0900_ai_ci - and the connection dies during the
-# handshake with "Server sent charset unknown to the client", before any client option can be applied. A
-# server of the era the library's floor belongs to is both the honest test and the one that works anywhere.
+# handshake with "Server sent charset unknown to the client", before any client option can be applied. 5.7
+# matches the era of the library's floor and needs no client configuration.
 MYSQL_IMAGE="mysql:5.7"
 MYSQL_CONTAINER="zebra-session-legacy-mysql"
 NETWORK="zebra-session-legacy"
@@ -50,7 +53,7 @@ DB_NAME="zebra_session_tests"
 DB_TABLE="zebra_session_test_data"
 
 if ! docker image inspect "$IMAGE" > /dev/null 2>&1; then
-    echo "Building the PHP 5.6 image - this happens once and takes a few minutes."
+    echo "building the PHP 5.6 image - this happens once and takes a few minutes."
     docker build --platform linux/amd64 -t "$IMAGE" legacy
 fi
 
@@ -58,8 +61,8 @@ fi
 cd ..
 
 # the source goes in through a tar on stdin rather than a bind mount. Docker Desktop shares only a handful
-# of paths by default - /Users, /Volumes, /private, /tmp - and a library kept anywhere else would need
-# whoever runs this to add it under Resources - File Sharing first
+# of paths by default - /Users, /Volumes, /private, /tmp - and a library kept anywhere else would have to be
+# added under Resources - File Sharing first
 run_in_container() {
     # COPYFILE_DISABLE and --no-xattrs keep macOS from putting an AppleDouble "._" twin of every file in
     # the archive - those are not PHP and the lint below would try to parse them
@@ -77,6 +80,18 @@ cleanup() {
     docker network rm "$NETWORK" > /dev/null 2>&1 || true
 }
 
+# both images are kept between runs - report them and how to remove them
+report_leftovers() {
+    echo
+    echo "--- left on your machine ---"
+    for image in "$@"; do
+        printf '  %-30s %s\n' "$image" "$(docker images --format '{{.Size}}' "$image" | head -1)"
+    done
+    echo
+    echo "  kept so that the next run does not build or download them again. to get the space back:"
+    echo "      docker rmi $*"
+}
+
 echo
 echo "--- lint ---"
 
@@ -86,6 +101,7 @@ run_in_container 'for file in $(find . -name "*.php" -not -path "./vendor/*" -no
 if [ "$LINT_ONLY" = "1" ]; then
     echo
     echo "lint only - the smoke test was skipped"
+    report_leftovers "$IMAGE"
     exit 0
 fi
 
@@ -120,3 +136,5 @@ if [ "$ready" = "0" ]; then
 fi
 
 run_in_container 'php tests/legacy/smoke.php' network
+
+report_leftovers "$IMAGE" "$MYSQL_IMAGE"

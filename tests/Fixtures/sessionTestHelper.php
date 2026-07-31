@@ -18,13 +18,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 /**
  * Reads a setting from the environment.
  *
- * A knob a test deliberately set to "0" has to survive: "0" is a legal payload and a legal number of seconds, and a
- * plain "?:" would quietly replace either with the default. Only a variable that is missing falls back - which covers
- * empty as well, since proc_open() drops environment entries whose value is an empty string and a knob set to ""
- * therefore arrives here as one that was never set.
- *
- * The knobs that stay on "?:" are the ones where "0" is not a value they can take - "yes"/"no" switches, the
- * connection settings, the $_SESSION keys, and the flash data ones, which are "name:value" and lists of names.
+ * Falls back only when the variable is missing or empty. "0" is a value rather than an absence, and a plain "?:"
+ * would replace it with the default. proc_open() drops empty entries, so empty and missing arrive the same way.
  *
  * @param   string  $name       name of the environment variable
  * @param   string  $default    what to use when it is not set
@@ -79,8 +74,8 @@ $writeDataBase64 = getenv('WRITE_DATA_BASE64');
 $writeBigData = (int)getenv('WRITE_BIG_DATA');
 $readDataBase64 = (getenv('READ_DATA_BASE64') == 'yes');
 // which $_SESSION key to write to and read from - two concurrent requests need to write different ones
-// "?:" rather than env_string() because "0" is not a key a session can have - PHP turns a numeric string key into an
-// int and session_encode() then skips it, so falling back to the session id is the only useful thing to do with one
+// "?:" rather than env_string() - PHP turns a numeric string key into an int and session_encode() skips it, so
+// "0" is not a key a session can have
 $writeKey = getenv('WRITE_KEY') ?: $sid;
 $readKey = getenv('READ_KEY') ?: $sid;
 // report the session related ini settings the library promises to set
@@ -91,11 +86,10 @@ $prestartSession = (getenv('PRESTART_SESSION') == 'yes');
 $longTaskCycles = env_int('LONG_TASK_CYCLES', 100);
 $getSettings = (getenv('GET_SETTINGS') == 'yes');
 
-// the garbage collection settings get_settings() reports on - a divisor of 0 used to make it fail
+// the garbage collection settings get_settings() reports on
 $gcProbability = getenv('GC_PROBABILITY');
 $gcDivisor = getenv('GC_DIVISOR');
-// the library used to set this one and does not anymore - see issue #37 - so the tests need to be able to give it a
-// value of their own and check that it is still there once the constructor has run
+// the library leaves this one alone - see issue #37 - so the tests set it and check it survived the constructor
 $useStrictMode = getenv('USE_STRICT_MODE');
 
 if ($gcProbability !== false && $gcProbability !== '') {
@@ -112,7 +106,7 @@ if ($useStrictMode !== false && $useStrictMode !== '') {
 
 // release the session lock behind the library's back, just before it closes the session, and then wait around long enough
 // for the test to take that lock on a connection of its own. the library's own RELEASE_LOCK then runs against a lock held
-// by somebody else, returns 0, and close() has to say so instead of carrying on as if all was well (issue #52)
+// by another connection, returns 0, and close() has to report that rather than carry on (issue #52)
 $releaseLockEarly = (getenv('RELEASE_LOCK_EARLY') == 'yes');
 $releaseLockEarlyPause = env_int('RELEASE_LOCK_EARLY_PAUSE', 3);
 
@@ -135,9 +129,8 @@ if (!empty($remoteAddr)) {
     $_SERVER['REMOTE_ADDR'] = $remoteAddr;
 }
 
-// the child is started with the environment phpunit itself was started with, and PHP copies environment variables into
-// $_SERVER - so a REMOTE_ADDR set in the shell that launched the suite arrives here as a key that exists. Testing what
-// happens when there is genuinely no REMOTE_ADDR means removing it here.
+// the child inherits phpunit's environment and PHP copies environment variables into $_SERVER, so a REMOTE_ADDR
+// set in the shell that started the suite arrives as a key that exists
 if (getenv('UNSET_REMOTE_ADDR') == 'yes') {
     unset($_SERVER['REMOTE_ADDR']);
 }
@@ -171,9 +164,8 @@ $port = getenv('DB_PORT') ?: '3306';
 $dbname = getenv('DB_NAME') ?: 'test_db';
 $user = getenv('DB_USER') ?: 'root';
 
-// an empty password is a perfectly ordinary setting, and proc_open() drops environment entries whose value is an empty
-// string - so an empty password arrives here as "not set at all". The suite always passes DB_PASS and its own default
-// is empty, so absent has to mean empty rather than some password the server has never heard of.
+// proc_open() drops empty environment entries, so an empty password arrives as one that was never set - absent
+// means empty here, the same as in settings.php
 $pass = getenv('DB_PASS');
 $pass = $pass === false ? '' : $pass;
 $table = getenv('DB_TABLE') ?: 'zebra_session_test_data';
@@ -346,9 +338,8 @@ if (!empty($readFlashData)) {
 
 }
 
-// If requested, the data is printed.
-// Since the tests may not wait for the process to finish, we close and write the session before printing stored data.
-// When the data is printed then it's guaranteed to be stored.
+// the session is written and closed before the data is printed, so anything printed is already stored - the tests
+// do not always wait for the process to finish
 // Read it only when it was asked for, and coalesce the missing key - the value has to be captured before
 // session_write_close() below, but scenarios that never write to the session would otherwise emit an "Undefined array key"
 // warning straight into the stream the tests scan for their expected output.
@@ -398,8 +389,8 @@ if ($destroySession) {
 if ($releaseLockEarly) {
     $link->query('SELECT RELEASE_LOCK(\'session_' . sha1($sid) . '\')');
     echo json_encode(['lock_released_early' => $sid]);
-    // the pause is what gives the test its window to grab the lock - without somebody else holding it, RELEASE_LOCK would
-    // report that the lock does not exist rather than that it belongs to another connection
+    // the pause gives the test its window to grab the lock - unheld, RELEASE_LOCK would report that the lock does
+    // not exist rather than that it belongs to another connection
     sleep($releaseLockEarlyPause);
 }
 

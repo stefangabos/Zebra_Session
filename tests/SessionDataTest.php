@@ -94,8 +94,7 @@ class SessionDataTest extends SessionTestCase
      * anything a user typed. It goes into the database through a prepared statement and comes back out of a blob column,
      * and the two drivers are handed their character set in different ways, so both need checking.
      *
-     * The quotes and the backslash are also what keeps the library honest about binding its values rather than pasting
-     * them into the query - the class ran on interpolated SQL until prepared statements went in.
+     * The quotes and the backslash also cover the binding of values, rather than pasting them into the query.
      *
      * @see 33bc8bd and https://github.com/stefangabos/Zebra_Session/issues/20
      *
