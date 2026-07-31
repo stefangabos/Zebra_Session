@@ -76,8 +76,12 @@ class ChildProcess
 
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
 
+        // proc_open() runs a command string through "/bin/sh -c", which leaves the shell as the process this handle
+        // holds and PHP as its child - proc_terminate() would then signal the shell and leave PHP orphaned, still
+        // holding its session lock. "exec" has the shell replace itself with PHP, so there is only ever one process
+        // to signal. bash happens to do that on its own for a simple command, dash does not.
         $process = proc_open(
-            escapeshellarg(self::interpreter()) . ' ' . escapeshellarg($resolved['path']),
+            'exec ' . escapeshellarg(self::interpreter()) . ' ' . escapeshellarg($resolved['path']),
             $descriptors,
             $pipes,
             null,

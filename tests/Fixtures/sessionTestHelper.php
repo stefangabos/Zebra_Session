@@ -15,6 +15,23 @@
 require_once __DIR__ . '/../../Zebra_Session.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+/**
+ * Reads a whole number from the environment.
+ *
+ * "0" is a meaningful value for every one of these and a plain "?:" would quietly replace it with the default, so only
+ * a variable that is missing falls back. Missing covers empty as well: proc_open() drops environment entries whose
+ * value is an empty string, so a knob set to "" arrives here as one that was never set.
+ *
+ * @param   string  $name       name of the environment variable
+ * @param   int     $default    what to use when it is not set
+ *
+ * @return  int
+ */
+function env_int($name, $default) {
+    $value = getenv($name);
+    return ($value === false || $value === '') ? $default : (int)$value;
+}
+
 // Configuration
 $sid = getenv('TEST_SESSION_ID') ?: 'zebra-unit-test-session';
 $readOnly = (getenv('READ_ONLY') == 'yes' );
@@ -34,12 +51,11 @@ $readFlashData = getenv('READ_FLASHDATA');
 // let the constructor start the session (with the id passed in a cookie) instead of starting it here afterwards
 $autostartSession = (getenv('AUTOSTART_SESSION') == 'yes');
 // how long the library waits for the session lock - lowered by the test that checks what happens when it gives up
-$lockTimeout = (int)(getenv('LOCK_TIMEOUT') ?: 60);
+$lockTimeout = env_int('LOCK_TIMEOUT', 60);
 // how long a session is meant to last, which is what ends up in the session_expire column
 // "0" is a meaningful value here - it is the constructor's own default and means "until the browser is closed" - so it
 // has to be told apart from the variable not being set at all
-$sessionLifetimeSetting = getenv('SESSION_LIFETIME');
-$sessionLifetime = ($sessionLifetimeSetting === false || $sessionLifetimeSetting === '') ? 3600 : (int)$sessionLifetimeSetting;
+$sessionLifetime = env_int('SESSION_LIFETIME', 3600);
 $stopSession = (getenv('STOP_SESSION') == 'yes');
 // base64 so that payloads with null bytes or anything else the environment cannot carry still get through intact
 $writeDataBase64 = getenv('WRITE_DATA_BASE64');
@@ -54,7 +70,7 @@ $getIni = (getenv('GET_INI') == 'yes');
 // start a plain PHP session before the library is instantiated, to check that the library gets rid of it
 $prestartSession = (getenv('PRESTART_SESSION') == 'yes');
 // how many seconds the long running task holds the session for
-$longTaskCycles = (int)(getenv('LONG_TASK_CYCLES') ?: 100);
+$longTaskCycles = env_int('LONG_TASK_CYCLES', 100);
 $getSettings = (getenv('GET_SETTINGS') == 'yes');
 
 // the garbage collection settings get_settings() reports on - a divisor of 0 used to make it fail
@@ -80,7 +96,7 @@ if ($useStrictMode !== false && $useStrictMode !== '') {
 // for the test to take that lock on a connection of its own. the library's own RELEASE_LOCK then runs against a lock held
 // by somebody else, returns 0, and close() has to say so instead of carrying on as if all was well (issue #52)
 $releaseLockEarly = (getenv('RELEASE_LOCK_EARLY') == 'yes');
-$releaseLockEarlyPause = (int)(getenv('RELEASE_LOCK_EARLY_PAUSE') ?: 3);
+$releaseLockEarlyPause = env_int('RELEASE_LOCK_EARLY_PAUSE', 3);
 
 // Everything below feeds the hash the library stores alongside the session and checks on every read - this is what ties
 // a session to the visitor who started it. There is no web server here, so the values a browser would normally provide
